@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:single-spa:singularlabs-mf-transactions": "ng build singularlabs-mf-transactions --configuration production",
+    "serve:single-spa:singularlabs-mf-transactions": "ng s --project singularlabs-mf-transactions --disable-host-check --port 4217 --live-reload false"
   },
   "private": true,
   "dependencies": {
@@ -19,10 +21,13 @@
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
     "rxjs": "~7.5.0",
+    "single-spa": ">=4.0.0",
+    "single-spa-angular": "7.1.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
+    "@angular-builders/custom-webpack": "latest",
     "@angular-devkit/build-angular": "^14.2.13",
     "@angular/cli": "~14.2.13",
     "@angular/compiler-cli": "^14.2.0",
@@ -33,6 +38,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
+    "style-loader": "^3.3.1",
     "typescript": "~4.7.2"
   }
 }
