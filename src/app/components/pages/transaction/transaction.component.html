@@ -1,0 +1,19 @@
+<div class="content bg-gray-3">
+    <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+        <uni-image-card title="Transacciones" externImage="https://i0.wp.com/fpalatam.com/wp-content/uploads/2021/01/TRANSACCIONES.jpg?fit=735%2C490&ssl=1" size="15%">
+
+        </uni-image-card>
+
+        <mat-card class="custom-border-radius-1-25" >
+            <mat-card-content>
+
+                <!-- <mat-card-title>Transacciones</mat-card-title> -->
+            
+       
+        <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [refreshFunction]="reload.bind(this)">
+
+        </uni-dynamic-table>
+    </mat-card-content>
+    </mat-card>
+    </div>
+</div>
