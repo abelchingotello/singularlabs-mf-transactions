@@ -224,8 +224,11 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
       if (this.pageKey) {
         this.pageChange.emit(event);
       }
-    }
-    // delete this.paginator.hasNextPage;
+    } 
+    //limitar al no existir data en la siguiente página
+    delete (this.paginator as any).hasNextPage;
+    
+
     this.pageSize = event.pageSize;
   }
 

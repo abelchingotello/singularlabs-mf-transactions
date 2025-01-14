@@ -10,7 +10,7 @@
                 <!-- <mat-card-title>Transacciones</mat-card-title> -->
             
        
-        <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [refreshFunction]="reload.bind(this)">
+        <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [refreshFunction]="reload.bind(this)" (pageChange)="onPageChange($event)" [pageKey]="pageKey">
 
         </uni-dynamic-table>
     </mat-card-content>

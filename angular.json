@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "outputPath": "dist/singularlabs-mf-transactions",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.single-spa.ts",
             "polyfills": "src/polyfills.ts",
@@ -68,6 +68,13 @@
               "sourceMap": true,
               "namedChunks": true,
               "outputHashing": "none"
+            },
+            "desarrollo":{
+              "deployUrl":"https://io.dev.achingo.com/singularlabs-mf-transactions/",
+              "fileReplacements":[{
+                "replace":"src/environments/environment.ts",
+                "with":"src/environments/environment.desarrollo.ts"
+              }]
             }
           },
           "defaultConfiguration": "production"
@@ -80,6 +87,9 @@
             },
             "development": {
               "browserTarget": "singularlabs-mf-transactions:build:development"
+            },
+            "desarrollo":{
+              "browserTarget": "singularlabs-mf-transactions:build:production"
             }
           },
           "defaultConfiguration": "development"
