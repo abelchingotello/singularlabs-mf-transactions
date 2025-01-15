@@ -16,8 +16,8 @@ export class TransactionComponent implements OnInit {
 
   public columns: any[] = [
     { 'name': 'Concepto', 'attribute': 'concep' },
-    { 'name': 'Comisiones', 'attribute': 'comission'},
-    { 'name': 'Saldo Cliente', 'attribute': 'clientBalance'},
+    { 'name': 'Comisión', 'attribute': 'comission'},
+    { 'name': 'Saldo', 'attribute': 'clientBalance'},
     { 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Zona Operación', 'attribute': 'operationZone'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
@@ -91,6 +91,14 @@ export class TransactionComponent implements OnInit {
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
+  }
+
+  selectedHandle(event:any[]){
+    console.log("SELECTED HANDLE", event)
+  }
+  
+  selectedHandleIds(event:any[]){
+    console.log("SELECTED HANDLE POR ID", event)
   }
 
 }
