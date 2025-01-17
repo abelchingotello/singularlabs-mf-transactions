@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TransactionComponent } from './transaction-component/transaction.component';
+import { ExtortTransactionComponent } from './extort-transaction/extort-transaction.component';
 
 const routes: Routes = [
-  {path:'', component:TransactionComponent}
+  {path:'',component:ExtortTransactionComponent}
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class TransactionRoutingModule { }
+export class ExtortRoutingModule { }

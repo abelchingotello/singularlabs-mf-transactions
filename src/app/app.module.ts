@@ -8,6 +8,8 @@ import { ToastrModule } from 'ngx-toastr';
 import { LibraryModule } from './components/library/library.module';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DialogTransactionStatusComponent } from './dialogs/dialog-transaction-status/dialog-transaction-status.component';
+import { DialogTransactionModule } from './dialogs/dialog-transaction.module';
 
 @NgModule({
   declarations: [
@@ -19,7 +21,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     AppRoutingModule,
     ToastrModule.forRoot(),
     LibraryModule,
-    HttpClientModule
+    HttpClientModule,
+    DialogTransactionModule
   ],
   providers: [interceptorSpringProvider],
   bootstrap: [AppComponent]

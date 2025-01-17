@@ -1,0 +1,27 @@
+<div class="content bg-gray-3">
+    <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+        <uni-image-card title="Anulación" externImage="https://st5.depositphotos.com/27657544/62705/v/450/depositphotos_627055370-stock-illustration-bank-app-card-payment-digital.jpg" size="9%">
+
+        </uni-image-card>
+
+        <mat-card class="custom-border-radius-1-25">
+            <mat-card-content>
+                <div>
+                    <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
+                    <uni-dynamic-table [columns]="columns" [data]="dataCancelation"
+                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
+                        [pageKey]="pageKey" [actionsOptions]="true" >
+
+                        <!-- <div class="d-flex">
+                            <button class="icon-button" [disabled]="disabledEditOption" mat-icon-button
+                                (click)="edit()">
+                                <mat-icon matTooltip="Editar">edit</mat-icon>
+                            </button>
+                        </div> -->
+                    </uni-dynamic-table>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+    </div>
+</div>
