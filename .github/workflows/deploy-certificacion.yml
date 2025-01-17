@@ -33,7 +33,7 @@ jobs:
        echo "Rol: ${{secrets.AWS_ACCESS_TR_PI}}"
 
     - name: Build project with the correct environment configuration
-      run: npm run build-desa:single-spa:singularlabs-mf-services
+      run: npm run build-desa:single-spa:singularlabs-mf-transactions
 
 
     - name: Connect to AWS
@@ -45,4 +45,4 @@ jobs:
 
 
     - name: Update to S3
-      run: aws s3 sync ./dist/ s3://${{secrets.AWS_ACCESS_TR_PI}}/singularlabs-mf-services --delete
+      run: aws s3 sync ./dist/ s3://${{secrets.AWS_ACCESS_TR_PI}}/singularlabs-mf-transactions --delete
