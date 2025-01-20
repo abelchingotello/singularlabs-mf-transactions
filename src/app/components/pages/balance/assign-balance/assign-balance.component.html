@@ -1,0 +1,63 @@
+<div class="content bg-gray-3">
+    <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+        <uni-image-card title="Asignar saldo" externImage="https://png.pngtree.com/png-clipart/20220628/ourlarge/pngtree-cash-banknotes-money-bag-cartoon-png-image_5339686.png" size="15%"></uni-image-card>
+
+
+        <mat-card>
+            <!-- <mat-card-subtitle> -->
+                <!-- <h2>Asignar Saldo</h2> -->
+            <!-- </mat-card-subtitle> -->
+
+            <div class="p-4">
+                <form [formGroup]="assignForm">
+                    <mat-form-field appearance="outline" class="col-md-4">
+                        <mat-label>Nombre</mat-label>
+                        <input formControlName="concept" type="text" matInput maxlength="100">
+                        <mat-hint align="end">{{assignForm.get('concept')?.value?.length ?? 0}} / 100</mat-hint>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="col-md-4"> 
+                        <mat-label>Saldo a asignar</mat-label>
+                        <input formControlName="amountTransaction" type="number" matInput>
+                        <mat-icon matSuffix>attach_money</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="col-md-4">
+                        <mat-label>Moneda</mat-label>
+                        <input formControlName="currency" type="text" matInput>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="col-md-4">
+                        <mat-label>Seleccionar cliente o proveedor</mat-label>
+                        <mat-select (selectionChange)="selecType($event)">
+                            <mat-option *ngFor="let type of typeEntity" [value]="type">{{type.master_relativeName}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field *ngIf="nameType.length>0" appearance="outline" class="col-md-4">
+                        <mat-label>Seleccionar entidad</mat-label>
+                        <mat-select (selectionChange)="selectEntity($event)">
+                            <mat-option *ngFor="let type of nameType" [value]="type.servicePerson">{{type.servicePerson.nameAlias}}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </form>
+            </div>
+        </mat-card>
+
+
+        <mat-card class="custom-border-radius-1-25">
+            <mat-card-content>
+                <div class="d-flex justify-content-between p-4">
+                    <button mat-flat-button (click)="onPrevious()">
+                        Cancelar
+                    </button>
+                    <button mat-flat-button (click)="saveAssign()">
+                        Guardar
+                    </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
+
+
