@@ -45,4 +45,4 @@ jobs:
 
 
     - name: Update to S3
-      run: aws s3 sync ./dist/ s3://${{secrets.AWS_ACCESS_TR_PI}}/singularlabs-mf-transactions --delete
+      run: aws s3 sync ./dist/ s3://${{secrets.AWS_BUCKET_TR_PI}}/singularlabs-mf-transactions --delete
