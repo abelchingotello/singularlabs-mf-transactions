@@ -1,0 +1,50 @@
+<mat-card class="transaction-card">
+    <mat-card-header class="transaction-header">
+        <mat-icon mat-card-avatar>payment</mat-icon>
+        <mat-card-title>Detalles de Transacción</mat-card-title>
+    </mat-card-header>
+
+    <mat-divider></mat-divider>
+
+    <mat-card-content class="transaction-card-content">
+        <div class="transaction-card-amount">
+            <span>Monto:</span>
+            <h3>{{transaction?.amountTransaction}} {{transaction?.currency}}</h3>
+        </div>
+
+        <div class="transaction-card-info-row">
+            <div class="info-group">
+                <span>Titular:</span>
+                <h3>{{transaction?.billHolder}}</h3>
+            </div>
+            <div class="info-group">
+                <span>Estado:</span>
+                <p [class.completed]="transaction?.transactionStatus === 'COMPLETADO'">
+                    {{transaction?.transactionStatus}}
+                </p>
+            </div>
+        </div>
+
+        <div class="transaction-card-date">
+            <mat-icon>calendar_today</mat-icon>
+            <span>{{transaction.date | date:'dd/MM/yyyy HH:mm'}}</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <div class="transaction-card-details">
+            <div class="detail-item">
+                <span>Concepto:</span>
+                <h3>{{transaction?.concept || '--'}}</h3>
+            </div>
+            <div class="detail-item">
+                <span>Código:</span>
+                <h3>{{transaction?.transactionCode || '---'}}</h3>
+            </div>
+            <div class="detail-item">
+                <span>Referencia:</span>
+                <h3>{{transaction?.transactionReference || '---'}}</h3>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>

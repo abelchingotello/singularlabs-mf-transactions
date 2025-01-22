@@ -12,12 +12,9 @@ import { ServicesService } from 'src/app/services/services.service';
 export class DialogTransactionStatusComponent implements OnInit {
 
   constructor(
-    private form: FormBuilder,
     public dialogRef: MatDialogRef<DialogTransactionStatusComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: DialogData,
-    private service : ServicesService,
-    private mytoastr :  MytoastrService
   ) { }
 
   ngOnInit(): void {

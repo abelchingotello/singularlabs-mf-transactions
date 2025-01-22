@@ -6,21 +6,37 @@
 
         </uni-image-card>
 
+        <mat-card>
+            <h2 style="margin-top: 23px; margin-left: 20px;">Búsqueda de Operaciones</h2>
+            <div class="p-4">
+                <form [formGroup]="formOperation" class="d-flex flex-wrap align-items-center gap-3">
+                    <mat-form-field class="flex-grow-1" appearance="outline">
+                        <mat-label>Número de operación</mat-label>
+                        <input formControlName="numOperation" matInput placeholder="Número">
+                    </mat-form-field>
+
+                    <button type="button" class="btn-primary btn" (click)="searchOperation()">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </mat-card>
+
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
                     <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
                     <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
-                        [pageKey]="pageKey" [actionsOptions]="true" (selectedChange)="selectedHandle($event)"
+                        [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
                         (selectedIdsChange)="handleSelectedIds($event)">
 
-                        <div class="d-flex">
+                        <!-- <div class="d-flex">
                             <button class="icon-button" [disabled]="disabledEditOption" mat-icon-button
                                 (click)="edit()">
                                 <mat-icon matTooltip="Editar">edit</mat-icon>
                             </button>
-                        </div>
+                        </div> -->
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>

@@ -6,6 +6,9 @@ import { PageEvent } from '@angular/material/paginator';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { MatDialog } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-operation/dialog-search-operation.component';
+import { MytoastrService } from 'src/app/services/mytoastr';
 
 @Component({
   selector: 'app-transaction',
@@ -19,7 +22,7 @@ export class TransactionComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Concepto', 'attribute': 'concep' },
     { 'name': 'Comisión', 'attribute': 'comission'},
-    { 'name': 'Saldo', 'attribute': 'clientBalance'},
+    { 'name': 'Monto transacción', 'attribute': 'amountTransaction'},
     { 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Zona Operación', 'attribute': 'operationZone'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
@@ -33,6 +36,9 @@ export class TransactionComponent implements OnInit {
   public pageKey: any[] | undefined;
   public disabledEditOption:any
   public functionDataCurrent!: ((pageSize: any) => any);
+  public formOperation! : FormGroup<any>;
+  public transaction :any;
+  public respSearch : any
 
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
@@ -41,6 +47,8 @@ export class TransactionComponent implements OnInit {
     private spinner : SpinnerService,
     private transactionService : TransactionService,
     private dialog: MatDialog,
+    private fb : FormBuilder,
+    private mytoastr : MytoastrService
   ) { 
     this.pagUtils = new PaginationUtils();
   }
@@ -48,6 +56,14 @@ export class TransactionComponent implements OnInit {
   ngOnInit(): void {
     this.functionDataCurrent = this.getDataTransaction.bind(this);
     this.functionDataCurrent(this.pageSize)
+    this.initialForm();
+  }
+
+
+  initialForm(){
+    this.formOperation = this.fb.group({
+      numOperation: ['', Validators.required],
+    })
   }
 
   getDataTransaction(pageSize: any){
@@ -132,11 +148,59 @@ export class TransactionComponent implements OnInit {
 
   }
 
+  searchOperation(){
+    if(!this.numOperation?.valid){
+      this.mytoastr.showWarning('Ingrese un valor para búsqueda','')
+      return
+    }
+    this.spinner.spinnerOnOff();
+    console.log("searchOperation", this.formOperation)
+    // return
+    this.transactionService.balanceVoucher(this.numOperation?.value).subscribe({
+      next: (response: any) => {
+        this.respSearch = response
+        if (response.statusCode !== 200) {
+          this.spinner.spinnerOnOff();
+          let resp = response?.message || response?.messages
+          this.mytoastr.showError(resp, 'Error');
+          return
+        }
+        this.transaction = response.data
+      },
+      error: (error: any) => {
+        this.spinner.spinnerOnOff();
+        console.error('Error:', error);
+      },
+      complete: () => {
+        if(this.respSearch.statusCode == 200){
+          this.spinner.spinnerOnOff();
+          this.openDialog();
+          this.mytoastr.showSuccess('Operacion encontrada','')
+        }
+      }
+    })
+
+
+
+  }
+
+  openDialog(){
+    const dialogRef = this.dialog.open(DialogSearchOperationComponent, {
+      width:'900px',
+      panelClass:'dialog-container',
+      data: {
+      resp: this.transaction 
+    },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      this.reload();
+      console.log('The dialog was closed',result);
+    });
+  }
+
+  get numOperation(){
+    return this.formOperation.get('numOperation');
+  }
+
 }
-
-
-[{"id":"PAY_BILL","name":"BASE DE DATOS","isActive":true},{"id":"PAY_PARTIAL","name":"PAGO PARCIAL","isActive":true},{"id":"PAY_CARD","name":"PAGO CON TARJETA","isActive":true},{"id":"FREQUENT_OPERATION","name":"OPERACION FRECUENTE","isActive":true},{"id":"PAY_DEBT_OLDEST","name":"DEUDA MAS ANTIGUA","isActive":true},{"id":"PAY_ONLINE","name":"INTERCONECTADO, PAGO EN LINEA","isActive":true},{"id":"PAY_ACCOUNT","name":"PAGO CON CARGO EN CUENTA","isActive":true},{"id":"PAY_REFLECTED","name":"REFLEJO DE PAGO","isActive":true},{"id":"PAY_AUTOMATIC","name":"DEBITO AUTOMATICO","isActive":true},{"id":"PAY_FIXED_RATE","name":"TASAS FIJAS","isActive":false},{"id":"PAY_CASH","name":"PAGO EN EFECTIVO","isActive":true},{"id":"PAY_CHECK_INTERNAL","name":"PAGO CON CHEQUE PROPIO BANCO","isActive":true},{"id":"PAY_CHECK_EXTERNAL","name":"PAGO CON CHEQUE OTRO BANCO","isActive":true},{"id":"PAY_MULTIPLE_PAYMENTS","name":"ACTUALIZACION MASIVA DE DEUDAS","isActive":true}]
-;
-
-
-[{"id":"001","name":"NUMERO DE SUMINISTRO","fieldType":{"id":"N","name":"NUMERICO"},"fieldMask":"D","maximumLength":"8","isMandatory":true,"isEditable":true},{"id":"002","name":"NRO. COMPROBANTE","fieldType":{"id":"A","name":"ALFANUMERICO"},"fieldMask":"D","maximumLength":"13","isMandatory":true,"isEditable":true}]

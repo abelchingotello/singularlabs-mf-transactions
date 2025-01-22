@@ -1,0 +1,102 @@
+.transaction-card {
+    &-content {
+        padding: 20px;
+    }
+
+    &-amount {
+        background: #f9fafb;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+
+        h3 {
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+        }
+    }
+
+    &-info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+        .info-group {
+            span {
+                color: #6b7280;
+                font-size: 14px;
+            }
+
+            h3 {
+                margin: 4px 0 0 0;
+                color: #1f2937;
+            }
+
+            .completed {
+                color: #059669;
+                font-weight: 500;
+            }
+        }
+    }
+
+    &-date {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 16px;
+
+        mat-icon {
+            font-size: 18px;
+            height: 18px;
+            width: 18px;
+        }
+    }
+
+    &-details {
+        margin-top: 16px;
+
+        .detail-item {
+            margin-bottom: 12px;
+
+            span {
+                color: #6b7280;
+                font-size: 14px;
+            }
+
+            h3 {
+                margin: 4px 0 0 0;
+                color: #1f2937;
+            }
+        }
+    }
+}
+
+.transaction-header {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+
+    mat-icon {
+        // color: #4f46e5;
+        margin-right: 12px;
+    }
+
+    mat-card-title {
+        font-size: 18px;
+        // font-weight: 600;
+        color: #1f2937;
+    }
+}
+
+@media (max-width: 600px) {
+
+    ::ng-deep .mat-dialog-container{
+        padding: 0 !important;
+    }
+}

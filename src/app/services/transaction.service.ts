@@ -25,4 +25,22 @@ export class TransactionService {
     }
     return this.httpClient.get(`${this.url}/transactions`,{params});
   }
+
+  getBalance(limit?:any ,pageKey?:any []):Observable<any>{
+    let params = new  HttpParams();
+    if (limit !== undefined) {
+      params = params.set('limit', limit);
+    }
+    
+    if (pageKey !== undefined) {
+      params = params.set('pageKey', JSON.stringify(pageKey));
+    }
+    return this.httpClient.get(`${this.url}/transactions/balances`,{params});
+  }
+
+  balanceVoucher(numberOperation:string){
+    let params = new HttpParams();
+    params = params.set('numberOperation', numberOperation);
+    return this.httpClient.get(`${this.url}/transactions/voucher`,{params});
+  }
 }

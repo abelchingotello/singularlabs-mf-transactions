@@ -18,7 +18,9 @@ export class AssignBalanceComponent implements OnInit {
   public assignForm!: FormGroup;
   public selectedType: any;
   public typeEntity: any;
-  public nameType: any[] = []
+  public nameType: any[] = [];
+  public nameConcept: string | undefined;
+  public provider : string = 'PROVIDER'
 
   constructor(
     private fb: FormBuilder,
@@ -33,10 +35,10 @@ export class AssignBalanceComponent implements OnInit {
   ngOnInit(): void {
     this.formAssign();
     this.listData();
-
-    this.assignForm.get('concept')?.valueChanges.subscribe(value => {
+    this.nameConcept = this.concept?.value
+    this.concept?.valueChanges.subscribe(value => {
       if (value) {
-        this.assignForm.get('concept')?.setValue(value.toUpperCase(), { emitEvent: false });
+        this.concept?.setValue(value.toUpperCase(), { emitEvent: false });
       }
     });
 
@@ -44,7 +46,7 @@ export class AssignBalanceComponent implements OnInit {
 
   formAssign() {
     this.assignForm = this.fb.group({
-      concept: ['', Validators.required],
+      concept: [{ value: 'SALDO', disabled: true }, Validators.required],
       billHolder: "API",
       idProvider: [],
       idClient: [],
@@ -81,8 +83,11 @@ export class AssignBalanceComponent implements OnInit {
   idPerson: string | undefined
   selectEntity(event: any) {
     console.log("ENTIDAD para asignar: ", event.value.idPerson)
-    this.idPerson = event.value.idPerson
-    if (this.selectedType == 'PROVIDER') {
+    this.idPerson = event.value.idPerson;
+    this.concept?.setValue(this.nameConcept)
+    let name = this.concept?.value.concat(' '+event.value.nameAlias)
+    this.concept?.setValue(name)
+    if (this.selectedType == this.provider ) {
       this.idProvider?.setValue(event.value.idPerson)
       this.idClient?.setValue(null)
     } else {
@@ -142,6 +147,10 @@ export class AssignBalanceComponent implements OnInit {
       }
 
     })
+  }
+
+  get concept() {
+    return this.assignForm.get('concept');
   }
 
   get currency() {
