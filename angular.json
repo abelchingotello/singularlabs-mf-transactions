@@ -44,7 +44,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -52,6 +52,7 @@
                   "maximumError": "4kb"
                 }
               ],
+              "deployUrl":"https://d26ttna4r7hfm9.cloudfront.net/singularlabs-mf-transactions/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
