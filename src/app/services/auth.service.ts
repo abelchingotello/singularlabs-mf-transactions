@@ -26,7 +26,7 @@ export class AuthService {
       auth: 'validateSession'
     }
     try {
-      const res: any = await this.httpClient.post<any>(`${this.url}/auth`, credentials).toPromise();
+      const res: any = await this.httpClient.post<any>(`${this.url}/oauth`, credentials).toPromise();
       this.decodeToken()
       return res.validSession;
     } catch (err) {
@@ -127,7 +127,7 @@ export class AuthService {
     }
 
     try {
-      const data = await firstValueFrom(this.httpClient.get<any>(`${this.url}/auth/${this.userId}`));
+      const data = await firstValueFrom(this.httpClient.get<any>(`${this.url}/oauth/${this.userId}`));
       // Asignar los datos del usuario y roles
       this.user = data;
       this.roles = data.user_roles || [];
