@@ -33,7 +33,7 @@ jobs:
        echo "Rol: ${{secrets.AWS_ACCESS_KPROD_TRANSACTIONS}}"
 
     - name: Build project with the correct environment configuration
-      run: npm run build-desa:single-spa:singularlabs-mf-transactions
+      run: npm run build:single-spa:singularlabs-mf-transactions
 
 
     - name: Connect to AWS
