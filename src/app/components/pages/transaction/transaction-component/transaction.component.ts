@@ -9,6 +9,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-operation/dialog-search-operation.component';
 import { MytoastrService } from 'src/app/services/mytoastr';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { MasterService } from 'src/app/services/master.service';
 
 @Component({
   selector: 'app-transaction',
@@ -27,7 +29,8 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Zona Operación', 'attribute': 'operationZone'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
         'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-      } },
+      } 
+    },
     { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
   ];
   public dataTransaction : any[] = [];
@@ -37,10 +40,13 @@ export class TransactionComponent implements OnInit {
   public disabledEditOption:any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation! : FormGroup<any>;
+  public formDate! : FormGroup<any>;
   public transaction :any;
-  public respSearch : any
+  public respSearch : any;
+  public masterStatus: any
+  public entityTypes: any
 
-
+  
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
@@ -48,22 +54,30 @@ export class TransactionComponent implements OnInit {
     private transactionService : TransactionService,
     private dialog: MatDialog,
     private fb : FormBuilder,
-    private mytoastr : MytoastrService
+    private mytoastr : MytoastrService,
+    private masterService : MasterService
   ) { 
     this.pagUtils = new PaginationUtils();
   }
 
   ngOnInit(): void {
     this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize)
+    this.functionDataCurrent(this.pageSize);
     this.initialForm();
+    this.listData();
   }
 
 
   initialForm(){
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
-    })
+    });
+    this.formDate = this.fb.group({
+      date: [''],
+      entity: [''],
+      status: [''],
+    });
+
   }
 
   getDataTransaction(pageSize: any){
@@ -179,9 +193,16 @@ export class TransactionComponent implements OnInit {
         }
       }
     })
+  }
 
-
-
+  search(){
+    if(this.formDate.get('date')?.value == '' &&
+      this.formDate.get('status')?.value == '' &&
+      this.formDate.get('entity')?.value == ''){
+      this.mytoastr.showWarning("Seleccione un filtro","")
+      return
+    }
+    console.log("fecha buscar",this.formDate.get('date')?.value)
   }
 
   openDialog(){
@@ -197,6 +218,35 @@ export class TransactionComponent implements OnInit {
       this.reload();
       console.log('The dialog was closed',result);
     });
+  }
+  
+  listData() {
+    this.spinner.spinnerOnOff();
+    forkJoin([
+      this.masterService.getItemsMasterTable('1'), // Tipos de documentos de identidad
+      this.masterService.getItemsMasterTable('11'),// Tipo de entidades
+    ]).subscribe({
+      next: (response) => {
+        const [masterStatus,entity] = response;
+        this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
+        this.entityTypes = entity.sort((a:any, b:any) => a.master_order - b.master_order);
+        console.log("CATEGORIA: ",this.masterStatus)
+        console.log("CATEGORIA: ",this.entityTypes)
+        
+        this.spinner.spinnerOnOff();
+      },
+      error: (error) => {
+        this.spinner.spinnerOnOff();
+        console.error("Error loading master table data:", error);
+      }
+    });
+  }
+
+  clearSearch(){
+    this.formDate.get('date')?.setValue('')
+    this.formDate.get('status')?.setValue('')
+    this.formDate.get('entity')?.setValue('')
+    //limpiar tabla de transacciones
   }
 
   get numOperation(){
