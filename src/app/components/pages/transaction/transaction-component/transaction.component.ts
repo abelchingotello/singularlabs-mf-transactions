@@ -11,6 +11,9 @@ import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-op
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 import { MasterService } from 'src/app/services/master.service';
+import { PersonService } from 'src/app/services/person.service';
+import { DatePipe } from '@angular/common';
+import { DateService } from 'src/app/services/date.service';
 
 @Component({
   selector: 'app-transaction',
@@ -26,7 +29,7 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Comisión', 'attribute': 'comission'},
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction'},
     { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Zona Operación', 'attribute': 'operationZone'},
+    { 'name': 'Proveedor', 'attribute': 'provider'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
         'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
       } 
@@ -55,7 +58,9 @@ export class TransactionComponent implements OnInit {
     private dialog: MatDialog,
     private fb : FormBuilder,
     private mytoastr : MytoastrService,
-    private masterService : MasterService
+    private masterService : MasterService,
+    private personService : PersonService,
+    private dateService : DateService
   ) { 
     this.pagUtils = new PaginationUtils();
   }
@@ -73,18 +78,26 @@ export class TransactionComponent implements OnInit {
       numOperation: ['', Validators.required],
     });
     this.formDate = this.fb.group({
-      date: [''],
+      date: [new Date()],
       entity: [''],
       status: [''],
     });
 
   }
 
-  getDataTransaction(pageSize: any){
+  getDataTransaction(pageSize?: any){
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
-    this.transactionService.getTransaction(pageSize,this.pageKey).subscribe({
+    let entity = this.entity || undefined;
+    let status = this.status || undefined;
+    const date   = this.dateService.formatTrayDate(this.date).replace(/\//g, '')  || undefined;
+    console.log("fecha: ",date)
+    this.transactionService.getTransaction(entity,status,date,pageSize,this.pageKey).subscribe({
       next: (value:any) => {
+        if(value.statusCode === 201){
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+          return
+        }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
         this.pageKey = value.data.nextPageKey ?? null
         console.log("DATA DE TRANSACTION: " ,value.data)
@@ -202,6 +215,10 @@ export class TransactionComponent implements OnInit {
       this.mytoastr.showWarning("Seleccione un filtro","")
       return
     }
+
+    this.clearData();
+
+    this.getDataTransaction(this.pageSize)
     console.log("fecha buscar",this.formDate.get('date')?.value)
   }
 
@@ -223,13 +240,13 @@ export class TransactionComponent implements OnInit {
   listData() {
     this.spinner.spinnerOnOff();
     forkJoin([
-      this.masterService.getItemsMasterTable('1'), // Tipos de documentos de identidad
-      this.masterService.getItemsMasterTable('11'),// Tipo de entidades
+      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
+      this.personService.getPerson('PROVEEDOR'),// Tipo de entidades
     ]).subscribe({
       next: (response) => {
         const [masterStatus,entity] = response;
         this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
-        this.entityTypes = entity.sort((a:any, b:any) => a.master_order - b.master_order);
+        this.entityTypes = entity.data
         console.log("CATEGORIA: ",this.masterStatus)
         console.log("CATEGORIA: ",this.entityTypes)
         
@@ -247,10 +264,24 @@ export class TransactionComponent implements OnInit {
     this.formDate.get('status')?.setValue('')
     this.formDate.get('entity')?.setValue('')
     //limpiar tabla de transacciones
+    this.clearData();
+    this.getDataTransaction(this.pageSize)
   }
 
   get numOperation(){
     return this.formOperation.get('numOperation');
+  }
+
+  get date(){
+    return this.formDate?.get('date')?.value;
+  }
+
+  get status(){
+    return this.formDate?.get('status')?.value;
+  }
+
+  get entity(){
+    return this.formDate?.get('entity')?.value;
   }
 
 }

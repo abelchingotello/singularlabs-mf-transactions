@@ -49,11 +49,21 @@
                             <mat-label>Seleccionar Cliente o proveedor</mat-label>
                             <mat-select formControlName="entity">
                                 <mat-option  [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
+                                    {{entity.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        
+                        <!-- <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Cliente o proveedor</mat-label>
+                            <mat-select formControlName="entity">
+                                <mat-option  [value]="">NINGUNO</mat-option>
                                 <mat-option *ngFor="let entity of entityTypes" [value]="entity.master_name">
                                     {{entity.master_name}}
                                 </mat-option>
                             </mat-select>
-                        </mat-form-field>
+                        </mat-form-field> -->
                     
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Estado</mat-label>
@@ -64,13 +74,14 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                    
-                        <button type="button" class="btn-primary btn" (click)="clearSearch()">
-                            Limpiar
-                        </button>
-                        <button type="button" class="btn-primary btn" (click)="search()">
-                            Buscar
-                        </button>
+                        <div>
+                            <button type="button" class="btn-primary btn" (click)="clearSearch()">
+                                Limpiar
+                            </button>
+                            <button type="button" class="btn-primary btn" (click)="search()">
+                                Buscar
+                            </button>
+                        </div>
                     </form>
                     <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"

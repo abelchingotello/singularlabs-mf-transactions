@@ -14,8 +14,21 @@ export class TransactionService {
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(limit?:any ,pageKey?:any []):Observable<any>{
+  getTransaction(idprovider?:string,status?:string,date?:any,limit?:any ,pageKey?:any []):Observable<any>{
     let params = new  HttpParams();
+
+    if(idprovider !== undefined){
+      params = params.set('idprovider',idprovider);
+    }
+
+    if(status !== undefined){
+      params = params.set('status',status);
+    }
+
+    if(date !== undefined){
+      params = params.set('date',date);
+    }
+
     if (limit !== undefined) {
       params = params.set('limit', limit);
     }
