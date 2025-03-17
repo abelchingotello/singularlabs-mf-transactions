@@ -1,3 +1,4 @@
+import { CountryCodes } from './../../../../../../../singularlabs-mf-users/src/app/components/library/input-phone/country-codes';
 import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
@@ -52,6 +53,8 @@ export class TransactionComponent implements OnInit {
   public masterStatus: any;
   public entityTypes: any;
   public serviceName : any;
+  public count :any
+  public amountTransaction: any;
 
   
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
@@ -113,6 +116,8 @@ export class TransactionComponent implements OnInit {
           return
         }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
+        this.count = value.data.Count
+        this.amountTransaction = (value.data.Total).toFixed(2)
         this.pageKey = value.data.nextPageKey ?? null
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
