@@ -1,0 +1,15 @@
+<div class="content bg-gray-3">
+    <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+        <uni-image-card title="Transacciones">
+        </uni-image-card>
+
+
+        <mat-card>
+            <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
+            [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
+                        [pageKey]="pageKey" [actionsOptions]="false">
+            </uni-dynamic-table>
+
+        </mat-card>
+    </div>
+</div>

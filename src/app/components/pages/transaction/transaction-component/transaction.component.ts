@@ -93,7 +93,6 @@ export class TransactionComponent implements OnInit {
       numDoc : [''],
       status: [''],
     });
-
   }
 
   getDataTransaction(pageSize?: any){
