@@ -35,6 +35,13 @@ export class MyTransactionComponent implements OnInit {
     { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
   ];
 
+  public params: any = {};
+
+  public typePersonMapping: Record<string, string> = {
+  "PROVIDER": "idprovider",
+  "RECAUDADOR": "idclient"
+};
+
   public dataTransaction : any;
   public pageKey : any[] | undefined;
   public pageSize: any = 5;
@@ -57,7 +64,8 @@ export class MyTransactionComponent implements OnInit {
   ngOnInit(): void {
     this.personId= this.cookie.get('person_id')
     console.log("dataUser: ",this.personId)
-    this.getPerson(this.personId)
+    // this.getPerson(this.personId)
+    this.typePerson = this.cookie.get('prefix')
     this.functionDataCurrent = this.getDataIdTransaction.bind(this);
     this.functionDataCurrent(this.pageSize);
   }
@@ -66,7 +74,8 @@ export class MyTransactionComponent implements OnInit {
     this.spinner.spinnerOnOff();
     this.person.getIdPerson(id).subscribe({
       next:(value)=> {
-         this.typePerson= value.Items[0].PREFIX
+         this.typePerson= value.Items[0].PREFIX;
+         console.log("typePerson: ",this.typePerson)
       },
       error:(error)=>{
         console.log("error: ",error)
@@ -82,19 +91,24 @@ export class MyTransactionComponent implements OnInit {
   getDataIdTransaction(pageSize?: any){
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataIdTransaction)
-    let searchId ;
-    if(this.typePerson =="PROVIDER") {
-      // searchId = 
-    } else if(this.typePerson == 'RECAUDADOR'){
+    const key = this.typePersonMapping[this.typePerson];
 
+    console.log("typePersn: ",this.typePerson)
+    console.log("key: ",key)
+    
+    if (key) {
+      this.params[key] = this.personId;
     }
-    this.transactionService.getIdTransaction(this.personId,pageSize,this.pageKey).subscribe({
+
+    console.log("params: ",this.params)
+
+    this.transactionService.getTransaction(this.params?.idclient,this.params?.idprovider,undefined,undefined,undefined,pageSize,this.pageKey).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201 || value.data.statusCode === 201){
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
           return
         }
-        this.dataTransaction = [...this.dataTransaction,...value.data.items];
+        this.dataTransaction = [...this.dataTransaction,...value.data.Items];
         // this.count = value.data.Count
         // this.amountTransaction = (value.data.Total).toFixed(2)
         this.pageKey = value.data.nextPageKey ?? null

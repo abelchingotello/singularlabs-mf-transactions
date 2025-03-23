@@ -14,7 +14,7 @@ export class TransactionService {
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?:string,status?:string,date?:any,idService?:string,limit?:any ,pageKey?:any []):Observable<any>{
+  getTransaction(idclient?:string,idprovider?:string,status?:string,date?:any,idService?:string,limit?:any ,pageKey?:any []):Observable<any>{
     let params = new  HttpParams();
 
     console.log("idservicio: ",idService)
@@ -22,6 +22,10 @@ export class TransactionService {
 
     if(idclient !== undefined){
       params = params.set('idclient',idclient);
+    }
+
+    if(idprovider !== undefined){
+      params = params.set('idprovider',idprovider);
     }
 
     if(status !== undefined){

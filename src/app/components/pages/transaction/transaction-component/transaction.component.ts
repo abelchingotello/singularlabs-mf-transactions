@@ -108,7 +108,7 @@ export class TransactionComponent implements OnInit {
     console.log("fecha: ",date)
     console.log("idService: ",idServ)
     // return
-    this.transactionService.getTransaction(entity,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey).subscribe({
+    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201){
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
