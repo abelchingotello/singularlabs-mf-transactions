@@ -14,11 +14,15 @@ export class TransactionService {
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?:string,idprovider?:string,status?:string,date?:any,idService?:string,limit?:any ,pageKey?:any []):Observable<any>{
+  getTransaction(idclient?:string,idprovider?:string,status?:string,date?:any,idService?:string,limit?:any ,pageKey?:any [],numDoc?:string):Observable<any>{
     let params = new  HttpParams();
 
     console.log("idservicio: ",idService)
     console.log("serviciofecha : ",date)
+
+    if(numDoc !== undefined){
+      params = params.set('CONCEPT',numDoc);
+    }
 
     if(idclient !== undefined){
       params = params.set('idclient',idclient);

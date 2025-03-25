@@ -101,6 +101,7 @@ export class TransactionComponent implements OnInit {
     let entity = this.entity || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
+    let numDoc = this.numDoc || undefined;
     const date = {
       from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
       to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
@@ -108,7 +109,7 @@ export class TransactionComponent implements OnInit {
     console.log("fecha: ",date)
     console.log("idService: ",idServ)
     // return
-    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey).subscribe({
+    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201){
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
@@ -230,9 +231,9 @@ export class TransactionComponent implements OnInit {
     console.log("formulario busqueda: ",this.formDate)
     if(this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
-      this.formDate.get('entity')?.value == ''){
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
+      this.formDate.get('entity')?.value == ''){
       this.mytoastr.showWarning("Seleccione un filtro","")
       return
     }
@@ -301,6 +302,10 @@ export class TransactionComponent implements OnInit {
 
   get dateStart(){
     return this.formDate?.get('dateStart')?.value;
+  }
+
+  get numDoc(){
+    return this.formDate?.get('numDoc')?.value;
   }
  
   get dateEnd(){

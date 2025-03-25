@@ -1,10 +1,15 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import { CookieService } from 'ngx-cookie-service';
+import { forkJoin } from 'rxjs';
 import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { DateService } from 'src/app/services/date.service';
+import { MasterService } from 'src/app/services/master.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { PersonService } from 'src/app/services/person.service';
+import { ServicesService } from 'src/app/services/services.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
@@ -42,11 +47,16 @@ export class MyTransactionComponent implements OnInit {
   "RECAUDADOR": "idclient"
 };
 
+  public formDate! : FormGroup<any>;
+  
+
   public dataTransaction : any;
   public pageKey : any[] | undefined;
   public pageSize: any = 5;
   public personId :string = '';
   public typePerson : string  = '';
+  public masterStatus: any;
+  public serviceName : any;
 
     @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
   
@@ -56,7 +66,12 @@ export class MyTransactionComponent implements OnInit {
     private spinner : SpinnerService,
     private mytoastr : MytoastrService,
     private person : PersonService,
-    private cookie : CookieService
+    private cookie : CookieService,
+    private fb : FormBuilder,
+    private masterService : MasterService,
+    private personService : PersonService,
+    private dateService : DateService,
+    private serviceServ : ServicesService
   ) { 
     this.pagUtils = new PaginationUtils();
   }
@@ -65,10 +80,24 @@ export class MyTransactionComponent implements OnInit {
     this.personId= this.cookie.get('person_id')
     console.log("dataUser: ",this.personId)
     // this.getPerson(this.personId)
-    this.typePerson = this.cookie.get('prefix')
+    this.typePerson = this.cookie.get('prefix');
+    this.initialForm();
+    this.listData();
     this.functionDataCurrent = this.getDataIdTransaction.bind(this);
     this.functionDataCurrent(this.pageSize);
   }
+
+  initialForm(){
+      this.formDate = this.fb.group({
+        dateStart: [''],
+        dateEnd: [''],
+        entity: [''],
+        idService : [''],
+        numDoc : [''],
+        status: [''],
+      });
+    }
+  
 
   getPerson(id:string){
     this.spinner.spinnerOnOff();
@@ -150,6 +179,28 @@ export class MyTransactionComponent implements OnInit {
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
+  }
+
+  listData() {
+    this.spinner.spinnerOnOff();
+    forkJoin([
+      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
+      this.serviceServ.getServices()
+    ]).subscribe({
+      next: (response) => {
+        const [masterStatus, service] = response;
+        this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.serviceName = service.data
+        console.log("ESTADOS: ", this.masterStatus)
+        console.log("SERVICIOS: ", this.serviceName)
+
+        this.spinner.spinnerOnOff();
+      },
+      error: (error) => {
+        this.spinner.spinnerOnOff();
+        console.error("Error loading master table data:", error);
+      }
+    });
   }
 
 
