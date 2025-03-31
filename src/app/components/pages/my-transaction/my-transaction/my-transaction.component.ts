@@ -55,7 +55,7 @@ export class MyTransactionComponent implements OnInit {
   public pageSize: any = 5;
   public personId :string = '';
   public typePerson : string  = '';
-  public masterStatus: any;
+  public masterStatus: any[] = [];
   public serviceName : any;
 
     @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;

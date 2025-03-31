@@ -270,7 +270,7 @@ export class TransactionComponent implements OnInit {
         const [masterStatus,entity,service] = response;
         this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
         this.entityTypes = entity.data
-        this.serviceName = service.data
+        this.serviceName = service.data.Items
         console.log("ESTADOS: ",this.masterStatus)
         console.log("ENTITIDADES: ",this.entityTypes)
         console.log("SERVICIOS: ",this.serviceName)
