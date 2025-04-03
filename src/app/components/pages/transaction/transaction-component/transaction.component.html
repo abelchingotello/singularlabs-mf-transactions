@@ -23,7 +23,7 @@
         </mat-card> -->
 
         <!-- <mat-card class="custom-border-radius-1-25">
-           
+
         </mat-card> -->
 
         <mat-card class="custom-border-radius-1-25">
@@ -54,12 +54,12 @@
                             <mat-hint align="end">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-date-range-picker #picker></mat-date-range-picker>
-                          
+
                             <!-- <mat-error *ngIf="formDate.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
                             <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error> -->
                           </mat-form-field>
-                          
-                    
+
+
                         <mat-form-field appearance="outline" class="col-md-2">
                             <mat-label>Seleccionar recaudador</mat-label>
                             <mat-select formControlName="entity">
@@ -69,7 +69,7 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-                        
+
                         <mat-form-field appearance="outline" class="col-md-2">
                             <mat-label>Seleccionar servicio</mat-label>
                             <mat-select formControlName="idService">
@@ -84,7 +84,7 @@
                             <mat-label>N° documento</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
-                    
+
                         <mat-form-field appearance="outline" class="col-md-2">
                             <mat-label>Seleccionar Estado</mat-label>
                             <mat-select formControlName="status">
@@ -105,7 +105,7 @@
                             <span class="info-value">{{amountTransaction}}</span>
                         </div>
                     </div>
-                    
+
                     <div style="display: flex;
                         padding-right: 15px;
                         flex-direction: row;
@@ -118,18 +118,23 @@
                             Buscar
                         </button>
                     </div>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
+                    <uni-dynamic-table
+                      [columns]="columns"
+                      [data]="dataTransaction"
+                      [refreshFunction]="reload.bind(this)"
+                      element_id="concep"
+                      (pageChange)="onPageChange($event)"
+                      [pageKey]="pageKey"
+                      [actionsOptions]="false"
+                      (selectedChange)="selectedHandle($event)"
+                      (selectedIdsChange)="handleSelectedIds($event)"
+                      [customExportFunction]="exportDataViaAPI.bind(this)">
+                    </uni-dynamic-table>
+                    <!-- <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
                         [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
                         (selectedIdsChange)="handleSelectedIds($event)">
-
-                        <!-- <div class="d-flex">
-                            <button class="icon-button" [disabled]="disabledEditOption" mat-icon-button
-                                (click)="edit()">
-                                <mat-icon matTooltip="Editar">edit</mat-icon>
-                            </button>
-                        </div> -->
-                    </uni-dynamic-table>
+                    </uni-dynamic-table> -->
                 </div>
             </mat-card-content>
         </mat-card>

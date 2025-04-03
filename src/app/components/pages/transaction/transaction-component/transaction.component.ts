@@ -1,6 +1,7 @@
 import { CountryCodes } from './../../../../../../../singularlabs-mf-users/src/app/components/library/input-phone/country-codes';
 import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
+// import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { PageEvent } from '@angular/material/paginator';
@@ -35,13 +36,13 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Proveedor', 'attribute': 'provider'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
       'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    } 
+    }
   },
   { 'name': 'Cod. respuesta', 'attribute': 'reference' },
     { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
   ];
   public dataTransaction : any[] = [];
-  
+
   public pageSize: any = 5;
   public pageKey: any[] | undefined;
   public disabledEditOption:any
@@ -56,7 +57,7 @@ export class TransactionComponent implements OnInit {
   public count :any
   public amountTransaction: any;
 
-  
+
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
@@ -69,7 +70,7 @@ export class TransactionComponent implements OnInit {
     private personService : PersonService,
     private dateService : DateService,
     private serviceServ : ServicesService
-  ) { 
+  ) {
     this.pagUtils = new PaginationUtils();
   }
 
@@ -249,7 +250,7 @@ export class TransactionComponent implements OnInit {
       width:'900px',
       panelClass:'dialog-container',
       data: {
-      resp: this.transaction 
+      resp: this.transaction
     },
     });
 
@@ -258,7 +259,7 @@ export class TransactionComponent implements OnInit {
       console.log('The dialog was closed',result);
     });
   }
-  
+
   listData() {
     this.spinner.spinnerOnOff();
     forkJoin([
@@ -274,7 +275,7 @@ export class TransactionComponent implements OnInit {
         console.log("ESTADOS: ",this.masterStatus)
         console.log("ENTITIDADES: ",this.entityTypes)
         console.log("SERVICIOS: ",this.serviceName)
-        
+
         this.spinner.spinnerOnOff();
       },
       error: (error) => {
@@ -307,7 +308,7 @@ export class TransactionComponent implements OnInit {
   get numDoc(){
     return this.formDate?.get('numDoc')?.value;
   }
- 
+
   get dateEnd(){
     return this.formDate?.get('dateEnd')?.value;
   }
@@ -323,5 +324,84 @@ export class TransactionComponent implements OnInit {
   get idService(){
     return this.formDate?.get('idService')?.value;
   }
+
+  //----
+  exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
+    console.log('exportDataViaAPI called with', fileType);
+    this.spinner.spinnerOnOff();
+
+    // Preparar los filtros para la exportación
+    const exportFilters: Record<string, any> = {
+      idclient: this.entity,
+      idprovider: undefined,
+      status: this.status,
+      date: this.dateStart || this.dateEnd ?
+        JSON.stringify({
+          from: this.dateStart ? this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') : undefined,
+          to: this.dateEnd ? this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') : undefined
+        }) : undefined,
+      idService: this.idService?.toString(),
+      CONCEPT: this.numDoc
+    };
+
+    // Eliminar propiedades undefined
+    Object.keys(exportFilters).forEach(key => {
+      if (exportFilters[key] === undefined) {
+        delete exportFilters[key];
+      }
+    });
+
+    this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
+      next: (response) => {
+        this.spinner.spinnerOnOff();
+
+        // Verificar si la respuesta tiene cuerpo
+        if (!response.body) {
+          this.mytoastr.showError('La respuesta no contiene datos', '');
+          return;
+        }else{
+          console.log("Sí tiene datos el response")
+        }
+
+        // Decodificar base64
+        const responseBody = response.body || '';
+        const byteCharacters = atob(responseBody);
+        const byteArray = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+        }
+
+        // Obtener nombre del archivo desde headers
+        let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
+        const contentDisposition = response.headers.get('Content-Disposition');
+        if (contentDisposition) {
+          const parts = contentDisposition.split('filename=');
+          if (parts.length > 1) {
+            filename = parts[1].replace(/"/g, '').trim();
+          }
+        }
+
+        console.log('Downloading file:', filename);
+
+        // Crear Blob con el tipo MIME del backend
+        const blob = new Blob([byteArray], {
+          type: response.headers.get('Content-Type') || 'application/octet-stream'
+        });
+
+        // Descargar
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      },
+      error: (error) => {
+        console.error('Error al exportar los datos:', error);
+        this.mytoastr.showError('Error al exportar los datos', '');
+        this.spinner.spinnerOnOff();
+      }
+    });
+  }
+  //----
 
 }

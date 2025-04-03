@@ -1,4 +1,5 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -46,7 +47,7 @@ export class TransactionService {
     if (limit !== undefined) {
       params = params.set('limit', limit);
     }
-    
+
     if (pageKey !== undefined) {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
@@ -58,7 +59,7 @@ export class TransactionService {
     if (limit !== undefined) {
       params = params.set('limit', limit);
     }
-    
+
     if (pageKey !== undefined) {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
@@ -70,7 +71,7 @@ export class TransactionService {
     if (limit !== undefined) {
       params = params.set('limit', limit);
     }
-    
+
     if (pageKey !== undefined) {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
@@ -81,5 +82,23 @@ export class TransactionService {
     let params = new HttpParams();
     params = params.set('numberOperation', numberOperation);
     return this.httpClient.get(`${this.url}/transactions/voucher`,{params});
+  }
+  //-----Exportar de archivos
+  exportTransactions(
+    format: 'xlsx' | 'csv',
+    filters: any
+  ): Observable<HttpResponse<string>> {
+    const params = new HttpParams({
+      fromObject: {
+        ...filters,
+        format: format
+      }
+    });
+
+    return this.httpClient.get(`${this.url}/transactions/export`, {
+      params,
+      observe: 'response',
+      responseType: 'text' // para manejar base64
+    });
   }
 }
