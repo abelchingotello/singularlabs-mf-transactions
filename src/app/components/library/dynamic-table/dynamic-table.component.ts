@@ -44,6 +44,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() actionsOptions?: boolean;
   @Input() element_id?: string | string[] | 'ALL';
   @Input() pageKey: any;
+  @Input() lengthTable: any;
   @Input() refreshFunction!: () => void;
   @Input()
   alwaysShowHeaderOptions: boolean = false;
@@ -112,15 +113,23 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
       // Verificar si se ha modificado pageKey o si ha cambiado el tamaño de los datos
       if (this.pageKey) {
         // Si hay un pageKey válido o los datos han aumentado de tamaño, activamos hasNextPage
-        this.paginator.hasNextPage = () => true;
+        //this.paginator.hasNextPage = () => true;
       }else{
         // this.paginator.hasNextPage = () => false;
       }
 
       // Actualizar el tamaño anterior de los datos para futuras comparaciones
 
+      setTimeout(() => {
+        if (this.paginator) {
+          this.paginator.length = this.lengthTable;
+          this.changeDetectorRef.detectChanges();
+          console.log('paginator', this.paginator.length);
+        }
+      });
       // Iniciar o reiniciar la tabla
       this.initTable();
+
     }
 
     if (changes['columns']) {
@@ -133,6 +142,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   initTable() {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
+    console.log('dataSource.paginator', this.dataSource.paginator);
     this.obs = this.dataSource.connect();
   }
 
@@ -227,14 +237,15 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   onPageChange(event: PageEvent) {
-    if (event.pageSize * (event.pageIndex + 1) >= event.length) {
+    console.log('onPageChange event:', event);
+    if (event.pageSize * (event.pageIndex + 1) <= (event.length) ) {
 
-      if (this.pageKey) {
+      if (this.pageKey && ((event.previousPageIndex && (event.previousPageIndex < event.pageIndex)) || event.previousPageIndex == 0 )) {
         this.pageChange.emit(event);
       }
     }
     //limitar al no existir data en la siguiente página
-    delete (this.paginator as any).hasNextPage;
+    //delete (this.paginator as any).hasNextPage;
 
 
     this.pageSize = event.pageSize;

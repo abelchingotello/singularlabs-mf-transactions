@@ -118,19 +118,7 @@
                             Buscar
                         </button>
                     </div>
-                    <uni-dynamic-table
-                      [columns]="columns"
-                      [data]="dataTransaction"
-                      [refreshFunction]="reload.bind(this)"
-                      element_id="concep"
-                      (pageChange)="onPageChange($event)"
-                      [pageKey]="pageKey"
-                      [actionsOptions]="false"
-                      (selectedChange)="selectedHandle($event)"
-                      (selectedIdsChange)="handleSelectedIds($event)"
-                      [customExportFunction]="exportDataViaAPI.bind(this)">
-                    </uni-dynamic-table>
-                    <!-- <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
+                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
                         [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
                         (selectedIdsChange)="handleSelectedIds($event)">
