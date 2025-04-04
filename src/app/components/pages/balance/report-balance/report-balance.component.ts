@@ -6,6 +6,11 @@ import { SpinnerService } from 'src/app/services/spinner.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 
+//----
+import { DateService } from 'src/app/services/date.service';
+import { MytoastrService } from 'src/app/services/mytoastr';
+import { BalanceService } from 'src/app/services/balance.service';
+//----
 @Component({
   selector: 'app-report-balance',
   templateUrl: './report-balance.component.html',
@@ -38,8 +43,11 @@ export class ReportBalanceComponent implements OnInit {
   constructor(
     private spinner : SpinnerService,
     private router: Router,
-    private transactionService: TransactionService
-  ) { 
+    private transactionService: TransactionService,
+    private dateService: DateService,
+    private mytoastr: MytoastrService,
+    private balanceService: BalanceService,
+  ) {
     this.pagUtils = new PaginationUtils();
   }
 
@@ -96,5 +104,60 @@ export class ReportBalanceComponent implements OnInit {
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
+  }
+  exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
+    console.log('exportDataViaAPI called with', fileType);
+    this.spinner.spinnerOnOff();
+
+    const exportFilters: Record<string, any> = {};
+
+    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+      next: (response) => {
+        this.spinner.spinnerOnOff();
+
+        // Verificar si la respuesta tiene cuerpo
+        if (!response.body) {
+          this.mytoastr.showError('La respuesta no contiene datos', '');
+          return;
+        }
+
+        // Decodificar base64
+        const responseBody = response.body || '';
+        const byteCharacters = atob(responseBody); //-----
+        const byteArray = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+        }
+
+        // Obtener nombre del archivo desde headers
+        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
+        const contentDisposition = response.headers.get('Content-Disposition');
+        if (contentDisposition) {
+          const parts = contentDisposition.split('filename=');
+          if (parts.length > 1) {
+            filename = parts[1].replace(/"/g, '').trim();
+          }
+        }
+
+        console.log('Downloading file:', filename);
+
+        // Crear Blob con el tipo MIME del backend
+        const blob = new Blob([byteArray], {
+          type: response.headers.get('Content-Type') || 'application/octet-stream'
+        });
+
+        // Descargar
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      },
+      error: (error) => {
+        console.error('Error al exportar los datos:', error);
+        this.mytoastr.showError('Error al exportar los datos', '');
+        this.spinner.spinnerOnOff();
+      }
+    });
   }
 }
