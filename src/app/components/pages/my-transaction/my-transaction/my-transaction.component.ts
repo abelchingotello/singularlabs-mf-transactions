@@ -57,6 +57,7 @@ export class MyTransactionComponent implements OnInit {
   public typePerson : string  = '';
   public masterStatus: any[] = [];
   public serviceName : any;
+  public count :any
 
     @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
   
@@ -138,7 +139,7 @@ export class MyTransactionComponent implements OnInit {
           return
         }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        // this.count = value.data.Count
+        if(value.data.Count != 0) this.count = value.data.Count;
         // this.amountTransaction = (value.data.Total).toFixed(2)
         this.pageKey = value.data.nextPageKey ?? null
         console.log("DATA DE TRANSACTION: " ,value.data)

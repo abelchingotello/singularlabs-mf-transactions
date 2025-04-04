@@ -60,7 +60,7 @@
                     </mat-select>
                 </mat-form-field>
             </form>
-            <uni-dynamic-table [columns]="columns" [data]="dataTransaction" 
+            <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
             [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
                         [pageKey]="pageKey" [actionsOptions]="false">
             </uni-dynamic-table>

@@ -35,6 +35,7 @@ export class ReportBalanceComponent implements OnInit {
   public dataBalance: any[] = [];
   public pageSize: any = 5;
   public pageKey: any[] | undefined;
+  public count: any = 0;
 
   public functionDataCurrent!: (pageSize: any) => any;
 
@@ -67,6 +68,7 @@ export class ReportBalanceComponent implements OnInit {
       next: (value:any) => {
         this.dataBalance = [...this.dataBalance,...value.data.Items];
         this.pageKey = value.data.nextPageKey ?? null
+        if(value.data.Count != 0) this.count = value.data.Count;
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
       error: (error: any) => {
