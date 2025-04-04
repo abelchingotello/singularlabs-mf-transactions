@@ -117,8 +117,8 @@ export class TransactionComponent implements OnInit {
           return
         }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        this.count = value.data.Count
-        this.amountTransaction = (value.data.Total).toFixed(2)
+        if(value.data.Count != 0) this.count = value.data.Count;
+        if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
         this.pageKey = value.data.nextPageKey ?? null
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
