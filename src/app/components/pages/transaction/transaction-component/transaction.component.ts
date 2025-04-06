@@ -269,6 +269,7 @@ export class TransactionComponent implements OnInit {
     ]).subscribe({
       next: (response) => {
         const [masterStatus,entity,service] = response;
+        console.log("estatus: ",masterStatus);
         this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
         this.entityTypes = entity.data
         this.serviceName = service.data.Items
