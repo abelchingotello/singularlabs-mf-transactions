@@ -6,7 +6,7 @@
 
         </uni-image-card>
 
-        <mat-card>
+        <!-- <mat-card class="custom-border-radius-1-25">
             <h2 style="margin-top: 23px; margin-left: 20px;">Búsqueda de Operaciones</h2>
             <div class="p-4">
                 <form [formGroup]="formOperation" class="d-flex flex-wrap align-items-center gap-3">
@@ -20,23 +20,116 @@
                     </button>
                 </form>
             </div>
-        </mat-card>
+        </mat-card> -->
+
+        <!-- <mat-card class="custom-border-radius-1-25">
+
+        </mat-card> -->
 
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
                     <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction"
-                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
-                        [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
-                        (selectedIdsChange)="handleSelectedIds($event)">
+                    <!-- <mat-card-title style="margin-top: 23px; margin-left: 20px;" >Búsqueda transacciones</mat-card-title> -->
+                    <form [formGroup]="formDate" class="d-flex align-items-center justify-content-space-evenly flex-wrap">
+                        <!-- <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Elige una fecha</mat-label>
+                            <input formControlName="date" matInput [matDatepicker]="datepicker">
+                            <mat-hint align="end">MM/DD/YYYY</mat-hint>
+                            <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
+                            <mat-datepicker #datepicker>
+                                <mat-datepicker-actions>
+                                    <button mat-button matDatepickerCancel>Cancel</button>
+                                    <button mat-raised-button color="primary" matDatepickerApply>Apply</button>
+                                </mat-datepicker-actions>
+                            </mat-datepicker>
+                        </mat-form-field> -->
 
-                        <!-- <div class="d-flex">
-                            <button class="icon-button" [disabled]="disabledEditOption" mat-icon-button
-                                (click)="edit()">
-                                <mat-icon matTooltip="Editar">edit</mat-icon>
-                            </button>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar fecha</mat-label>
+                            <mat-date-range-input [rangePicker]="picker">
+                              <input matStartDate formControlName="dateStart" placeholder="Start date">
+                              <input matEndDate formControlName="dateEnd" placeholder="End date">
+                            </mat-date-range-input>
+                            <mat-hint align="end">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-date-range-picker #picker></mat-date-range-picker>
+
+                            <!-- <mat-error *ngIf="formDate.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+                            <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error> -->
+                          </mat-form-field>
+
+
+                        <mat-form-field appearance="outline" class="col-md-2">
+                            <mat-label>Seleccionar recaudador</mat-label>
+                            <mat-select formControlName="entity">
+                                <mat-option  [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
+                                    {{entity.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-2">
+                            <mat-label>Seleccionar servicio</mat-label>
+                            <mat-select formControlName="idService">
+                                <mat-option  [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let service of serviceName" [value]="service.id">
+                                    {{service.name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-2">
+                            <mat-label>N° documento</mat-label>
+                            <input formControlName="numDoc" type="text" matInput>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-2">
+                            <mat-label>Seleccionar Estado</mat-label>
+                            <mat-select formControlName="status">
+                                <mat-option  [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
+                                    {{status.master_name}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </form>
+                    <div class="info-container">
+                        <!-- <div class="info-item">
+                            <mat-label>Op consultadas:</mat-label>
+                            <span class="info-value">{{count}}</span>
                         </div> -->
+                        <div class="info-item">
+                            <mat-label>Monto total:</mat-label>
+                            <span class="info-value">{{amountTransaction}}</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex;
+                        padding-right: 15px;
+                        flex-direction: row;
+                        justify-content: flex-end;">
+
+                        <button type="button" class="btn-primary btn" (click)="clearSearch()">
+                            Limpiar
+                        </button>
+                        <button type="button" class="btn-primary btn" (click)="search()">
+                            Buscar
+                        </button>
+                    </div>
+                    <uni-dynamic-table
+                      [columns]="columns"
+                      [data]="dataTransaction"
+                      [lengthTable]="count"
+                      [refreshFunction]="reload.bind(this)"
+                      element_id="concep"
+                      (pageChange)="onPageChange($event)"
+                      [pageKey]="pageKey"
+                      [actionsOptions]="false"
+                      (selectedChange)="selectedHandle($event)"
+                      (selectedIdsChange)="handleSelectedIds($event)"
+                      [customExportFunction]="exportDataViaAPI.bind(this)">
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>

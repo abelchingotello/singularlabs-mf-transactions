@@ -10,6 +10,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DialogTransactionStatusComponent } from './dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { DialogTransactionModule } from './dialogs/dialog-transaction.module';
+import { DatePipe } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,9 @@ import { DialogTransactionModule } from './dialogs/dialog-transaction.module';
     HttpClientModule,
     DialogTransactionModule
   ],
-  providers: [interceptorSpringProvider],
+  providers: [interceptorSpringProvider,
+    DatePipe
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

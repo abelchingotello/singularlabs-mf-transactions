@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { CookieService } from 'ngx-cookie-service';
@@ -136,5 +136,9 @@ export class AuthService {
       console.error('Error al obtener datos del usuario:', err);
       return Promise.reject(err);
     }
+  }
+
+  getDataIdUSer(id:string):Observable<any>{
+    return this.httpClient.get<any>(`${this.url}/oauth/${id}`);
   }
 }

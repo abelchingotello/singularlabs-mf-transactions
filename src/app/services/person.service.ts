@@ -30,5 +30,9 @@ export class PersonService {
 
     return this.httpClient.get(`${this.url}/person/entity`, {params:params});
   }
+
+  getIdPerson(id:string):Observable<any> {
+    return this.httpClient.get(`${this.url}/person/${id}`);
+  }
   
 }
