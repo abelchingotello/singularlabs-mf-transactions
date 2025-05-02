@@ -28,6 +28,7 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
+    { 'name': 'Código de Transacción', 'attribute': 'transactionCode'},
     { 'name': 'Titular', 'attribute': 'bill'},
     { 'name': 'Recaudador', 'attribute': 'client'},
     { 'name': 'Num. recibo', 'attribute': 'concep'},
