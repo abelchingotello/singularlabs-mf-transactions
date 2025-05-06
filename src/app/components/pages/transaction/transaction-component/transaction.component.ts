@@ -28,7 +28,6 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Código de Transacción', 'attribute': 'transactionCode'},
     { 'name': 'Titular', 'attribute': 'bill'},
     { 'name': 'Recaudador', 'attribute': 'client'},
     { 'name': 'Num. recibo', 'attribute': 'concep'},
@@ -57,8 +56,12 @@ export class TransactionComponent implements OnInit {
   public serviceName : any;
   public count :any
   public amountTransaction: any;
+  //-----------------------
+  public clientBalance: any;
+  public providerBalance: any;
+  public currentCommission: any;
 
-
+  public isFirstLoad: boolean = true;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
@@ -75,11 +78,36 @@ export class TransactionComponent implements OnInit {
     this.pagUtils = new PaginationUtils();
   }
 
+  // ngOnInit(): void {
+  //   this.functionDataCurrent = this.getDataTransaction.bind(this);
+  //   this.functionDataCurrent(this.pageSize);
+  //   this.initialForm();
+  //   this.listData();
+  // }
   ngOnInit(): void {
-    this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize);
+    // Primero inicializar los formularios
     this.initialForm();
+
+    // Luego configurar la carga inicial
+    this.functionDataCurrent = this.getDataTransaction.bind(this);
+
+    // Configurar fecha actual para la carga inicial
+    this.setupCurrentDateFilter();
+
+    // Ahora cargar los datos
+    this.functionDataCurrent(this.pageSize);
     this.listData();
+  }
+
+  // Método para configurar el filtro de fecha actual
+  setupCurrentDateFilter(): void {
+    // Asegurarse de que el formulario ya esté inicializado
+    if (this.formDate) {
+      const today = new Date();
+      // Asignar la fecha actual al formulario
+      this.formDate.get('dateStart')?.setValue(today);
+      this.formDate.get('dateEnd')?.setValue(today);
+    }
   }
 
 
@@ -97,41 +125,93 @@ export class TransactionComponent implements OnInit {
     });
   }
 
-  getDataTransaction(pageSize?: any){
+  // getDataTransaction(pageSize?: any){
+  //   this.spinner.spinnerOnOff();
+  //   this.resetUser(this.getDataTransaction)
+  //   let entity = this.entity || undefined;
+  //   let status = this.status || undefined;
+  //   let idServ = this.idService || undefined;
+  //   let numDoc = this.numDoc || undefined;
+  //   const date = {
+  //     from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
+  //     to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
+  //   }
+  //   console.log("fecha: ",date)
+  //   console.log("idService: ",idServ)
+  //   // return
+  //   this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
+  //     next: (value:any) => {
+  //       if(value.statusCode === 201){
+  //         this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+  //         return
+  //       }
+  //       this.dataTransaction = [...this.dataTransaction,...value.data.Items];
+  //       if(value.data.Count != 0) this.count = value.data.Count;
+  //       if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
+  //       this.pageKey = value.data.nextPageKey ?? null
+  //       console.log("DATA DE TRANSACTION: " ,value.data)
+  //     },
+  //     error: (error: any) => {
+  //       console.error('ERROR',error);
+  //       this.spinner.spinnerOnOff();
+  //     },
+  //     complete: () => {
+  //       this.spinner.spinnerOnOff();
+  //     }
+  //   })
+  //   this.functionDataCurrent = this.getDataTransaction
+  // }
+  getDataTransaction(pageSize?: any) {
     this.spinner.spinnerOnOff();
-    this.resetUser(this.getDataTransaction)
+    this.resetUser(this.getDataTransaction);
     let entity = this.entity || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
     let numDoc = this.numDoc || undefined;
     const date = {
-      from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
-      to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
-    }
-    console.log("fecha: ",date)
-    console.log("idService: ",idServ)
-    // return
-    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
-      next: (value:any) => {
-        if(value.statusCode === 201){
-          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
-          return
+      from: this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') || undefined,
+      to: this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') || undefined
+    };
+
+    this.transactionService.getTransaction(entity, undefined, status, JSON.stringify(date), idServ?.toString(), pageSize, this.pageKey, numDoc).subscribe({
+      next: (value: any) => {
+        if (value.statusCode === 201) {
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
+          return;
         }
-        this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        if(value.data.Count != 0) this.count = value.data.Count;
-        if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
-        this.pageKey = value.data.nextPageKey ?? null
-        console.log("DATA DE TRANSACTION: " ,value.data)
+
+        this.dataTransaction = [...this.dataTransaction, ...value.data.Items];
+        if (value.data.Count != 0) this.count = value.data.Count;
+        if (value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
+
+        // Capturar los valores de los nuevos campos solo en la primera carga o cuando cambia el filtro
+        if (this.isFirstLoad && value.data.Items && value.data.Items.length > 0) {
+          // Obtener los valores del primer registro de la respuesta (primera transacción)
+          const firstTransaction = value.data.Items[0];
+          if (firstTransaction.clientBalance !== undefined)
+            this.clientBalance = parseFloat(firstTransaction.clientBalance).toFixed(2);
+          if (firstTransaction.providerBalance !== undefined)
+            this.providerBalance = parseFloat(firstTransaction.providerBalance).toFixed(2);
+          if (firstTransaction.comission !== undefined)
+            this.currentCommission = parseFloat(firstTransaction.comission).toFixed(2);
+
+          // Marcar que ya no es la primera carga
+          this.isFirstLoad = false;
+        }
+
+        this.pageKey = value.data.nextPageKey ?? null;
+        console.log("DATA DE TRANSACTION: ", value.data);
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
         this.spinner.spinnerOnOff();
       }
-    })
-    this.functionDataCurrent = this.getDataTransaction
+    });
+
+    this.functionDataCurrent = this.getDataTransaction;
   }
 
   resetUser(current: any) {
@@ -143,10 +223,20 @@ export class TransactionComponent implements OnInit {
   }
 
 
+  // clearData() {
+  //   this.pageKey = undefined;
+  //   this.dataTransaction = [];
+  //   this.clientBalance = undefined;
+  //   this.providerBalance = undefined;
+  //   this.currentCommission = undefined;
+  //   this.amountTransaction = undefined;
+  //   // this.reload();
+  // }
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // this.reload();
+    // No resetamos los balances y comisión aquí,
+    // se actualizarán automáticamente con la nueva consulta
   }
 
   reload() {
@@ -229,21 +319,39 @@ export class TransactionComponent implements OnInit {
     })
   }
 
-  search(){
-    console.log("formulario busqueda: ",this.formDate)
-    if(this.formDate.get('dateEnd')?.value == '' &&
+  // search(){
+  //   console.log("formulario busqueda: ",this.formDate)
+  //   if(this.formDate.get('dateEnd')?.value == '' &&
+  //     this.formDate.get('status')?.value == '' &&
+  //     this.formDate.get('numDoc')?.value == '' &&
+  //     this.formDate.get('idService')?.value == '' &&
+  //     this.formDate.get('entity')?.value == ''){
+  //     this.mytoastr.showWarning("Seleccione un filtro","")
+  //     return
+  //   }
+
+  //   this.clearData();
+
+  //   this.getDataTransaction(this.pageSize)
+  //   // console.log("fecha buscar",this.formDate.get('date')?.value)
+  // }
+  search() {
+    console.log("formulario busqueda: ", this.formDate);
+    if (
+      this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == ''){
-      this.mytoastr.showWarning("Seleccione un filtro","")
-      return
+      this.formDate.get('entity')?.value == ''
+    ) {
+      this.mytoastr.showWarning("Seleccione un filtro", "");
+      return;
     }
 
+    // Marcar como primera carga para capturar nuevos valores
+    this.isFirstLoad = true;
     this.clearData();
-
-    this.getDataTransaction(this.pageSize)
-    // console.log("fecha buscar",this.formDate.get('date')?.value)
+    this.getDataTransaction(this.pageSize);
   }
 
   openDialog(){
@@ -270,6 +378,7 @@ export class TransactionComponent implements OnInit {
     ]).subscribe({
       next: (response) => {
         const [masterStatus,entity,service] = response;
+        console.log("estatus: ",masterStatus);
         this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
         this.entityTypes = entity.data
         this.serviceName = service.data.Items
@@ -286,16 +395,34 @@ export class TransactionComponent implements OnInit {
     });
   }
 
-  clearSearch(){
-    this.formDate.get('dateEnd')?.setValue('')
-    this.formDate.get('dateStart')?.setValue('')
-    this.formDate.get('status')?.setValue('')
-    this.formDate.get('entity')?.setValue('')
-    this.formDate.get('idService')?.setValue('')
-    this.formDate.get('numDoc')?.setValue('')
-    //limpiar tabla de transacciones
+  // clearSearch(){
+  //   this.formDate.get('dateEnd')?.setValue('')
+  //   this.formDate.get('dateStart')?.setValue('')
+  //   this.formDate.get('status')?.setValue('')
+  //   this.formDate.get('entity')?.setValue('')
+  //   this.formDate.get('idService')?.setValue('')
+  //   this.formDate.get('numDoc')?.setValue('')
+  //   //limpiar tabla de transacciones
+  //   this.clearData();
+  //   this.getDataTransaction(this.pageSize)
+  // }
+  clearSearch() {
+    if (this.formDate) {
+      this.formDate.get('dateEnd')?.setValue('');
+      this.formDate.get('dateStart')?.setValue('');
+      this.formDate.get('status')?.setValue('');
+      this.formDate.get('entity')?.setValue('');
+      this.formDate.get('idService')?.setValue('');
+      this.formDate.get('numDoc')?.setValue('');
+    }
+
+    // Marcar como primera carga para capturar nuevos valores
+    this.isFirstLoad = true;
     this.clearData();
-    this.getDataTransaction(this.pageSize)
+
+    // Configurar la fecha actual antes de hacer la consulta
+    this.setupCurrentDateFilter();
+    this.getDataTransaction(this.pageSize);
   }
 
   get numOperation(){
