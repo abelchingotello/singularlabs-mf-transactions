@@ -11,6 +11,7 @@
     "build-desa:single-spa:singularlabs-mf-transactions": "ng build singularlabs-mf-transactions --configuration desarrollo",
     "serve:single-spa:singularlabs-mf-transactions": "ng s --project singularlabs-mf-transactions --disable-host-check --port 4217 --live-reload false"
   },
+  
   "private": true,
   "dependencies": {
     "@angular/animations": "^14.2.0",
