@@ -5,6 +5,7 @@ import { TransactionRoutingModule } from './transaction-routing.module';
 import { TransactionComponent } from './transaction-component/transaction.component';
 import { LibraryModule } from "../../library/library.module";
 import { MaterialModule } from 'src/app/modules/material/material.module';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -15,7 +16,9 @@ import { MaterialModule } from 'src/app/modules/material/material.module';
     CommonModule,
     TransactionRoutingModule,
     LibraryModule,
-    MaterialModule
+    MaterialModule,
+    ReactiveFormsModule,
+    FormsModule
 ]
 })
 export class TransactionModule { }

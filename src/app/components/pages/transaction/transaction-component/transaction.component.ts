@@ -17,6 +17,7 @@ import { PersonService } from 'src/app/services/person.service';
 import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
+import { expand, filter, of, scan, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-transaction',
@@ -35,7 +36,7 @@ export class TransactionComponent implements OnInit {
     // { 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Proveedor', 'attribute': 'provider'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
     }
   },
   { 'name': 'Cod. respuesta', 'attribute': 'reference' },
@@ -44,7 +45,7 @@ export class TransactionComponent implements OnInit {
   public dataTransaction : any[] = [];
 
   public pageSize: any = 5;
-  public pageKey: any[] | undefined;
+  public pageKey: any | undefined;
   public disabledEditOption:any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation! : FormGroup<any>;
@@ -54,9 +55,12 @@ export class TransactionComponent implements OnInit {
   public masterStatus: any;
   public entityTypes: any;
   public serviceName : any;
-  public count :any
-  public amountTransaction: any;
-
+  public count :any = -1;
+  public page: any = 1;
+  public amountTransaction:any = -1;
+  public filteredServices: any[] = []; // Lista filtrada que se mostrará
+  public allItems: any[] = [];
+  public serviceFilter: string = '';
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
@@ -69,15 +73,19 @@ export class TransactionComponent implements OnInit {
     private masterService : MasterService,
     private personService : PersonService,
     private dateService : DateService,
-    private serviceServ : ServicesService
+    private serviceServ : ServicesService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
 
   ngOnInit(): void {
+    this.initialForm();
     this.functionDataCurrent = this.getDataTransaction.bind(this);
     this.functionDataCurrent(this.pageSize);
-    this.initialForm();
+    this.loadAllServices().subscribe(allItems => {
+      this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
+      this.filteredServices = this.allItems;
+    });
     this.listData();
   }
 
@@ -103,23 +111,22 @@ export class TransactionComponent implements OnInit {
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
     let numDoc = this.numDoc || undefined;
-    const date = {
-      from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
-      to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
-    }
-    console.log("fecha: ",date)
+    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+    
     console.log("idService: ",idServ)
     // return
-    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
+    this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201){
+          this.amountTransaction = 0;
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
           return
         }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        if(value.data.Count != 0) this.count = value.data.Count;
-        if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
-        this.pageKey = value.data.nextPageKey ?? null
+        this.pageKey = value.data.hasMore;
+        if(value.data.count != 0) this.count = value.data.count;
+        if(value.data.totalAmount != 0) this.amountTransaction = (value.data.totalAmount).toFixed(2);
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
       error: (error: any) => {
@@ -145,7 +152,9 @@ export class TransactionComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // this.reload();
+    this.count = -1;
+    this.page = 1;
+    this.amountTransaction = -1;
   }
 
   reload() {
@@ -157,6 +166,7 @@ export class TransactionComponent implements OnInit {
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
+    this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
   }
@@ -265,17 +275,17 @@ export class TransactionComponent implements OnInit {
     forkJoin([
       this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
       this.personService.getPerson('RECAUDADORA DE SERVICIOS'),// Tipo de entidades
-      this.serviceServ.getServices()
+      //this.serviceServ.getServices()
     ]).subscribe({
       next: (response) => {
-        const [masterStatus,entity,service] = response;
+        const [masterStatus,entity] = response;
         console.log("estatus: ",masterStatus);
         this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
         this.entityTypes = entity.data
-        this.serviceName = service.data.Items
+        //this.serviceName = service.data.Items
         console.log("ESTADOS: ",this.masterStatus)
         console.log("ENTITIDADES: ",this.entityTypes)
-        console.log("SERVICIOS: ",this.serviceName)
+       // console.log("SERVICIOS: ",this.serviceName)
 
         this.spinner.spinnerOnOff();
       },
@@ -284,6 +294,19 @@ export class TransactionComponent implements OnInit {
         console.error("Error loading master table data:", error);
       }
     });
+  }
+
+  loadAllServices() {  //revisar para que traiga los 2000
+      return this.serviceServ.getServicesPageKey().pipe(
+        expand(response =>
+          response?.data?.nextPageKey
+            ? this.serviceServ.getServicesPageKey(response.data.nextPageKey)
+            : of(null) // Detiene la recursión si no hay más páginas
+        ),
+        filter(response => response !== null),
+        scan((acc, response) => acc.concat(response.data.Items), []),
+        startWith([]), // Asegura que siempre haya una emisión inicial
+      );
   }
 
   clearSearch(){
@@ -296,6 +319,13 @@ export class TransactionComponent implements OnInit {
     //limpiar tabla de transacciones
     this.clearData();
     this.getDataTransaction(this.pageSize)
+  }
+
+  filterServices() {
+    const value = this.serviceFilter?.toLowerCase() || '';
+    this.filteredServices = this.allItems.filter(service =>
+      service.name.toLowerCase().includes(value)
+    );
   }
 
   get numOperation(){

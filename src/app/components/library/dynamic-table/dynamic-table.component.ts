@@ -237,16 +237,17 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   onPageChange(event: PageEvent) {
-    console.log('onPageChange event:', event);
-    if (event.pageSize * (event.pageIndex + 1) <= (event.length) ) {
+    console.log('onPageChange::::::::', event);
+    const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
+    const to = from + event.pageSize;              // 5 + 5 = 10
 
-      if (this.pageKey && ((event.previousPageIndex && (event.previousPageIndex < event.pageIndex)) || event.previousPageIndex == 0 )) {
-        this.pageChange.emit(event);
-      }
+    console.log(`FROM: ${from} TO: ${to} LENGTH: ${event.length}`);
+
+    if (from < event.length) {
+      this.pageChange.emit(event);
+    } else {
+      console.log('No hay datos para esta página');
     }
-    //limitar al no existir data en la siguiente página
-    //delete (this.paginator as any).hasNextPage;
-
 
     this.pageSize = event.pageSize;
   }

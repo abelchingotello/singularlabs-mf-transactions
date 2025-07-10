@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ReportBalanceComponent } from './report-balance.component';
+import { ListBalanceComponent } from './list-balance.component';
 
-describe('ReportBalanceComponent', () => {
-  let component: ReportBalanceComponent;
-  let fixture: ComponentFixture<ReportBalanceComponent>;
+describe('ListBalanceComponent', () => {
+  let component: ListBalanceComponent;
+  let fixture: ComponentFixture<ListBalanceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ReportBalanceComponent ]
+      declarations: [ ListBalanceComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ReportBalanceComponent);
+    fixture = TestBed.createComponent(ListBalanceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

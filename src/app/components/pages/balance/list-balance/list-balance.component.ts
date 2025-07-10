@@ -10,42 +10,46 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
-//----
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+import { MasterService } from 'src/app/services/master.service';
+import { PersonService } from 'src/app/services/person.service';
+
 @Component({
-  selector: 'app-report-balance',
-  templateUrl: './report-balance.component.html',
-  styleUrls: ['./report-balance.component.scss']
+  selector: 'app-list-balance',
+  templateUrl: './list-balance.component.html',
+  styleUrls: ['./list-balance.component.scss']
 })
-export class ReportBalanceComponent implements OnInit {
+export class ListBalanceComponent implements OnInit {
 
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Nombre', 'attribute': 'concep' },
-    { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
-    { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Saldo cliente', 'attribute': 'clientBalance'},
-    { 'name': 'Fecha', 'attribute': 'date', 'config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }},
-    { 'name': 'Estado', 'attribute': 'status','config':{
-      'styleClass':true
-    }},
+    { 'name': 'Entidad', 'attribute': 'entity' },
+    { 'name': 'Tipo Monto', 'attribute': 'typeAmount' },
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
+    { 'name': 'Moneda', 'attribute': 'currency' },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
   public pageKey: any[] | undefined;
-  public count: any = 0;
-
+  public assignForm!: FormGroup;
   public functionDataCurrent!: (pageSize: any) => any;
-
+  public selectedType: any;
+  public typeEntitys: any;
+  public nameType: any;
+  public page: any = 1;
+  public count: any = -1;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
+    private spinner: SpinnerService,
     private router: Router,
     private transactionService: TransactionService,
+    private personService: PersonService,
     private dateService: DateService,
+    private fb: FormBuilder,
+    private masterService: MasterService,
     private mytoastr: MytoastrService,
     private balanceService: BalanceService,
   ) {
@@ -53,23 +57,75 @@ export class ReportBalanceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.formAssign();
+    this.listData();
     this.functionDataCurrent = this.getDataBalance.bind(this);
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance(){
+  addBalance() {
     this.router.navigate(['balance/assign'])
   }
 
-  getDataBalance(pageSize:any){
+  formAssign() {
+    this.assignForm = this.fb.group({
+      entity: [''],
+      typeEntity: [''],
+    })
+  }
+
+  listData() {
+    forkJoin([
+      this.masterService.getItemsMasterTable('11')
+    ]).subscribe({
+      next: ([typeEntity]) => {
+        this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+        console.log("ENTIDAD: ", this.typeEntitys)
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+      },
+    })
+  }
+
+
+  getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
-    this.transactionService.getBalance(pageSize,this.pageKey).subscribe({
+
+    let typeEntity = this.typeEntity?.master_name || undefined;
+    let entity = this.entity || undefined;
+    
+    console.log("ENTIDAD: ", entity)
+    console.log("TIPO DE ENTIDAD: ", typeEntity)
+
+    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+        this.spinner.spinnerOnOff();
+      return;
+    }
+    
+    this.transactionService.getCurrentBalances(pageSize,this.page,typeEntity,entity,this.count).subscribe({
       next: (value:any) => {
-        this.dataBalance = [...this.dataBalance,...value.data.Items];
-        this.pageKey = value.data.nextPageKey ?? null
-        if(value.data.Count != 0) this.count = value.data.Count;
+        if(value.statusCode == 201){
+          this.mytoastr.showWarning('No se encontraron resultados', '');
+          return;
+        }
+        // cambiar el id entity por el servicePerson.nameAlias de la lista nameType
+        let dataNew = value.data.Items.map((item: any) => {
+          const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
+          return {
+            ...item,
+            entity: person ? person.servicePerson.nameAlias : item.entity, // Asignar el nombre
+          };
+        });
+        this.dataBalance = [...this.dataBalance,...dataNew];
+        this.pageKey = value.data.hasMore;
+        if(value.data.count != 0) this.count = value.data.count;
         console.log("DATA DE TRANSACTION: " ,value.data)
+        if(value.statusCode == 201){
+          this.mytoastr.showWarning('No se encontraron resultados', '');
+        }
+        
       },
       error: (error: any) => {
         console.error('ERROR',error);
@@ -99,6 +155,8 @@ export class ReportBalanceComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataBalance = [];
+    this.count = -1;
+    this.page = 1;
   }
 
   onPageChange(event: PageEvent) {
@@ -107,6 +165,7 @@ export class ReportBalanceComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
   }
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
@@ -162,4 +221,53 @@ export class ReportBalanceComponent implements OnInit {
       }
     });
   }
+
+  cleanSearch() {
+    this.assignForm.reset();
+    this.clearData();
+  }
+
+  searchData() {
+    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showWarning('Seleccione un Tipo Entidad', '');
+      return;
+    }
+    this.dataBalance = [];
+    this.count = -1;
+    this.page = 1;
+    this.getDataBalance(this.pageSize);
+  }
+
+  selecType(event: any) {
+    console.log("ENTIDAD: ", event.value.master_relativeName)
+    this.selectedType = event.value.master_name
+    this.searchPerson(event.value.master_relativeName)
+  }
+
+  searchPerson(nameType: string) {
+
+    this.spinner.spinnerOnOff();
+    this.personService.getPerson(nameType, undefined).subscribe({
+      next: (value) => {
+        this.nameType = value.data
+        console.log('TYPE ENTITY POR ENTIDAD: ', this.nameType)
+      },
+      error: (error) => {
+        console.log(error)
+      },
+      complete: () => {
+        this.spinner.spinnerOnOff();
+      }
+    })
+  }
+
+  get entity() {
+    return this.assignForm?.get('entity')?.value;
+  }
+
+  get typeEntity() {
+    return this.assignForm?.get('typeEntity')?.value;
+  }
+  
+
 }

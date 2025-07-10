@@ -13,12 +13,18 @@ export class DateService {
 
      // Método para formatStartDate
      public formatStartDate(startDate: Date): string {
-      return `${this.datePipe.transform(startDate, 'yyyy-MM-dd')} 00:00:00`; // Retornamos la fecha como yyyy-MM-dd 00:00:00
+      if(startDate) {
+        return `${this.datePipe.transform(startDate, 'yyyy-MM-dd')} 00:00:00`; // Retornamos la fecha como yyyy-MM-dd 00:00:00
+      }
+      return '';
     }
   
     // Método para formatEndDate
     public formatEndDate(endDate: Date): string {
-      return `${this.datePipe.transform(endDate, 'yyyy-MM-dd')} 23:59:59`; // Retornamos la fecha formateda como yyyy-MM-dd 23:59:59
+      if(endDate) {
+        return `${this.datePipe.transform(endDate, 'yyyy-MM-dd')} 23:59:59`; // Retornamos la fecha formateda como yyyy-MM-dd 23:59:59
+      }
+      return '';
     }
   
      // Método para formatTrayDate
