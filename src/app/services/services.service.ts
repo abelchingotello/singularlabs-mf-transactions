@@ -35,6 +35,7 @@ export class ServicesService {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
     params = params.set('count', 0);
+    params = params.set('limit', 200);
     return this.httpClient.get<any>(`${this.url}/services`,{params: params});
   }
 
