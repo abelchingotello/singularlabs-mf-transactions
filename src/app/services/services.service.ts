@@ -34,6 +34,7 @@ export class ServicesService {
     if (pageKey !== undefined) {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
+    params = params.set('count', 0);
     return this.httpClient.get<any>(`${this.url}/services`,{params: params});
   }
 
