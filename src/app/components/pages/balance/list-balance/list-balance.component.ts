@@ -5,8 +5,6 @@ import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
-
-//----
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
@@ -63,10 +61,6 @@ export class ListBalanceComponent implements OnInit {
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance() {
-    this.router.navigate(['balance/assign'])
-  }
-
   formAssign() {
     this.assignForm = this.fb.group({
       entity: [''],
@@ -88,14 +82,13 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
-
   getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
     let typeEntity = this.typeEntity?.master_name || undefined;
     let entity = this.entity || undefined;
-    
+
     console.log("ENTIDAD: ", entity)
     console.log("TIPO DE ENTIDAD: ", typeEntity)
 
@@ -103,7 +96,7 @@ export class ListBalanceComponent implements OnInit {
         this.spinner.spinnerOnOff();
       return;
     }
-    
+
     this.transactionService.getCurrentBalances(pageSize,this.page,typeEntity,entity,this.count).subscribe({
       next: (value:any) => {
         if(value.statusCode == 201){
@@ -125,7 +118,7 @@ export class ListBalanceComponent implements OnInit {
         if(value.statusCode == 201){
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
-        
+
       },
       error: (error: any) => {
         console.error('ERROR',error);
@@ -268,6 +261,5 @@ export class ListBalanceComponent implements OnInit {
   get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
   }
-  
 
 }

@@ -5,8 +5,6 @@ import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { TransactionService } from 'src/app/services/transaction.service';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
-
-//----
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
@@ -44,7 +42,6 @@ export class ReportBalanceComponent implements OnInit {
   public count: any = -1;
   public assignForm!: FormGroup;
   public functionDataCurrent!: (pageSize: any) => any;
-  public stateMaster: any;
   public nameType: any[] = [];
   public idClient: any;
   public idProvider: any;
@@ -111,13 +108,13 @@ export class ReportBalanceComponent implements OnInit {
     let typeAssign = this.typeAssign || undefined;
     let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
-    
+
     console.log("ENTIDAD: ", entity)
     console.log("TIPO DE ENTIDAD: ", typeEntity)
     console.log("TIPO DE ASIGNACION: ", typeAssign)
     console.log("FECHA INICIO: ", dateStart)
     console.log("FECHA FIN: ", dateEnd)
-    
+
     this.transactionService.getBalance(pageSize,this.page,typeEntity,entity,typeAssign,dateStart,dateEnd,this.count).subscribe({
       next: (value:any) => {
         if(value.statusCode == 201){
@@ -131,7 +128,7 @@ export class ReportBalanceComponent implements OnInit {
         if(value.statusCode == 201){
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
-        
+
       },
       error: (error: any) => {
         console.error('ERROR',error);
@@ -253,19 +250,6 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
-  idPerson: string | undefined
-  selectEntity(event: any) {
-    console.log("ENTIDAD para asignar: ", event.value.idPerson)
-    this.idPerson = event.value.idPerson;
-    if (this.selectedType == "PROVIDER" ) {
-      this.idProvider?.setValue(event.value.idPerson)
-      this.idClient?.setValue(null)
-    } else {
-      this.idClient?.setValue(event.value.idPerson)
-      this.idProvider?.setValue(null)
-    }
-  }
-
   searchData(){
     this.dataBalance = [];
     this.count = -1;
@@ -299,6 +283,5 @@ export class ReportBalanceComponent implements OnInit {
   get typeEntity(){
     return this.assignForm?.get('typeEntity')?.value;
   }
-
 
 }

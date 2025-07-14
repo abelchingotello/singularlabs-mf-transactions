@@ -54,7 +54,6 @@ export class TransactionComponent implements OnInit {
   public respSearch : any;
   public masterStatus: any;
   public entityTypes: any;
-  public serviceName : any;
   public count :any = -1;
   public page: any = 1;
   public amountTransaction:any = -1;
@@ -113,7 +112,7 @@ export class TransactionComponent implements OnInit {
     let numDoc = this.numDoc || undefined;
     let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
-    
+
     console.log("idService: ",idServ)
     // return
     this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
@@ -185,59 +184,6 @@ export class TransactionComponent implements OnInit {
     console.log("Id--s: ", selectedIds)
   }
 
-  edit(){
-
-    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
-      width:'900px',
-      data: {
-      resp: '',
-      // id: stateId,
-      // state:this.stateMaster,
-      // idClient : this.idClient,
-      // idProvider : this.idProvider
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-
-  }
-
-  searchOperation(){
-    if(!this.numOperation?.valid){
-      this.mytoastr.showWarning('Ingrese un valor para búsqueda','')
-      return
-    }
-    this.spinner.spinnerOnOff();
-    console.log("searchOperation", this.formOperation)
-    // return
-    this.transactionService.balanceVoucher(this.numOperation?.value).subscribe({
-      next: (response: any) => {
-        this.respSearch = response
-        if (response.statusCode !== 200) {
-          this.spinner.spinnerOnOff();
-          let resp = response?.message || response?.messages
-          this.mytoastr.showError(resp, 'Error');
-          return
-        }
-        this.transaction = response.data
-      },
-      error: (error: any) => {
-        this.spinner.spinnerOnOff();
-        console.error('Error:', error);
-      },
-      complete: () => {
-        if(this.respSearch.statusCode == 200){
-          this.spinner.spinnerOnOff();
-          this.openDialog();
-          this.mytoastr.showSuccess('Operacion encontrada','')
-        }
-      }
-    })
-  }
-
   search(){
     console.log("formulario busqueda: ",this.formDate)
     if(this.formDate.get('dateEnd')?.value == '' &&
@@ -253,21 +199,6 @@ export class TransactionComponent implements OnInit {
 
     this.getDataTransaction(this.pageSize)
     // console.log("fecha buscar",this.formDate.get('date')?.value)
-  }
-
-  openDialog(){
-    const dialogRef = this.dialog.open(DialogSearchOperationComponent, {
-      width:'900px',
-      panelClass:'dialog-container',
-      data: {
-      resp: this.transaction
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
   }
 
   listData() {
@@ -328,10 +259,6 @@ export class TransactionComponent implements OnInit {
     );
   }
 
-  get numOperation(){
-    return this.formOperation.get('numOperation');
-  }
-
   get dateStart(){
     return this.formDate?.get('dateStart')?.value;
   }
@@ -356,7 +283,6 @@ export class TransactionComponent implements OnInit {
     return this.formDate?.get('idService')?.value;
   }
 
-  //----
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
@@ -433,6 +359,4 @@ export class TransactionComponent implements OnInit {
       }
     });
   }
-  //----
-
 }
