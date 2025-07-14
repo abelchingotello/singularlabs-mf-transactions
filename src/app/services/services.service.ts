@@ -21,9 +21,21 @@ export class ServicesService {
     return this.httpClient.post<any>(`${this.url}/services/register`,data);
   }
 
-  getServices(name:string): Observable<any>{
+  getServices(name?:string): Observable<any>{
     let params = new HttpParams()
-    .set('name', name);
+    if(name){
+      params = params.set('name', name);
+    }
+    return this.httpClient.get<any>(`${this.url}/services`,{params: params});
+  }
+
+  getServicesPageKey(pageKey?:any[]): Observable<any>{
+    let params = new HttpParams()
+    if (pageKey !== undefined) {
+      params = params.set('pageKey', JSON.stringify(pageKey));
+    }
+    params = params.set('count', 0);
+    params = params.set('limit', 200);
     return this.httpClient.get<any>(`${this.url}/services`,{params: params});
   }
 

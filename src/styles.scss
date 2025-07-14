@@ -7982,6 +7982,9 @@ button.bg-darker:focus {
 .justify-content-between {
     justify-content: space-between !important;
 }
+.justify-content-space-evenly {
+    justify-content: space-evenly !important;
+}
 
 .justify-content-around {
     justify-content: space-around !important;
@@ -20404,7 +20407,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     }
 }
 
-.ARCHIVED{
+.EXTORNADO{
     padding-block: 2px;
     padding-inline: 15px;
     display: inline;
@@ -20430,7 +20433,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     background-color: rgba(255, 255, 0, 0.671);
   }
 
-  .PROCESO{
+  .PROCESANDO{
     padding-block: 2px;
     padding-inline: 15px;
     display: inline;

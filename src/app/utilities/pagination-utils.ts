@@ -13,6 +13,11 @@ export class PaginationUtils {
         this.paginationPage(pageSize, functionCurrent, pageKey);  // Pasamos pageKey a la función
     }
 
+    onPageChangeTwo(event: any, pageSize: any, functionCurrent: (pageSize: any) => void, hasmore: any) {
+        pageSize = this.updatePageSize(event.pageSize, pageSize);
+        this.paginationPage(pageSize, functionCurrent, hasmore);  // Pasamos hasmore a la función
+    }
+
     // Método que ejecuta la paginación
     paginationPage(pageSize: any, functionCurrent: (pageSize: any) => void, pageKey: any) {
         if (pageKey) {  // Validamos pageKey en lugar de pageSize

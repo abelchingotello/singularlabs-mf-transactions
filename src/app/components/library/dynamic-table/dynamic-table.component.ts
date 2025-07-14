@@ -44,14 +44,23 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() actionsOptions?: boolean;
   @Input() element_id?: string | string[] | 'ALL';
   @Input() pageKey: any;
+  @Input() lengthTable: any;
   @Input() refreshFunction!: () => void;
   @Input()
   alwaysShowHeaderOptions: boolean = false;
+
+  //------------
+  @Input() customExportFunction: ((fileType: 'xlsx' | 'csv') => void) | null = null;
+  //------------
 
   @Output() pageChange = new EventEmitter<PageEvent>();
   @Output() selectedIdsChange = new EventEmitter<any[]>();
   @Output() selectedChange = new EventEmitter<any[]>();
   @Output() cellClick: EventEmitter<any> = new EventEmitter<any>();
+
+  //------------------------
+  @Output() exportRequest = new EventEmitter<'xlsx' | 'csv'>();
+  //------------------------
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort, { static: false }) sort!: MatSort;
@@ -100,21 +109,29 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         this.dataSource.data = this.data;
         this.dataPrint.data = this.data;
       }
-  
+
       // Verificar si se ha modificado pageKey o si ha cambiado el tamaño de los datos
       if (this.pageKey) {
         // Si hay un pageKey válido o los datos han aumentado de tamaño, activamos hasNextPage
-        this.paginator.hasNextPage = () => true;
+        //this.paginator.hasNextPage = () => true;
       }else{
         // this.paginator.hasNextPage = () => false;
       }
-  
+
       // Actualizar el tamaño anterior de los datos para futuras comparaciones
-  
+
+      setTimeout(() => {
+        if (this.paginator) {
+          this.paginator.length = this.lengthTable;
+          this.changeDetectorRef.detectChanges();
+          console.log('paginator', this.paginator.length);
+        }
+      });
       // Iniciar o reiniciar la tabla
       this.initTable();
+
     }
-  
+
     if (changes['columns']) {
       // Actualizamos las columnas visibles y los atributos de las columnas cuando cambien
       this.displayedColumns = this.columns.map(column => column.name);
@@ -125,6 +142,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   initTable() {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
+    console.log('dataSource.paginator', this.dataSource.paginator);
     this.obs = this.dataSource.connect();
   }
 
@@ -181,7 +199,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         console.warn("element_id no está definido");
         return;
     }
-  
+
     if(this.element_id === 'ALL'){
       this.selectedIds = this.selection.selected;
     }
@@ -219,15 +237,17 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   onPageChange(event: PageEvent) {
-    if (event.pageSize * (event.pageIndex + 1) >= event.length) {
+    console.log('onPageChange::::::::', event);
+    const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
+    const to = from + event.pageSize;              // 5 + 5 = 10
 
-      if (this.pageKey) {
-        this.pageChange.emit(event);
-      }
-    } 
-    //limitar al no existir data en la siguiente página
-    delete (this.paginator as any).hasNextPage;
-    
+    console.log(`FROM: ${from} TO: ${to} LENGTH: ${event.length}`);
+
+    if (from < event.length) {
+      this.pageChange.emit(event);
+    } else {
+      console.log('No hay datos para esta página');
+    }
 
     this.pageSize = event.pageSize;
   }
@@ -316,45 +336,59 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     return wb;
   }
 
+  //------------
   exportExcel() {
-    const wb = this.createWorkbook('Users');
-    const ws = wb.Sheets['Users'];
+    if (this.customExportFunction) {
+      this.customExportFunction('xlsx');
+    }
+    // else {
+    //   this.exportRequest.emit('xlsx');
+    //   const wb = this.createWorkbook('Transactions');
+    //   const ws = wb.Sheets['Transactions'];
 
-    // Ajusta el ancho de las columnas según el contenido
-    const columnWidths = this.columns.map(col => {
-      const maxWidth = Math.max(
-        col.name.length, // Longitud del encabezado
-        ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
-      );
-      return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
-    });
+    //   // Ajusta el ancho de las columnas según el contenido
+    //   const columnWidths = this.columns.map(col => {
+    //     const maxWidth = Math.max(
+    //       col.name.length, // Longitud del encabezado
+    //       ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
+    //     );
+    //     return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
+    //   });
 
-    // Establece los anchos de las columnas
-    ws['!cols'] = columnWidths;
+    //   // Establece los anchos de las columnas
+    //   ws['!cols'] = columnWidths;
 
-    XLSX.writeFile(wb, 'Excel tabla.xlsx');
+    //   XLSX.writeFile(wb, 'Excel tabla.xlsx');
+    // }
   }
 
   exportCsv() {
-    const wb = this.createWorkbook('Users', true);
-    const ws = wb.Sheets['Users'];
 
-    // Convierte la hoja a CSV con cada valor entre comillas
-    const csv = XLSX.utils.sheet_to_csv(ws, {
-      FS: ',',
-      RS: '\n',
-      // Envolver cada campo en comillas dobles
-      forceQuotes: true, // Utiliza quoteColumns para asegurar que todos los campos estén entre comillas
-    });
+    if (this.customExportFunction) {
+      this.customExportFunction('csv');
+    }
+    // else {
+    //   this.exportRequest.emit('csv');
+    //   const wb = this.createWorkbook('Transactions', true);
+    //   const ws = wb.Sheets['Transactions'];
 
-    // Crea un archivo CSV y dispara la descarga
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'tabla.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    //   // Convierte la hoja a CSV con cada valor entre comillas
+    //   const csv = XLSX.utils.sheet_to_csv(ws, {
+    //     FS: ',',
+    //     RS: '\n',
+    //     // Envolver cada campo en comillas dobles
+    //     forceQuotes: true, // Utiliza quoteColumns para asegurar que todos los campos estén entre comillas
+    //   });
+
+    //   // Crea un archivo CSV y dispara la descarga
+    //   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    //   const link = document.createElement('a');
+    //   link.href = URL.createObjectURL(blob);
+    //   link.setAttribute('download', 'tabla.csv');
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   document.body.removeChild(link);
+    // }
   }
 
   filterAttributes() {
@@ -371,7 +405,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         // Obtiene la configuración de la columna de forma eficiente
         const columnConfig = columnConfigMap.get(attribute);
         let value = item[attribute];
-        
+
         if(!value){ //Evitar errores cuando el elemento no contiene el atributo
           newObj[attribute] = '';
           break;

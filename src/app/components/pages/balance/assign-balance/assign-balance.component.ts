@@ -143,7 +143,7 @@ export class AssignBalanceComponent implements OnInit {
       },
       complete: () => {
         this.spinner.spinnerOnOff();
-        this.router.navigate(['/balance'])
+        this.router.navigate(['/balance/control'])
       }
 
     })

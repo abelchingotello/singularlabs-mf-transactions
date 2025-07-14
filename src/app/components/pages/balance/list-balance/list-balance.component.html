@@ -1,0 +1,49 @@
+<div class="content bg-gray-3">
+  <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+    <uni-image-card title="Listar Montos Actuales" externImage="https://cdn-icons-png.flaticon.com/512/5002/5002828.png"
+      size="7%">
+    </uni-image-card>
+
+    <mat-card class="search-card shadow-sm">
+      <form [formGroup]="assignForm" class="formAssign">
+        <div class="row">
+          <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Tipo Entidad</mat-label>
+          <mat-select formControlName="typeEntity" (selectionChange)="selecType($event)">
+            <mat-option *ngFor="let type of typeEntitys" [value]="type">{{type.master_relativeName}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Entidad</mat-label>
+          <mat-select formControlName="entity">
+            <mat-option *ngFor="let type of nameType"
+              [value]="type.servicePerson.idPerson">{{type.servicePerson.nameAlias}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+          <!-- Bloque para los botones alineados a la derecha -->
+          <div class="col-md-6 d-flex justify-content-end align-items-end gap-2">
+            <button type="button" class="btn btn-danger" (click)="cleanSearch()">
+              Limpiar
+            </button>
+            <button type="button" class="btn btn-danger" (click)="searchData()">
+              Buscar
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-card>
+
+    <mat-card class="custom-border-radius-1-25">
+      <mat-card-content>
+        <div>
+          <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
+          <uni-dynamic-table [columns]="columns" [lengthTable]="count" [data]="dataBalance" [actionsOptions]="false"
+            element_id="id" [pageKey]="pageKey" [refreshFunction]="reload.bind(this)"
+            (pageChange)="onPageChange($event)" [customExportFunction]="exportDataViaAPI.bind(this)">
+          </uni-dynamic-table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

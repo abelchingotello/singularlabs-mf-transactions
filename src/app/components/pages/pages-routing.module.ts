@@ -7,6 +7,7 @@ const routes: Routes = [
   { path: 'cancelation',loadChildren: () => import('./cancelation-transaction/cancelation-transaction.module').then(x => x.CancelationTransactionModule)}, 
   { path: 'extort',loadChildren: () => import('./extort/extort.module').then(x => x.ExtortModule)}, 
   { path: 'balance',loadChildren: () => import('./balance/balance.module').then(x => x.BalanceModule)}, 
+  { path: 'myTransaction',loadChildren: () => import('./my-transaction/my-transaction.module').then(x => x.MyTransactionModule)}, 
 ];
 
 @NgModule({

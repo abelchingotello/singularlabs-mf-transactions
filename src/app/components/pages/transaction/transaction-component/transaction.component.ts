@@ -1,5 +1,7 @@
+// import { CountryCodes } from './../../../../../../../singularlabs-mf-users/src/app/components/library/input-phone/country-codes';
 import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
+// import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { PageEvent } from '@angular/material/paginator';
@@ -9,6 +11,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-operation/dialog-search-operation.component';
 import { MytoastrService } from 'src/app/services/mytoastr';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { MasterService } from 'src/app/services/master.service';
+import { PersonService } from 'src/app/services/person.service';
+import { DatePipe } from '@angular/common';
+import { DateService } from 'src/app/services/date.service';
+import { ServicesService } from 'src/app/services/services.service';
+import { expand, filter, of, scan, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-transaction',
@@ -20,26 +29,37 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Concepto', 'attribute': 'concep' },
-    { 'name': 'Comisión', 'attribute': 'comission'},
-    { 'name': 'Monto transacción', 'attribute': 'amountTransaction'},
-    { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Zona Operación', 'attribute': 'operationZone'},
+    { 'name': 'Titular', 'attribute': 'bill'},
+    { 'name': 'Recaudador', 'attribute': 'client'},
+    { 'name': 'Num. recibo', 'attribute': 'concep'},
+    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    // { 'name': 'Moneda', 'attribute': 'currency'},
+    { 'name': 'Proveedor', 'attribute': 'provider'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
-        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-      } },
+      'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
+    }
+  },
+  { 'name': 'Cod. respuesta', 'attribute': 'reference' },
     { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
   ];
   public dataTransaction : any[] = [];
-  
+
   public pageSize: any = 5;
-  public pageKey: any[] | undefined;
+  public pageKey: any | undefined;
   public disabledEditOption:any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation! : FormGroup<any>;
+  public formDate! : FormGroup<any>;
   public transaction :any;
-  public respSearch : any
-
+  public respSearch : any;
+  public masterStatus: any;
+  public entityTypes: any;
+  public count :any = -1;
+  public page: any = 1;
+  public amountTransaction:any = -1;
+  public filteredServices: any[] = []; // Lista filtrada que se mostrará
+  public allItems: any[] = [];
+  public serviceFilter: string = '';
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
@@ -48,31 +68,64 @@ export class TransactionComponent implements OnInit {
     private transactionService : TransactionService,
     private dialog: MatDialog,
     private fb : FormBuilder,
-    private mytoastr : MytoastrService
-  ) { 
+    private mytoastr : MytoastrService,
+    private masterService : MasterService,
+    private personService : PersonService,
+    private dateService : DateService,
+    private serviceServ : ServicesService,
+  ) {
     this.pagUtils = new PaginationUtils();
   }
 
   ngOnInit(): void {
-    this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize)
     this.initialForm();
+    this.functionDataCurrent = this.getDataTransaction.bind(this);
+    this.functionDataCurrent(this.pageSize);
+    this.loadAllServices().subscribe(allItems => {
+      this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
+      this.filteredServices = this.allItems;
+    });
+    this.listData();
   }
 
 
   initialForm(){
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
-    })
+    });
+    this.formDate = this.fb.group({
+      dateStart: [''],
+      dateEnd: [''],
+      entity: [''],
+      idService : [''],
+      numDoc : [''],
+      status: [''],
+    });
   }
 
-  getDataTransaction(pageSize: any){
+  getDataTransaction(pageSize?: any){
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
-    this.transactionService.getTransaction(pageSize,this.pageKey).subscribe({
+    let entity = this.entity || undefined;
+    let status = this.status || undefined;
+    let idServ = this.idService || undefined;
+    let numDoc = this.numDoc || undefined;
+    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+
+    console.log("idService: ",idServ)
+    // return
+    this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
       next: (value:any) => {
+        if(value.statusCode === 201){
+          this.amountTransaction = 0;
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+          return
+        }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        this.pageKey = value.data.nextPageKey ?? null
+        this.pageKey = value.data.hasMore;
+        if(value.data.count != 0) this.count = value.data.count;
+        if(value.data.totalAmount != 0) this.amountTransaction = (value.data.totalAmount).toFixed(2);
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
       error: (error: any) => {
@@ -98,7 +151,9 @@ export class TransactionComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // this.reload();
+    this.count = -1;
+    this.page = 1;
+    this.amountTransaction = -1;
   }
 
   reload() {
@@ -110,6 +165,7 @@ export class TransactionComponent implements OnInit {
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
+    this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
   }
@@ -128,79 +184,179 @@ export class TransactionComponent implements OnInit {
     console.log("Id--s: ", selectedIds)
   }
 
-  edit(){
-
-    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
-      width:'900px',
-      data: {
-      resp: '',
-      // id: stateId,
-      // state:this.stateMaster,
-      // idClient : this.idClient,
-      // idProvider : this.idProvider
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-
-  }
-
-  searchOperation(){
-    if(!this.numOperation?.valid){
-      this.mytoastr.showWarning('Ingrese un valor para búsqueda','')
+  search(){
+    console.log("formulario busqueda: ",this.formDate)
+    if(this.formDate.get('dateEnd')?.value == '' &&
+      this.formDate.get('status')?.value == '' &&
+      this.formDate.get('numDoc')?.value == '' &&
+      this.formDate.get('idService')?.value == '' &&
+      this.formDate.get('entity')?.value == ''){
+      this.mytoastr.showWarning("Seleccione un filtro","")
       return
     }
+
+    this.clearData();
+
+    this.getDataTransaction(this.pageSize)
+    // console.log("fecha buscar",this.formDate.get('date')?.value)
+  }
+
+  listData() {
     this.spinner.spinnerOnOff();
-    console.log("searchOperation", this.formOperation)
-    // return
-    this.transactionService.balanceVoucher(this.numOperation?.value).subscribe({
-      next: (response: any) => {
-        this.respSearch = response
-        if (response.statusCode !== 200) {
-          this.spinner.spinnerOnOff();
-          let resp = response?.message || response?.messages
-          this.mytoastr.showError(resp, 'Error');
-          return
-        }
-        this.transaction = response.data
-      },
-      error: (error: any) => {
+    forkJoin([
+      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
+      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),// Tipo de entidades
+      //this.serviceServ.getServices()
+    ]).subscribe({
+      next: (response) => {
+        const [masterStatus,entity] = response;
+        console.log("estatus: ",masterStatus);
+        this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
+        this.entityTypes = entity.data
+        //this.serviceName = service.data.Items
+        console.log("ESTADOS: ",this.masterStatus)
+        console.log("ENTITIDADES: ",this.entityTypes)
+       // console.log("SERVICIOS: ",this.serviceName)
+
         this.spinner.spinnerOnOff();
-        console.error('Error:', error);
       },
-      complete: () => {
-        if(this.respSearch.statusCode == 200){
-          this.spinner.spinnerOnOff();
-          this.openDialog();
-          this.mytoastr.showSuccess('Operacion encontrada','')
-        }
+      error: (error) => {
+        this.spinner.spinnerOnOff();
+        console.error("Error loading master table data:", error);
       }
-    })
-
-
-
-  }
-
-  openDialog(){
-    const dialogRef = this.dialog.open(DialogSearchOperationComponent, {
-      width:'900px',
-      panelClass:'dialog-container',
-      data: {
-      resp: this.transaction 
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
     });
   }
 
-  get numOperation(){
-    return this.formOperation.get('numOperation');
+  loadAllServices() {  //revisar para que traiga los 2000
+      return this.serviceServ.getServicesPageKey().pipe(
+        expand(response =>
+          response?.data?.nextPageKey
+            ? this.serviceServ.getServicesPageKey(response.data.nextPageKey)
+            : of(null) // Detiene la recursión si no hay más páginas
+        ),
+        filter(response => response !== null),
+        scan((acc, response) => acc.concat(response.data.Items), []),
+        startWith([]), // Asegura que siempre haya una emisión inicial
+      );
   }
 
+  clearSearch(){
+    this.formDate.get('dateEnd')?.setValue('')
+    this.formDate.get('dateStart')?.setValue('')
+    this.formDate.get('status')?.setValue('')
+    this.formDate.get('entity')?.setValue('')
+    this.formDate.get('idService')?.setValue('')
+    this.formDate.get('numDoc')?.setValue('')
+    //limpiar tabla de transacciones
+    this.clearData();
+    this.getDataTransaction(this.pageSize)
+  }
+
+  filterServices() {
+    const value = this.serviceFilter?.toLowerCase() || '';
+    this.filteredServices = this.allItems.filter(service =>
+      service.name.toLowerCase().includes(value)
+    );
+  }
+
+  get dateStart(){
+    return this.formDate?.get('dateStart')?.value;
+  }
+
+  get numDoc(){
+    return this.formDate?.get('numDoc')?.value;
+  }
+
+  get dateEnd(){
+    return this.formDate?.get('dateEnd')?.value;
+  }
+
+  get status(){
+    return this.formDate?.get('status')?.value;
+  }
+
+  get entity(){
+    return this.formDate?.get('entity')?.value;
+  }
+
+  get idService(){
+    return this.formDate?.get('idService')?.value;
+  }
+
+  exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
+    console.log('exportDataViaAPI called with', fileType);
+    this.spinner.spinnerOnOff();
+
+    // Preparar los filtros para la exportación
+    const exportFilters: Record<string, any> = {
+      idclient: this.entity,
+      idprovider: undefined,
+      status: this.status,
+      date: this.dateStart || this.dateEnd ?
+        JSON.stringify({
+          from: this.dateStart ? this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') : undefined,
+          to: this.dateEnd ? this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') : undefined
+        }) : undefined,
+      idService: this.idService?.toString(),
+      CONCEPT: this.numDoc
+    };
+
+    // Eliminar propiedades undefined
+    Object.keys(exportFilters).forEach(key => {
+      if (exportFilters[key] === undefined) {
+        delete exportFilters[key];
+      }
+    });
+
+    this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
+      next: (response) => {
+        this.spinner.spinnerOnOff();
+
+        // Verificar si la respuesta tiene cuerpo
+        if (!response.body) {
+          this.mytoastr.showError('La respuesta no contiene datos', '');
+          return;
+        }else{
+          console.log("Sí tiene datos el response")
+        }
+
+        // Decodificar base64
+        const responseBody = response.body || '';
+        const byteCharacters = atob(responseBody);
+        const byteArray = new Uint8Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+        }
+
+        // Obtener nombre del archivo desde headers
+        let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
+        const contentDisposition = response.headers.get('Content-Disposition');
+        if (contentDisposition) {
+          const parts = contentDisposition.split('filename=');
+          if (parts.length > 1) {
+            filename = parts[1].replace(/"/g, '').trim();
+          }
+        }
+
+        console.log('Downloading file:', filename);
+
+        // Crear Blob con el tipo MIME del backend
+        const blob = new Blob([byteArray], {
+          type: response.headers.get('Content-Type') || 'application/octet-stream'
+        });
+
+        // Descargar
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      },
+      error: (error) => {
+        console.error('Error al exportar los datos:', error);
+        this.mytoastr.showError('Error al exportar los datos', '');
+        this.spinner.spinnerOnOff();
+      }
+    });
+  }
 }
