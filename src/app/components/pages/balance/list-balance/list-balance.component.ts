@@ -154,6 +154,7 @@ export class ListBalanceComponent implements OnInit {
 
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
+    this.page ++;
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);

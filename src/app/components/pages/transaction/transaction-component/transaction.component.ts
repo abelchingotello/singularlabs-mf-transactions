@@ -53,20 +53,22 @@ export class TransactionComponent implements OnInit {
   public transaction :any;
   public respSearch : any;
   public masterStatus: any;
-  public entityTypes: any;
+  public entityTypes: any[] = [];
   public count :any = -1;
   public page: any = 1;
   public amountTransaction:any = -1;
   public filteredServices: any[] = []; // Lista filtrada que se mostrará
   public allItems: any[] = [];
   public serviceFilter: string = '';
+  public categoryTypes: any[] = [];
+  public listProviders: any[] = [];
+  public selectedCategory: boolean = false;
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
     private spinner : SpinnerService,
     private transactionService : TransactionService,
-    private dialog: MatDialog,
     private fb : FormBuilder,
     private mytoastr : MytoastrService,
     private masterService : MasterService,
@@ -77,16 +79,17 @@ export class TransactionComponent implements OnInit {
     this.pagUtils = new PaginationUtils();
   }
 
-  ngOnInit(): void {
-    this.initialForm();
+async ngOnInit(): Promise<void> {
+  this.initialForm();
+  try {
+    await this.listData(); // Espera a que listData termine
     this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize);
-    this.loadAllServices().subscribe(allItems => {
-      this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
-      this.filteredServices = this.allItems;
-    });
-    this.listData();
+    this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
+  } catch (error) {
+    console.error("Error al cargar datos iniciales:", error);
   }
+}
+
 
 
   initialForm(){
@@ -97,9 +100,24 @@ export class TransactionComponent implements OnInit {
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
+      category: [''],
       idService : [''],
       numDoc : [''],
       status: [''],
+    });
+  }
+
+  selectCategory() {
+    console.log("Categoria seleccionada: ", this.category);
+    if(this.category == undefined || this.category == ''){
+      this.selectedCategory= false;
+      this.filteredServices = [];
+       return;
+    }
+    this.selectedCategory=true;
+    this.loadAllServices().subscribe(allItems => {
+      // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
+      this.filteredServices = allItems;
     });
   }
 
@@ -122,10 +140,21 @@ export class TransactionComponent implements OnInit {
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
           return
         }
-        this.dataTransaction = [...this.dataTransaction,...value.data.Items];
+        // Actualizar client con nameAlias
+        const updatedItems = value.data.Items.map((item: any) => {
+          const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
+          const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
+          return {
+            ...item,
+            client: person ? person.servicePerson.nameAlias : item.client, // Asignar el nombre
+            provider: provider ? provider.servicePerson.nameAlias : item.provider, // Asignar el nombre
+          };
+        });
+
+        this.dataTransaction = [...this.dataTransaction,...updatedItems];
         this.pageKey = value.data.hasMore;
         if(value.data.count != 0) this.count = value.data.count;
-        if(value.data.totalAmount != 0) this.amountTransaction = (value.data.totalAmount).toFixed(2);
+        if(value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
         console.log("DATA DE TRANSACTION: " ,value.data)
       },
       error: (error: any) => {
@@ -201,37 +230,40 @@ export class TransactionComponent implements OnInit {
     // console.log("fecha buscar",this.formDate.get('date')?.value)
   }
 
-  listData() {
-    this.spinner.spinnerOnOff();
+  async listData(): Promise<void> {
+  this.spinner.spinnerOnOff();
+  return new Promise((resolve, reject) => {
     forkJoin([
-      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
-      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),// Tipo de entidades
-      //this.serviceServ.getServices()
+      this.masterService.getItemsMasterTable('16'),
+      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
+      this.masterService.getItemsMasterTable('14'),
+      this.personService.getPerson('PROVEEDOR'),
     ]).subscribe({
       next: (response) => {
-        const [masterStatus,entity] = response;
-        console.log("estatus: ",masterStatus);
-        this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
-        this.entityTypes = entity.data
-        //this.serviceName = service.data.Items
-        console.log("ESTADOS: ",this.masterStatus)
-        console.log("ENTITIDADES: ",this.entityTypes)
-       // console.log("SERVICIOS: ",this.serviceName)
+        const [masterStatus, entity, category, providers] = response;
+        this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.entityTypes = entity.data;
+        this.categoryTypes = category;
+        this.listProviders = providers.data;
 
         this.spinner.spinnerOnOff();
+        resolve(); //  Indica que terminó exitosamente
       },
       error: (error) => {
         this.spinner.spinnerOnOff();
         console.error("Error loading master table data:", error);
+        reject(error); // Indica que falló
       }
     });
-  }
+  });
+}
+
 
   loadAllServices() {  //revisar para que traiga los 2000
-      return this.serviceServ.getServicesPageKey().pipe(
+      return this.serviceServ.getServicesPageKey(this.category,'HABILITADO').pipe(
         expand(response =>
           response?.data?.nextPageKey
-            ? this.serviceServ.getServicesPageKey(response.data.nextPageKey)
+            ? this.serviceServ.getServicesPageKey(this.category,'HABILITADO', response.data.nextPageKey)
             : of(null) // Detiene la recursión si no hay más páginas
         ),
         filter(response => response !== null),
@@ -281,6 +313,10 @@ export class TransactionComponent implements OnInit {
 
   get idService(){
     return this.formDate?.get('idService')?.value;
+  }
+
+  get category(){
+    return this.formDate?.get('category')?.value;
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
