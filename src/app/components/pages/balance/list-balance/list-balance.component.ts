@@ -25,8 +25,8 @@ export class ListBalanceComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Entidad', 'attribute': 'entity' },
     { 'name': 'Tipo Monto', 'attribute': 'typeAmount' },
-    { 'name': 'Monto', 'attribute': 'amountTransaction' },
-    { 'name': 'Moneda', 'attribute': 'currency' },
+    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    //{ 'name': 'Moneda', 'attribute': 'currency' },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
@@ -108,6 +108,7 @@ export class ListBalanceComponent implements OnInit {
           const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
           return {
             ...item,
+            amountTransaction: item.amountTransaction+' '+item.currency,
             entity: person ? person.servicePerson.nameAlias : item.entity, // Asignar el nombre
           };
         });
@@ -154,6 +155,7 @@ export class ListBalanceComponent implements OnInit {
 
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
+    this.page ++;
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);

@@ -25,13 +25,13 @@ export class ReportBalanceComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Nombre', 'attribute': 'concep' },
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
-    { 'name': 'Moneda', 'attribute': 'currency'},
+    //{ 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Fecha', 'attribute': 'date', 'config': {
       'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
     }},
-    { 'name': 'Estado', 'attribute': 'status','config':{
-      'styleClass':true
-    }},
+    // { 'name': 'Estado', 'attribute': 'status','config':{
+    //   'styleClass':true
+    // }},
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
@@ -121,7 +121,15 @@ export class ReportBalanceComponent implements OnInit {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
-        this.dataBalance = [...this.dataBalance,...value.data.Items];
+        //recorrer lista y concatenar el monto con la moneda
+        let datanew = value.data.Items.map((item: any) => {
+          return {
+            ...item,
+            amountTransaction: item.amountTransaction+' '+item.currency,
+          };
+        });
+        console.log("DATA DE BALANCE: ", datanew)
+        this.dataBalance = [...this.dataBalance,...datanew];
         this.pageKey = value.data.hasMore;
         if(value.data.count != 0) this.count = value.data.count;
         console.log("DATA DE TRANSACTION: " ,value.data)
