@@ -21,11 +21,15 @@
           </mat-select>
         </mat-form-field>
           <!-- Bloque para los botones alineados a la derecha -->
-          <div class="col-md-6 d-flex justify-content-end align-items-end gap-2">
-            <button type="button" class="btn btn-danger" (click)="cleanSearch()">
+          <div style="display: flex;
+                        padding-right: 15px;
+                        flex-direction: row;
+                        justify-content: flex-end;
+                        margin-bottom: 10px;">
+            <button type="button" class="btn-primary btn" (click)="cleanSearch()">
               Limpiar
             </button>
-            <button type="button" class="btn btn-danger" (click)="searchData()">
+            <button type="button" class="btn-primary btn" (click)="searchData()">
               Buscar
             </button>
           </div>

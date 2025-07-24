@@ -90,11 +90,6 @@
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Recibo</mat-label>
-                            <input formControlName="numDoc" type="text" matInput>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Estado</mat-label>
                             <mat-select formControlName="status">
                                 <mat-option [value]="">NINGUNO</mat-option>
@@ -103,6 +98,12 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Recibo</mat-label>
+                            <input formControlName="numDoc" type="text" matInput>
+                        </mat-form-field>
+
                     </form>
                     <div class="info-container">
                         <div class="info-item">

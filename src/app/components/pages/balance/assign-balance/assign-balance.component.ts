@@ -115,7 +115,7 @@ export class AssignBalanceComponent implements OnInit {
   }
 
   onPrevious() {
-    this.router.navigate(['/balance'])
+    this.router.navigate(['/balance/control'])
   }
 
   saveAssign() {
