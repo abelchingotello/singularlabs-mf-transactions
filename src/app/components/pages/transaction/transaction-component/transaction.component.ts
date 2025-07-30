@@ -35,7 +35,7 @@ export class TransactionComponent implements OnInit {
     // { 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Proveedor', 'attribute': 'provider'},
     { 'name': 'Fecha', 'attribute': 'date','config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
     }
   },
   { 'name': 'Cod. respuesta', 'attribute': 'reference' },
@@ -44,7 +44,7 @@ export class TransactionComponent implements OnInit {
   public dataTransaction : any[] = [];
 
   public pageSize: any = 5;
-  public pageKey: any[] | undefined;
+  public pageKey: any | undefined;
   public disabledEditOption:any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation! : FormGroup<any>;
@@ -52,63 +52,43 @@ export class TransactionComponent implements OnInit {
   public transaction :any;
   public respSearch : any;
   public masterStatus: any;
-  public entityTypes: any;
-  public serviceName : any;
-  public count :any
-  public amountTransaction: any;
-  //-----------------------
-  public clientBalance: any;
-  public providerBalance: any;
-  public currentCommission: any;
+  public entityTypes: any[] = [];
+  public count :any = -1;
+  public page: any = 1;
+  public amountTransaction:any = -1;
+  public filteredServices: any[] = []; // Lista filtrada que se mostrará
+  public allItems: any[] = [];
+  public serviceFilter: string = '';
+  public categoryTypes: any[] = [];
+  public listProviders: any[] = [];
+  public selectedCategory: boolean = false;
 
-  public isFirstLoad: boolean = true;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
     private spinner : SpinnerService,
     private transactionService : TransactionService,
-    private dialog: MatDialog,
     private fb : FormBuilder,
     private mytoastr : MytoastrService,
     private masterService : MasterService,
     private personService : PersonService,
     private dateService : DateService,
-    private serviceServ : ServicesService
+    private serviceServ : ServicesService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
 
-  // ngOnInit(): void {
-  //   this.functionDataCurrent = this.getDataTransaction.bind(this);
-  //   this.functionDataCurrent(this.pageSize);
-  //   this.initialForm();
-  //   this.listData();
-  // }
-  ngOnInit(): void {
-    // Primero inicializar los formularios
-    this.initialForm();
-
-    // Luego configurar la carga inicial
+async ngOnInit(): Promise<void> {
+  this.initialForm();
+  try {
+    await this.listData(); // Espera a que listData termine
     this.functionDataCurrent = this.getDataTransaction.bind(this);
-
-    // Configurar fecha actual para la carga inicial
-    this.setupCurrentDateFilter();
-
-    // Ahora cargar los datos
-    this.functionDataCurrent(this.pageSize);
-    this.listData();
+    this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
+  } catch (error) {
+    console.error("Error al cargar datos iniciales:", error);
   }
+}
 
-  // Método para configurar el filtro de fecha actual
-  setupCurrentDateFilter(): void {
-    // Asegurarse de que el formulario ya esté inicializado
-    if (this.formDate) {
-      const today = new Date();
-      // Asignar la fecha actual al formulario
-      this.formDate.get('dateStart')?.setValue(today);
-      this.formDate.get('dateEnd')?.setValue(today);
-    }
-  }
 
 
   initialForm(){
@@ -119,99 +99,72 @@ export class TransactionComponent implements OnInit {
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
+      category: [''],
       idService : [''],
       numDoc : [''],
       status: [''],
     });
   }
 
-  // getDataTransaction(pageSize?: any){
-  //   this.spinner.spinnerOnOff();
-  //   this.resetUser(this.getDataTransaction)
-  //   let entity = this.entity || undefined;
-  //   let status = this.status || undefined;
-  //   let idServ = this.idService || undefined;
-  //   let numDoc = this.numDoc || undefined;
-  //   const date = {
-  //     from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
-  //     to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
-  //   }
-  //   console.log("fecha: ",date)
-  //   console.log("idService: ",idServ)
-  //   // return
-  //   this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
-  //     next: (value:any) => {
-  //       if(value.statusCode === 201){
-  //         this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
-  //         return
-  //       }
-  //       this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-  //       if(value.data.Count != 0) this.count = value.data.Count;
-  //       if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
-  //       this.pageKey = value.data.nextPageKey ?? null
-  //       console.log("DATA DE TRANSACTION: " ,value.data)
-  //     },
-  //     error: (error: any) => {
-  //       console.error('ERROR',error);
-  //       this.spinner.spinnerOnOff();
-  //     },
-  //     complete: () => {
-  //       this.spinner.spinnerOnOff();
-  //     }
-  //   })
-  //   this.functionDataCurrent = this.getDataTransaction
-  // }
-  getDataTransaction(pageSize?: any) {
+  selectCategory() {
+    console.log("Categoria seleccionada: ", this.category);
+    if(this.category == undefined || this.category == ''){
+      this.selectedCategory= false;
+      this.filteredServices = [];
+       return;
+    }
+    this.selectedCategory=true;
+    this.loadAllServices().subscribe((allItems: any[]) => {
+      // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
+      this.filteredServices = allItems;
+    });
+  }
+
+  getDataTransaction(pageSize?: any){
     this.spinner.spinnerOnOff();
-    this.resetUser(this.getDataTransaction);
+    this.resetUser(this.getDataTransaction)
     let entity = this.entity || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
     let numDoc = this.numDoc || undefined;
-    const date = {
-      from: this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') || undefined,
-      to: this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') || undefined
-    };
+    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
 
-    this.transactionService.getTransaction(entity, undefined, status, JSON.stringify(date), idServ?.toString(), pageSize, this.pageKey, numDoc).subscribe({
-      next: (value: any) => {
-        if (value.statusCode === 201) {
-          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
-          return;
+    console.log("idService: ",idServ)
+    // return
+    this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
+      next: (value:any) => {
+        if(value.statusCode === 201){
+          this.amountTransaction = 0;
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+          return
         }
+        // Actualizar client con nameAlias
+        const updatedItems = value.data.Items.map((item: any) => {
+          const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
+          const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
+          return {
+            ...item,
+            client: person ? person.servicePerson.nameAlias : item.client, // Asignar el nombre
+            provider: provider ? provider.servicePerson.nameAlias : item.provider, // Asignar el nombre
+          };
+        });
 
-        this.dataTransaction = [...this.dataTransaction, ...value.data.Items];
-        if (value.data.Count != 0) this.count = value.data.Count;
-        if (value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
-
-        // Capturar los valores de los nuevos campos solo en la primera carga o cuando cambia el filtro
-        if (this.isFirstLoad && value.data.Items && value.data.Items.length > 0) {
-          // Obtener los valores del primer registro de la respuesta (primera transacción)
-          const firstTransaction = value.data.Items[0];
-          if (firstTransaction.clientBalance !== undefined)
-            this.clientBalance = parseFloat(firstTransaction.clientBalance).toFixed(2);
-          if (firstTransaction.providerBalance !== undefined)
-            this.providerBalance = parseFloat(firstTransaction.providerBalance).toFixed(2);
-          if (firstTransaction.comission !== undefined)
-            this.currentCommission = parseFloat(firstTransaction.comission).toFixed(2);
-
-          // Marcar que ya no es la primera carga
-          this.isFirstLoad = false;
-        }
-
-        this.pageKey = value.data.nextPageKey ?? null;
-        console.log("DATA DE TRANSACTION: ", value.data);
+        this.dataTransaction = [...this.dataTransaction,...updatedItems];
+        this.pageKey = value.data.hasMore;
+        if(value.data.count != 0) this.count = value.data.count;
+        if(value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
+        console.log("DATA DE TRANSACTION: " ,value.data)
       },
       error: (error: any) => {
-        console.error('ERROR', error);
+        console.error('ERROR',error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
         this.spinner.spinnerOnOff();
       }
-    });
-
-    this.functionDataCurrent = this.getDataTransaction;
+    })
+    this.functionDataCurrent = this.getDataTransaction
   }
 
   resetUser(current: any) {
@@ -223,20 +176,12 @@ export class TransactionComponent implements OnInit {
   }
 
 
-  // clearData() {
-  //   this.pageKey = undefined;
-  //   this.dataTransaction = [];
-  //   this.clientBalance = undefined;
-  //   this.providerBalance = undefined;
-  //   this.currentCommission = undefined;
-  //   this.amountTransaction = undefined;
-  //   // this.reload();
-  // }
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // No resetamos los balances y comisión aquí,
-    // se actualizarán automáticamente con la nueva consulta
+    this.count = -1;
+    this.page = 1;
+    this.amountTransaction = -1;
   }
 
   reload() {
@@ -248,6 +193,7 @@ export class TransactionComponent implements OnInit {
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
+    this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
   }
@@ -266,167 +212,82 @@ export class TransactionComponent implements OnInit {
     console.log("Id--s: ", selectedIds)
   }
 
-  edit(){
-
-    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
-      width:'900px',
-      data: {
-      resp: '',
-      // id: stateId,
-      // state:this.stateMaster,
-      // idClient : this.idClient,
-      // idProvider : this.idProvider
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-
-  }
-
-  searchOperation(){
-    if(!this.numOperation?.valid){
-      this.mytoastr.showWarning('Ingrese un valor para búsqueda','')
-      return
-    }
-    this.spinner.spinnerOnOff();
-    console.log("searchOperation", this.formOperation)
-    // return
-    this.transactionService.balanceVoucher(this.numOperation?.value).subscribe({
-      next: (response: any) => {
-        this.respSearch = response
-        if (response.statusCode !== 200) {
-          this.spinner.spinnerOnOff();
-          let resp = response?.message || response?.messages
-          this.mytoastr.showError(resp, 'Error');
-          return
-        }
-        this.transaction = response.data
-      },
-      error: (error: any) => {
-        this.spinner.spinnerOnOff();
-        console.error('Error:', error);
-      },
-      complete: () => {
-        if(this.respSearch.statusCode == 200){
-          this.spinner.spinnerOnOff();
-          this.openDialog();
-          this.mytoastr.showSuccess('Operacion encontrada','')
-        }
-      }
-    })
-  }
-
-  // search(){
-  //   console.log("formulario busqueda: ",this.formDate)
-  //   if(this.formDate.get('dateEnd')?.value == '' &&
-  //     this.formDate.get('status')?.value == '' &&
-  //     this.formDate.get('numDoc')?.value == '' &&
-  //     this.formDate.get('idService')?.value == '' &&
-  //     this.formDate.get('entity')?.value == ''){
-  //     this.mytoastr.showWarning("Seleccione un filtro","")
-  //     return
-  //   }
-
-  //   this.clearData();
-
-  //   this.getDataTransaction(this.pageSize)
-  //   // console.log("fecha buscar",this.formDate.get('date')?.value)
-  // }
-  search() {
-    console.log("formulario busqueda: ", this.formDate);
-    if (
-      this.formDate.get('dateEnd')?.value == '' &&
+  search(){
+    console.log("formulario busqueda: ",this.formDate)
+    if(this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == ''
-    ) {
-      this.mytoastr.showWarning("Seleccione un filtro", "");
-      return;
+      this.formDate.get('entity')?.value == ''){
+      this.mytoastr.showWarning("Seleccione un filtro","")
+      return
     }
 
-    // Marcar como primera carga para capturar nuevos valores
-    this.isFirstLoad = true;
     this.clearData();
-    this.getDataTransaction(this.pageSize);
+
+    this.getDataTransaction(this.pageSize)
+    // console.log("fecha buscar",this.formDate.get('date')?.value)
   }
 
-  openDialog(){
-    const dialogRef = this.dialog.open(DialogSearchOperationComponent, {
-      width:'900px',
-      panelClass:'dialog-container',
-      data: {
-      resp: this.transaction
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-  }
-
-  listData() {
-    this.spinner.spinnerOnOff();
+  async listData(): Promise<void> {
+  this.spinner.spinnerOnOff();
+  return new Promise((resolve, reject) => {
     forkJoin([
-      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
-      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),// Tipo de entidades
-      this.serviceServ.getServices()
+      this.masterService.getItemsMasterTable('16'),
+      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
+      this.masterService.getItemsMasterTable('14'),
+      this.personService.getPerson('PROVEEDOR'),
     ]).subscribe({
       next: (response) => {
-        const [masterStatus,entity,service] = response;
-        console.log("estatus: ",masterStatus);
-        this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
-        this.entityTypes = entity.data
-        this.serviceName = service.data.Items
-        console.log("ESTADOS: ",this.masterStatus)
-        console.log("ENTITIDADES: ",this.entityTypes)
-        console.log("SERVICIOS: ",this.serviceName)
+        const [masterStatus, entity, category, providers] = response;
+        this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.entityTypes = entity.data;
+        this.categoryTypes = category;
+        this.listProviders = providers.data;
 
         this.spinner.spinnerOnOff();
+        resolve(); //  Indica que terminó exitosamente
       },
       error: (error) => {
         this.spinner.spinnerOnOff();
         console.error("Error loading master table data:", error);
+        reject(error); // Indica que falló
       }
     });
+  });
+}
+
+
+  loadAllServices() {  //revisar para que traiga los 2000
+      return this.serviceServ.getServicesPageKey(this.category,'HABILITADO').pipe(
+        expand((response: { data: { nextPageKey: any; }; }) =>
+          response?.data?.nextPageKey
+            ? this.serviceServ.getServicesPageKey(this.category,'HABILITADO', response.data.nextPageKey)
+            : of(null) // Detiene la recursión si no hay más páginas
+        ),
+        filter((response: null) => response !== null),
+        scan((acc: string | any[], response: { data: { Items: any; }; }) => acc.concat(response.data.Items), []),
+        startWith([]), // Asegura que siempre haya una emisión inicial
+      );
   }
 
-  // clearSearch(){
-  //   this.formDate.get('dateEnd')?.setValue('')
-  //   this.formDate.get('dateStart')?.setValue('')
-  //   this.formDate.get('status')?.setValue('')
-  //   this.formDate.get('entity')?.setValue('')
-  //   this.formDate.get('idService')?.setValue('')
-  //   this.formDate.get('numDoc')?.setValue('')
-  //   //limpiar tabla de transacciones
-  //   this.clearData();
-  //   this.getDataTransaction(this.pageSize)
-  // }
-  clearSearch() {
-    if (this.formDate) {
-      this.formDate.get('dateEnd')?.setValue('');
-      this.formDate.get('dateStart')?.setValue('');
-      this.formDate.get('status')?.setValue('');
-      this.formDate.get('entity')?.setValue('');
-      this.formDate.get('idService')?.setValue('');
-      this.formDate.get('numDoc')?.setValue('');
-    }
-
-    // Marcar como primera carga para capturar nuevos valores
-    this.isFirstLoad = true;
+  clearSearch(){
+    this.formDate.get('dateEnd')?.setValue('')
+    this.formDate.get('dateStart')?.setValue('')
+    this.formDate.get('status')?.setValue('')
+    this.formDate.get('entity')?.setValue('')
+    this.formDate.get('idService')?.setValue('')
+    this.formDate.get('numDoc')?.setValue('')
+    //limpiar tabla de transacciones
     this.clearData();
-
-    // Configurar la fecha actual antes de hacer la consulta
-    this.setupCurrentDateFilter();
-    this.getDataTransaction(this.pageSize);
+    this.getDataTransaction(this.pageSize)
   }
 
-  get numOperation(){
-    return this.formOperation.get('numOperation');
+  filterServices() {
+    const value = this.serviceFilter?.toLowerCase() || '';
+    this.filteredServices = this.allItems.filter(service =>
+      service.name.toLowerCase().includes(value)
+    );
   }
 
   get dateStart(){
@@ -453,7 +314,10 @@ export class TransactionComponent implements OnInit {
     return this.formDate?.get('idService')?.value;
   }
 
-  //----
+  get category(){
+    return this.formDate?.get('category')?.value;
+  }
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
@@ -530,6 +394,4 @@ export class TransactionComponent implements OnInit {
       }
     });
   }
-  //----
-
 }
