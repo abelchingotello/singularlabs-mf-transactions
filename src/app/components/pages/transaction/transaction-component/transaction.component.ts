@@ -17,6 +17,7 @@ import { PersonService } from 'src/app/services/person.service';
 import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
+import { expand, filter, of, scan, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-transaction',
@@ -114,7 +115,7 @@ async ngOnInit(): Promise<void> {
        return;
     }
     this.selectedCategory=true;
-    this.loadAllServices().subscribe((allItems: any[]) => {
+    this.loadAllServices().subscribe(allItems => {
       // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
       this.filteredServices = allItems;
     });
@@ -260,13 +261,13 @@ async ngOnInit(): Promise<void> {
 
   loadAllServices() {  //revisar para que traiga los 2000
       return this.serviceServ.getServicesPageKey(this.category,'HABILITADO').pipe(
-        expand((response: { data: { nextPageKey: any; }; }) =>
+        expand(response =>
           response?.data?.nextPageKey
             ? this.serviceServ.getServicesPageKey(this.category,'HABILITADO', response.data.nextPageKey)
             : of(null) // Detiene la recursión si no hay más páginas
         ),
-        filter((response: null) => response !== null),
-        scan((acc: string | any[], response: { data: { Items: any; }; }) => acc.concat(response.data.Items), []),
+        filter(response => response !== null),
+        scan((acc, response) => acc.concat(response.data.Items), []),
         startWith([]), // Asegura que siempre haya una emisión inicial
       );
   }
