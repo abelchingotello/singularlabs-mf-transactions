@@ -1,6 +1,7 @@
 <div class="content bg-gray-3">
     <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
-        <uni-image-card title="Asignar saldo" externImage="https://png.pngtree.com/png-clipart/20220628/ourlarge/pngtree-cash-banknotes-money-bag-cartoon-png-image_5339686.png" size="15%"></uni-image-card>
+        <uni-image-card title="Asignar saldo" externImage="https://cdn-icons-png.flaticon.com/512/8398/8398139.png" 
+        size="8%"></uni-image-card>
 
 
         <mat-card>
@@ -42,21 +43,20 @@
                     </mat-form-field>
                 </form>
             </div>
+            <div style="display: flex;
+                        padding-right: 15px;
+                        flex-direction: row;
+                        justify-content: flex-end;
+                        margin-bottom: 10px;">
+                <button type="button" class="btn-primary btn" (click)="onPrevious()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn-primary btn" (click)="saveAssign()">
+                    Guardar
+                </button>
+            </div>
         </mat-card>
 
-
-        <mat-card class="custom-border-radius-1-25">
-            <mat-card-content>
-                <div class="d-flex justify-content-between p-4">
-                    <button mat-flat-button (click)="onPrevious()">
-                        Cancelar
-                    </button>
-                    <button mat-flat-button (click)="saveAssign()">
-                        Guardar
-                    </button>
-                </div>
-            </mat-card-content>
-        </mat-card>
     </div>
 </div>
 

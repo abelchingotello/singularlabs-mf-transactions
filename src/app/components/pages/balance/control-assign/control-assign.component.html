@@ -1,0 +1,77 @@
+<div class="content bg-gray-3">
+  <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
+    <uni-image-card title="Reporte de Asignaciones"
+      externImage="https://img.freepik.com/vector-premium/manos-humanas-sosteniendo-tarjetas-credito-o-debito-facturas-dinero-operaciones-financieras-inversiones-transacciones-volumen-caja-pago-efectivo-no-efectivo_458444-275.jpg"
+      size="15%">
+
+      <div class="align-content-center">
+        <button mat-flat-button type="button" class="mb-2 mb-md-0 custom-button btn-dark" (click)="addBalance()">
+          <mat-icon>add</mat-icon>
+          <span class="custom-span-icon-responsive">Asignar saldo</span>
+        </button>
+      </div>
+    </uni-image-card>
+
+    <mat-card class="search-card shadow-sm">
+      <form [formGroup]="assignForm" class="formAssign">
+
+        <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Seleccionar fecha</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate formControlName="dateStart" placeholder="Start date">
+            <input matEndDate formControlName="dateEnd" placeholder="End date">
+          </mat-date-range-input>
+          <mat-hint align="end">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Tipo Entidad</mat-label>
+          <mat-select formControlName="typeEntity" (selectionChange)="selecType($event)">
+            <mat-option *ngFor="let type of typeEntitys" [value]="type">{{type.master_relativeName}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Entidad</mat-label>
+          <mat-select formControlName="entity">
+            <mat-option *ngFor="let type of nameType"
+              [value]="type.servicePerson.idPerson">{{type.servicePerson.nameAlias}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-md-3">
+          <mat-label>Tipo de Asignación</mat-label>
+          <mat-select formControlName="typeAssign">
+            <mat-option value="saldo">SALDO</mat-option>
+            <mat-option value="credito">CREDITO</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+      <div style="display: flex;
+                        padding: 0 15px 15px 0;
+                        flex-direction: row;
+                        justify-content: flex-end;">
+
+        <button type="button" class="btn-primary btn" (click)="cleanSearch()">
+          Limpiar
+        </button>
+        <button type="button" class="btn-primary btn" (click)="searchData()">
+          Buscar
+        </button>
+      </div>
+    </mat-card>
+
+    <mat-card class="custom-border-radius-1-25">
+      <mat-card-content>
+        <div>
+          <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
+          <uni-dynamic-table [columns]="columns" [lengthTable]="count" [data]="dataBalance" [actionsOptions]="false"
+            element_id="id" [pageKey]="pageKey" [refreshFunction]="reload.bind(this)"
+            (pageChange)="onPageChange($event)" [customExportFunction]="exportDataViaAPI.bind(this)">
+          </uni-dynamic-table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>
