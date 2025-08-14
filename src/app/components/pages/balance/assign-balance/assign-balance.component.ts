@@ -8,6 +8,19 @@ import { MasterService } from 'src/app/services/master.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { PersonService } from 'src/app/services/person.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
+import { onMessage, getMessaging } from 'firebase/messaging';
+import { NgZone } from '@angular/core';
+// firebase-config.ts
+import { initializeApp } from 'firebase/app';
+
+export const firebaseApp = initializeApp({
+            apiKey: "AIzaSyBvBdLYy7MP1nLRZL1CymVqxYmqsh8PAlw",
+            authDomain: "app-agente-cash.firebaseapp.com",
+            projectId: "app-agente-cash",
+            storageBucket: "app-agente-cash.firebasestorage.app",
+            messagingSenderId: "611392897382",
+            appId: "1:611392897382:web:97535506688d57e494c8a7"
+        });
 
 @Component({
   selector: 'app-assign-balance',
@@ -35,9 +48,11 @@ export class AssignBalanceComponent implements OnInit {
     private router: Router,
     private mytoastr: MytoastrService,
     private cookieService: CookieService,
+    private ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
+    const messaging = getMessaging();
     this.formAssign();
     this.listData();
     this.nameConcept = this.concept?.value;
@@ -46,7 +61,18 @@ export class AssignBalanceComponent implements OnInit {
         this.concept?.setValue(value.toUpperCase(), { emitEvent: false });
       }
     });
+    onMessage(messaging, (payload) => {
+      console.log('📩 Notificación recibida:', payload);
 
+      const data = payload.data as { code?: string };
+
+      if (data.code) {
+        this.ngZone.run(() => {
+          this.verificationForm.get('code')?.setValue(data.code);
+        });
+      }
+
+    });
   }
 
   formAssign() {

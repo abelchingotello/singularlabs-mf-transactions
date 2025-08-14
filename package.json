@@ -11,7 +11,6 @@
     "build-desa:single-spa:singularlabs-mf-transactions": "ng build singularlabs-mf-transactions --configuration desarrollo",
     "serve:single-spa:singularlabs-mf-transactions": "ng s --project singularlabs-mf-transactions --disable-host-check --port 4217 --live-reload false"
   },
-  
   "private": true,
   "dependencies": {
     "@angular/animations": "^14.2.0",
@@ -25,6 +24,7 @@
     "@angular/router": "^14.2.0",
     "awesome-phonenumber": "^7.2.0",
     "bootstrap": "^5.3.3",
+    "firebase": "^12.0.0",
     "jwt-decode": "^3.1.2",
     "ngx-cookie-service": "^14.0.1",
     "ngx-toastr": "^15.2.0",
