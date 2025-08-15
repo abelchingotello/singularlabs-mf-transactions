@@ -61,18 +61,26 @@ export class AssignBalanceComponent implements OnInit {
         this.concept?.setValue(value.toUpperCase(), { emitEvent: false });
       }
     });
+
     onMessage(messaging, (payload) => {
-      console.log('📩 Notificación recibida:', payload);
+  console.log('📩 Notificación recibida:', payload);
 
-      const data = payload.data as { code?: string };
+  const data = payload.data as { code?: string };
 
-      if (data.code) {
-        this.ngZone.run(() => {
-          this.verificationForm.get('code')?.setValue(data.code);
-        });
-      }
-
+  if (data.code) {
+    this.ngZone.run(() => {
+      this.verificationForm.get('code')?.setValue(data.code);
     });
+  }
+
+  // Mostrar notificación visual si el navegador lo permite
+  if (Notification.permission === 'granted') {
+    new Notification('Código de verificación', {
+      body: `Tu código es: ${data.code}`,
+    });
+  }
+});
+
   }
 
   formAssign() {
