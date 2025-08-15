@@ -186,6 +186,7 @@ export class AssignBalanceComponent implements OnInit {
           console.log('✅ Código válido, guardando...');
           this.saveAssign();
         } else {
+          this.mytoastr.showError('Código inválido', 'Por favor, verifica el código enviado');
           console.warn('❌ Código inválido');
         }
       },

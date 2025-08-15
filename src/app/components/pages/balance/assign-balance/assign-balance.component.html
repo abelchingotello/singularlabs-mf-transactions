@@ -4,12 +4,12 @@
             size="8%"></uni-image-card>
         <mat-card>
             <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="1500ms" style="padding: 18px;">
-                <mat-tab [disabled]="false">
+                <mat-tab [disabled]="selectedTabIndex!=0">
                     <ng-template mat-tab-label>
-                        <span class="material-symbols-outlined">article_person</span> Asignar saldo
+                        <span class="material-symbols-outlined">credit_card</span> Asignar saldo
                     </ng-template>
                     <ng-template matTabContent>
-                        <div class="container-fluid px-2 pb-2">
+                        <div class="container-fluid pt-2">
                             <form [formGroup]="assignForm">
                                 <mat-form-field appearance="outline" class="col-md-4">
                                     <mat-label>Nombre</mat-label>
@@ -58,9 +58,9 @@
                     </ng-template>
                 </mat-tab>
                 <!-- TAB 2: Validación de Código -->
-                <mat-tab [disabled]="false">
+                <mat-tab [disabled]="selectedTabIndex!=1">
                     <ng-template mat-tab-label>
-                        <span class="material-symbols-outlined">article_person</span> Validar Código
+                        <span class="material-symbols-outlined">verified_user</span> Validar Código
                     </ng-template>
                     <ng-template matTabContent>
                         <div class="container-fluid px-2 pb-2">
