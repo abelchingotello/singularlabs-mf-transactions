@@ -2,33 +2,34 @@
     <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
         <uni-image-card title="Asignar saldo" externImage="https://cdn-icons-png.flaticon.com/512/8398/8398139.png"
             size="8%"></uni-image-card>
-        <mat-card>
-            <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="1500ms" style="padding: 18px;">
+        <mat-card class="custom-border-radius-1-25">
+            <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="1500ms" class="mt-3">
                 <mat-tab [disabled]="selectedTabIndex!=0">
                     <ng-template mat-tab-label>
                         <span class="material-symbols-outlined">credit_card</span> Asignar saldo
                     </ng-template>
+
                     <ng-template matTabContent>
-                        <div class="container-fluid pt-2">
-                            <form [formGroup]="assignForm">
-                                <mat-form-field appearance="outline" class="col-md-4">
+                        <div>
+                            <form [formGroup]="assignForm" class="mt-3">
+                                <mat-form-field appearance="outline" class="col-md-3">
                                     <mat-label>Nombre</mat-label>
                                     <input formControlName="concept" type="text" matInput maxlength="100">
                                     <mat-hint align="end">{{concept?.value?.length ?? 0}} / 100</mat-hint>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="outline" class="col-md-4">
+                                <mat-form-field appearance="outline" class="col-md-3">
                                     <mat-label>Saldo a asignar</mat-label>
                                     <input formControlName="amountTransaction" type="number" matInput>
                                     <mat-icon matSuffix>attach_money</mat-icon>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="outline" class="col-md-4">
+                                <mat-form-field appearance="outline" class="col-md-3">
                                     <mat-label>Moneda</mat-label>
                                     <input formControlName="currency" type="text" matInput>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="outline" class="col-md-4">
+                                <mat-form-field appearance="outline" class="col-md-3">
                                     <mat-label>Seleccionar cliente o proveedor</mat-label>
                                     <mat-select (selectionChange)="selecType($event)">
                                         <mat-option *ngFor="let type of typeEntity" [value]="type">
@@ -37,7 +38,7 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <mat-form-field *ngIf="nameType.length>0" appearance="outline" class="col-md-4">
+                                <mat-form-field *ngIf="nameType.length>0" appearance="outline" class="col-md-3">
                                     <mat-label>Seleccionar entidad</mat-label>
                                     <mat-select (selectionChange)="selectEntity($event)">
                                         <mat-option *ngFor="let type of nameType" [value]="type.servicePerson">
@@ -45,16 +46,17 @@
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
+
                             </form>
+                            <div class="col d-flex justify-content-end align-items-end mb-3 mr-3">
+                                <button type="button"  class="btn-default2 btn" (click)="onPrevious()">
+                                    Cancelar
+                                </button>
+                                <button type="button" class="btn-default3 btn" (click)="goToVerification()">
+                                    Continuar
+                                </button>
+                            </div>
                         </div>
-
-                        <div
-                            style="display: flex; padding-right: 15px; flex-direction: row; justify-content: flex-end; margin-bottom: 10px;">
-                            <button type="button" class="btn-primary btn" (click)="onPrevious()">Cancelar</button>
-                            <button type="button" class="btn-primary btn"
-                                (click)="goToVerification()">Continuar</button>
-                        </div>
-
                     </ng-template>
                 </mat-tab>
                 <!-- TAB 2: Validación de Código -->
@@ -62,27 +64,27 @@
                     <ng-template mat-tab-label>
                         <span class="material-symbols-outlined">verified_user</span> Validar Código
                     </ng-template>
+
                     <ng-template matTabContent>
-                        <div class="container-fluid px-2 pb-2">
-                            <div class="p-4">
-                                <h3>Validar Código de Verificación</h3>
-                                <p>Te hemos enviado un código a través de notificaciones push. Ingresa el código para
-                                    confirmar la asignación.</p>
-                                <form [formGroup]="verificationForm">
-                                    <mat-form-field appearance="outline" class="col-md-4">
-                                        <mat-label>Código de verificación</mat-label>
-                                        <input formControlName="code" type="text" matInput  maxlength="6">
-                                        <mat-hint align="end">{{verificationForm.get('code')?.value?.length ?? 0}} / 6</mat-hint>
-                                    </mat-form-field>
+                        <div>
 
-                                    <div style="margin-top: 15px;">
-                                        <button type="button" class="btn-primary btn"
-                                            (click)="verifyCode()">Validar</button>
-                                        <button type="button" class="btn-secondary btn"
-                                            (click)="selectedTabIndex = 0">Volver</button>
-                                    </div>
-                                </form>
-
+                            <form [formGroup]="verificationForm" class="mt-3">
+                                <h3 class="ml-3">Validar Código de Verificación</h3>
+                                <p class="ml-3">Te hemos enviado un código a través de notificaciones push. Ingresa el código para confirmar la asignación.</p>
+                                <mat-form-field appearance="outline" class="col-md-4">
+                                    <mat-label>Código de verificación</mat-label>
+                                    <input formControlName="code" type="text" matInput maxlength="6">
+                                    <mat-hint align="end">{{verificationForm.get('code')?.value?.length ?? 0}} /
+                                        6</mat-hint>
+                                </mat-form-field>
+                            </form>
+                            <div class="col d-flex justify-content-end align-items-end mb-3 mr-3">
+                                <button type="button" class="btn-danger btn" (click)="selectedTabIndex = 0">
+                                    Volver
+                                </button>
+                                <button type="button" class="btn-default btn" (click)="verifyCode()">
+                                    Validar
+                                </button>
                             </div>
                         </div>
                     </ng-template>

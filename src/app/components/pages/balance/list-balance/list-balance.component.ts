@@ -8,7 +8,7 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validator } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
@@ -39,6 +39,7 @@ export class ListBalanceComponent implements OnInit {
   public page: any = 1;
   public count: any = -1;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
+  public selectType: boolean = false;
 
   constructor(
     private spinner: SpinnerService,
@@ -233,7 +234,7 @@ export class ListBalanceComponent implements OnInit {
     this.getDataBalance(this.pageSize);
   }
 
-  selecType(event: any) {
+  selecType(event: any) {   
     console.log("ENTIDAD: ", event.value.master_relativeName)
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
