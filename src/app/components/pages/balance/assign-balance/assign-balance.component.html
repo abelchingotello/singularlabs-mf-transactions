@@ -50,9 +50,11 @@
                             </form>
                             <div class="col d-flex justify-content-end align-items-end mb-3 mr-3">
                                 <button type="button"  class="btn-default2 btn" (click)="onPrevious()">
+                                    <mat-icon>clear</mat-icon>
                                     Cancelar
                                 </button>
                                 <button type="button" class="btn-default3 btn" (click)="goToVerification()">
+                                    <mat-icon>arrow_forward</mat-icon>
                                     Continuar
                                 </button>
                             </div>
@@ -79,10 +81,12 @@
                                 </mat-form-field>
                             </form>
                             <div class="col d-flex justify-content-end align-items-end mb-3 mr-3">
-                                <button type="button" class="btn-danger btn" (click)="selectedTabIndex = 0">
+                                <button type="button" class="btn-default2 btn" (click)="selectedTabIndex = 0">
+                                    <mat-icon>arrow_back</mat-icon>
                                     Volver
                                 </button>
-                                <button type="button" class="btn-default btn" (click)="verifyCode()">
+                                <button type="button" class="btn-default3 btn" (click)="verifyCode()">
+                                    <mat-icon>check_circle</mat-icon>
                                     Validar
                                 </button>
                             </div>
