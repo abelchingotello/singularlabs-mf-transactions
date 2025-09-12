@@ -20500,6 +20500,16 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 
 }
 
+.btn-default4 {
+    background-color: var(--default4) !important;//var(--default3) #172b4d #001F3F;
+    border-color: var(--default4) !important;//var(--default3) #172b4d
+    color: #fff !important; //#fff  var(--default4)
+    justify-content: center!important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px 8px 13px !important;
+}
+
 .btn-default2:hover , .btn-default3:hover{
     color: #fff!important;
 }
