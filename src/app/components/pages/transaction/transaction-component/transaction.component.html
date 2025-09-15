@@ -3,7 +3,6 @@
         <uni-image-card title="Transacciones"
             externImage="https://static.vecteezy.com/system/resources/previews/004/341/304/non_2x/easy-to-use-banking-app-flat-illustration-credit-card-financial-transactions-cartoon-concept-e-payment-online-bill-pay-isolated-metaphor-on-white-background-ewallet-ebanking-application-vector.jpg"
             size="8%">
-
         </uni-image-card>
 
         <!-- <mat-card class="custom-border-radius-1-25">
@@ -29,7 +28,7 @@
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
-                    <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
+                    <h2 class="mt-4 ml-3 text-default"> Datos de Búsqueda </h2>
                     <!-- <mat-card-title style="margin-top: 23px; margin-left: 20px;" >Búsqueda transacciones</mat-card-title> -->
                     <form [formGroup]="formDate" class="d-flex flex-wrap">
 
@@ -84,9 +83,10 @@
                                 </mat-option>
                             </mat-select>
                             <!-- Mensaje si no hay categoría seleccionada -->
-                            <mat-hint *ngIf="!selectedCategory" class="text-danger">
+                            <mat-hint class="text-danger" *ngIf="!selectedCategory && formDate.get('idService')?.touched">
                                 Primero selecciona una categoría.
                             </mat-hint>
+
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
@@ -105,25 +105,37 @@
                         </mat-form-field>
 
                     </form>
-                    <div class="info-container">
-                        <div class="info-item">
-                            <mat-label>Monto total:</mat-label>
-                            <span class="info-value">{{amountTransaction}}</span>
+                    <div class="row">
+
+                        <div class="col lg-6">
+                            <div class="info-container">
+                                <div class="info-item">
+                                    <mat-label>Monto total:</mat-label>
+                                    <span class="info-value">{{amountTransaction}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col lg-6 d-flex justify-content-end align-items-end mb-3 mr-3">
+                            <button type="button" class="btn-default2 btn" (click)="clearSearch()">
+                                <mat-icon>filter_alt_off</mat-icon>
+                                Limpiar
+                            </button>
+                            <button type="button" class="btn-default3 btn" (click)="search()">
+                                <mat-icon>search</mat-icon>
+                                Buscar
+                            </button>
+
                         </div>
                     </div>
 
-                    <div style="display: flex;
-                        padding-right: 15px;
-                        flex-direction: row;
-                        justify-content: flex-end;">
+                </div>
+            </mat-card-content>
+        </mat-card>
 
-                        <button type="button" class="btn-primary btn" (click)="clearSearch()">
-                            Limpiar
-                        </button>
-                        <button type="button" class="btn-primary btn" (click)="search()">
-                            Buscar
-                        </button>
-                    </div>
+        <mat-card class="custom-border-radius-1-25">
+
+            <mat-card-content>
+                <div>
                     <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
                         [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
