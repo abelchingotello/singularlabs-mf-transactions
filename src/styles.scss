@@ -20537,11 +20537,10 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 //-------mat checkbox y radio button con color personalizado
 .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background, .mat-checkbox-checked.mat-accent .mat-checkbox-background {
     background-color: var(--default3) !important;
-}
-.mat-accent .mat-ripple-element {
+}.mat-accent .mat-ripple-element {
     background-color: var(--default3) !important;
 }.mat-radio-outer-circle{
     border-color: var(--default3) !important;
-} .mat-radio-inner-circle{
+}.mat-radio-inner-circle{
     background-color: var(--default3) !important;
 }

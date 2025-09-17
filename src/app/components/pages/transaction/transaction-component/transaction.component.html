@@ -43,17 +43,6 @@
                             <mat-date-range-picker #picker></mat-date-range-picker>
                         </mat-form-field>
 
-
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar recaudador</mat-label>
-                            <mat-select formControlName="entity">
-                                <mat-option [value]="">NINGUNO</mat-option>
-                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
-                                    {{entity.servicePerson.nameAlias}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Categoria de Servicio</mat-label>
                             <mat-select formControlName="category" (selectionChange)="selectCategory()">
@@ -64,17 +53,16 @@
                             </mat-select>
                         </mat-form-field>
 
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar servicio</mat-label>
                             <mat-select formControlName="idService" disableOptionCentering
-                                panelClass="custom-select-panel">
+                                panelClass="custom-select-panel" multiple>
                                 <!-- Buscador dentro de un mat-option que NO se selecciona -->
-                                <mat-option disabled class="search-option">
+                                <mat-option disabled class="search-option" mat-pseudo-checkbox>
                                     <input matInput placeholder="Buscar servicio..." [(ngModel)]="serviceFilter"
                                         [ngModelOptions]="{standalone: true}" (ngModelChange)="filterServices()"
                                         (click)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()"
-                                        (keydown.enter)="$event.stopPropagation()" autocomplete="off" />
+                                        (keydown.enter)="$event.stopPropagation()" />
                                 </mat-option>
 
                                 <!-- Opciones filtradas -->
@@ -83,7 +71,8 @@
                                 </mat-option>
                             </mat-select>
                             <!-- Mensaje si no hay categoría seleccionada -->
-                            <mat-hint class="text-danger" *ngIf="!selectedCategory && formDate.get('idService')?.touched">
+                            <mat-hint class="text-danger"
+                                *ngIf="!selectedCategory && formDate.get('idService')?.touched">
                                 Primero selecciona una categoría.
                             </mat-hint>
 
@@ -91,8 +80,7 @@
 
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Estado</mat-label>
-                            <mat-select formControlName="status">
-                                <mat-option [value]="">NINGUNO</mat-option>
+                            <mat-select formControlName="status" multiple>
                                 <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
                                     {{status.master_name}}
                                 </mat-option>
@@ -100,10 +88,36 @@
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Proveedor</mat-label>
+                            <mat-select formControlName="provider">
+                                <mat-option [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let provider of listProviders"
+                                    [value]="provider.servicePerson.idPerson">
+                                    {{provider.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Recaudador</mat-label>
+                            <mat-select formControlName="entity">
+                                <mat-option [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
+                                    {{entity.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+
+                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
 
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Numero de Suministro</mat-label>
+                            <input formControlName="supply" type="text" matInput>
+                        </mat-form-field>
                     </form>
                     <div class="row">
 
