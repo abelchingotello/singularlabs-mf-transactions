@@ -1,12 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CookieService } from 'ngx-cookie-service';
 import { forkJoin } from 'rxjs';
 import { BalanceService } from 'src/app/services/balance.service';
 import { MasterService } from 'src/app/services/master.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { PersonService } from 'src/app/services/person.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
+import { onMessage, getMessaging } from 'firebase/messaging';
+import { NgZone } from '@angular/core';
+// firebase-config.ts
+import { initializeApp } from 'firebase/app';
+
+export const firebaseApp = initializeApp({
+            apiKey: "AIzaSyBvBdLYy7MP1nLRZL1CymVqxYmqsh8PAlw",
+            authDomain: "app-agente-cash.firebaseapp.com",
+            projectId: "app-agente-cash",
+            storageBucket: "app-agente-cash.firebasestorage.app",
+            messagingSenderId: "611392897382",
+            appId: "1:611392897382:web:97535506688d57e494c8a7"
+        });
 
 @Component({
   selector: 'app-assign-balance',
@@ -20,7 +34,10 @@ export class AssignBalanceComponent implements OnInit {
   public typeEntity: any;
   public nameType: any[] = [];
   public nameConcept: string | undefined;
-  public provider : string = 'PROVIDER'
+  public provider: string = 'PROVIDER'
+  public selectedTabIndex = 0;
+  public verificationCode: string = '';
+  public verificationForm!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
@@ -29,18 +46,40 @@ export class AssignBalanceComponent implements OnInit {
     private personService: PersonService,
     private spinner: SpinnerService,
     private router: Router,
-    private mytoastr: MytoastrService
+    private mytoastr: MytoastrService,
+    private cookieService: CookieService,
+    private ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
+    const messaging = getMessaging();
     this.formAssign();
     this.listData();
-    this.nameConcept = this.concept?.value
+    this.nameConcept = this.concept?.value;
     this.concept?.valueChanges.subscribe(value => {
       if (value) {
         this.concept?.setValue(value.toUpperCase(), { emitEvent: false });
       }
     });
+
+    onMessage(messaging, (payload) => {
+  console.log('📩 Notificación recibida:', payload);
+
+  const data = payload.data as { code?: string };
+
+  if (data.code) {
+    this.ngZone.run(() => {
+      this.verificationForm.get('code')?.setValue(data.code);
+    });
+  }
+
+  // Mostrar notificación visual si el navegador lo permite
+  if (Notification.permission === 'granted') {
+    new Notification('Código de verificación', {
+      body: `Tu código es: ${data.code}`,
+    });
+  }
+});
 
   }
 
@@ -53,7 +92,9 @@ export class AssignBalanceComponent implements OnInit {
       amountTransaction: ['', Validators.required],
       currency: [{ value: 'PEN', disabled: true }]
     })
-
+    this.verificationForm = this.fb.group({
+      code: ['', [Validators.required, Validators.minLength(6)]]
+    });
 
   }
 
@@ -85,9 +126,9 @@ export class AssignBalanceComponent implements OnInit {
     console.log("ENTIDAD para asignar: ", event.value.idPerson)
     this.idPerson = event.value.idPerson;
     this.concept?.setValue(this.nameConcept)
-    let name = this.concept?.value.concat(' '+event.value.nameAlias)
+    let name = this.concept?.value.concat(' ' + event.value.nameAlias)
     this.concept?.setValue(name)
-    if (this.selectedType == this.provider ) {
+    if (this.selectedType == this.provider) {
       this.idProvider?.setValue(event.value.idPerson)
       this.idClient?.setValue(null)
     } else {
@@ -116,6 +157,49 @@ export class AssignBalanceComponent implements OnInit {
 
   onPrevious() {
     this.router.navigate(['/balance/control'])
+  }
+
+  goToVerification() {
+    if (this.assignForm.valid) {
+      const userId = this.cookieService.get('userId');
+      const fcmToken = localStorage.getItem('fcmToken');
+
+      this.assignService.generateCode(userId, fcmToken || '').subscribe({
+        next: (res) => {
+          console.log('✅ Código enviado por notificación push');
+          this.selectedTabIndex = 1;
+        },
+        error: (err) => {
+          console.error('❌ Error al enviar código:', err);
+        }
+      });
+    }
+  }
+
+  verifyCode() {
+    const userId = this.cookieService.get('userId');
+    const code = this.verificationForm.get('code')?.value;
+
+    this.assignService.verificateCode(code, userId).subscribe({
+      next: (res) => {
+        if (res.valid) {
+          console.log('✅ Código válido, guardando...');
+          this.saveAssign();
+        } else {
+          this.mytoastr.showError('Código inválido', 'Por favor, verifica el código enviado');
+          console.warn('❌ Código inválido');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al verificar código:', err);
+      }
+    });
+  }
+
+  sendPushVerification() {
+    // Lógica para enviar notificación push con código
+    // Ejemplo:
+    // this.pushService.sendVerificationCode(this.assignForm.value);
   }
 
   saveAssign() {

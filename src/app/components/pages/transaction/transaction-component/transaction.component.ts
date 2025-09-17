@@ -29,35 +29,46 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Titular', 'attribute': 'bill'},
-    { 'name': 'Recaudador', 'attribute': 'client'},
-    { 'name': 'Num. recibo', 'attribute': 'concep'},
-    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    { 'name': 'Recaudador', 'attribute': 'client' },
+    { 'name': 'Proveedor', 'attribute': 'provider' },
+    { 'name': 'Servicio', 'attribute': 'service' },
+    { 'name': 'N° Suministro', 'attribute': 'supply' },
+    { 'name': 'N° Recibo', 'attribute': 'concep' },
+    { 'name': 'Titular', 'attribute': 'bill' },
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
     // { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Proveedor', 'attribute': 'provider'},
-    { 'name': 'Fecha', 'attribute': 'date','config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
-    }
-  },
-  { 'name': 'Cod. respuesta', 'attribute': 'reference' },
-    { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+    {
+      'name': 'Fecha',
+      'attribute': 'date',
+      'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
+      }
+    },
+    { 'name': 'Cod. Respuesta', 'attribute': 'reference' },
+    {
+      'name': 'Estado',
+      'attribute': 'status',
+      'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
+    },
   ];
-  public dataTransaction : any[] = [];
+
+  public dataTransaction: any[] = [];
 
   public pageSize: any = 5;
   public pageKey: any | undefined;
-  public disabledEditOption:any
+  public disabledEditOption: any
   public functionDataCurrent!: ((pageSize: any) => any);
-  public formOperation! : FormGroup<any>;
-  public formDate! : FormGroup<any>;
-  public transaction :any;
-  public respSearch : any;
+  public formOperation!: FormGroup<any>;
+  public formDate!: FormGroup<any>;
+  public transaction: any;
+  public respSearch: any;
   public masterStatus: any;
   public entityTypes: any[] = [];
-  public count :any = -1;
+  public count: any = -1;
   public page: any = 1;
-  public amountTransaction:any = -1;
+  public amountTransaction: any = -1;
   public filteredServices: any[] = []; // Lista filtrada que se mostrará
+  public allItems1: any[] = []; // Lista filtrada que se mostrará
   public allItems: any[] = [];
   public serviceFilter: string = '';
   public categoryTypes: any[] = [];
@@ -67,32 +78,33 @@ export class TransactionComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
-    private transactionService : TransactionService,
-    private fb : FormBuilder,
-    private mytoastr : MytoastrService,
-    private masterService : MasterService,
-    private personService : PersonService,
-    private dateService : DateService,
-    private serviceServ : ServicesService,
+    private spinner: SpinnerService,
+    private transactionService: TransactionService,
+    private fb: FormBuilder,
+    private mytoastr: MytoastrService,
+    private masterService: MasterService,
+    private personService: PersonService,
+    private dateService: DateService,
+    private serviceServ: ServicesService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
 
-async ngOnInit(): Promise<void> {
-  this.initialForm();
-  try {
-    await this.listData(); // Espera a que listData termine
-    this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
-  } catch (error) {
-    console.error("Error al cargar datos iniciales:", error);
+  async ngOnInit(): Promise<void> {
+    this.initialForm();
+    try {
+      await this.listData(); // Espera a que listData termine
+      this.functionDataCurrent = this.getDataTransaction.bind(this);
+      this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
+      
+    } catch (error) {
+      console.error("Error al cargar datos iniciales:", error);
+    }
+
   }
-}
 
 
-
-  initialForm(){
+  initialForm() {
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
     });
@@ -100,50 +112,63 @@ async ngOnInit(): Promise<void> {
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
+      provider: [''],
       category: [''],
-      idService : [''],
-      numDoc : [''],
+      idService: [''],
+      numDoc: [''],
+      supply: [''],
       status: [''],
     });
   }
 
   selectCategory() {
+
     console.log("Categoria seleccionada: ", this.category);
-    if(this.category == undefined || this.category == ''){
-      this.selectedCategory= false;
+    if (this.category == undefined || this.category == '') {
+      this.selectedCategory = false;
       this.filteredServices = [];
-       return;
+      return;
     }
-    this.selectedCategory=true;
+    this.selectedCategory = true;
     this.loadAllServices().subscribe(allItems => {
+      this.spinner.spinnerOnOff();
       // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
       this.filteredServices = allItems;
+      this.allItems1 = allItems;
+      this.spinner.spinnerOnOff();
+
+      console.log("Servicios cargados: ", this.filteredServices);
     });
+
   }
 
-  getDataTransaction(pageSize?: any){
+  getDataTransaction(pageSize?: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
     let entity = this.entity || undefined;
+    let provider = this.provider || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
+    let supply = this.supply || undefined;
     let numDoc = this.numDoc || undefined;
-    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
-
-    console.log("idService: ",idServ)
+    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    console.log("idService: ", idServ)
     // return
-    this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
-      next: (value:any) => {
-        if(value.statusCode === 201){
+    this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, supply, this.count, this.amountTransaction).subscribe({
+      next: (value: any) => {
+        if (value.statusCode === 201) {
           this.amountTransaction = 0;
-          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
           return
         }
+
         // Actualizar client con nameAlias
         const updatedItems = value.data.Items.map((item: any) => {
           const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
           const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
+         
+
           return {
             ...item,
             client: person ? person.servicePerson.nameAlias : item.client, // Asignar el nombre
@@ -151,14 +176,14 @@ async ngOnInit(): Promise<void> {
           };
         });
 
-        this.dataTransaction = [...this.dataTransaction,...updatedItems];
+        this.dataTransaction = [...this.dataTransaction, ...updatedItems];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        if(value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
-        console.log("DATA DE TRANSACTION: " ,value.data)
+        if (value.data.count != 0) this.count = value.data.count;
+        if (value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
+        console.log("DATA DE TRANSACTION: ", value.data)
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -199,7 +224,7 @@ async ngOnInit(): Promise<void> {
     console.log('Página cambiada', event);
   }
 
-  selectedHandle(event:any[]){
+  selectedHandle(event: any[]) {
     console.log("SELECTED HANDLE", event)
   }
 
@@ -208,19 +233,21 @@ async ngOnInit(): Promise<void> {
     // console.log("Id's: ", selectedIds)
     this.disabledEditOption = selectedIds.length !== 1;
     // this.editOption = selectedIds.length == 1;
-    console.log("DESAHIBILITR: ",this.disabledEditOption)
+    console.log("DESAHIBILITR: ", this.disabledEditOption)
     // this.selectedIds = selectedIds;
     console.log("Id--s: ", selectedIds)
   }
 
-  search(){
-    console.log("formulario busqueda: ",this.formDate)
-    if(this.formDate.get('dateEnd')?.value == '' &&
+  search() {
+    console.log("formulario busqueda: ", this.formDate)
+    if (this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
+      this.formDate.get('supply')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == ''){
-      this.mytoastr.showWarning("Seleccione un filtro","")
+      this.formDate.get('entity')?.value == '' &&
+      this.formDate.get('provider')?.value == '') {
+      this.mytoastr.showWarning("Seleccione un filtro", "")
       return
     }
 
@@ -231,54 +258,57 @@ async ngOnInit(): Promise<void> {
   }
 
   async listData(): Promise<void> {
-  this.spinner.spinnerOnOff();
-  return new Promise((resolve, reject) => {
-    forkJoin([
-      this.masterService.getItemsMasterTable('16'),
-      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
-      this.masterService.getItemsMasterTable('14'),
-      this.personService.getPerson('PROVEEDOR'),
-    ]).subscribe({
-      next: (response) => {
-        const [masterStatus, entity, category, providers] = response;
-        this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
-        this.entityTypes = entity.data;
-        this.categoryTypes = category;
-        this.listProviders = providers.data;
+    this.spinner.spinnerOnOff();
+    return new Promise((resolve, reject) => {
+      forkJoin([
+        this.masterService.getItemsMasterTable('16'),
+        this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
+        this.masterService.getItemsMasterTable('14'),
+        this.personService.getPerson('PROVEEDOR'),
+      ]).subscribe({
+        next: (response) => {
+          const [masterStatus, entity, category, providers] = response;
+          this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+          this.entityTypes = entity.data;
+          this.categoryTypes = category;
+          this.listProviders = providers.data;
 
-        this.spinner.spinnerOnOff();
-        resolve(); //  Indica que terminó exitosamente
-      },
-      error: (error) => {
-        this.spinner.spinnerOnOff();
-        console.error("Error loading master table data:", error);
-        reject(error); // Indica que falló
-      }
+          this.spinner.spinnerOnOff();
+          resolve(); //  Indica que terminó exitosamente
+        },
+        error: (error) => {
+          this.spinner.spinnerOnOff();
+          console.error("Error loading master table data:", error);
+          reject(error); // Indica que falló
+        }
+      });
     });
-  });
-}
+  }
 
 
   loadAllServices() {  //revisar para que traiga los 2000
-      return this.serviceServ.getServicesPageKey(this.category,'HABILITADO').pipe(
-        expand(response =>
-          response?.data?.nextPageKey
-            ? this.serviceServ.getServicesPageKey(this.category,'HABILITADO', response.data.nextPageKey)
-            : of(null) // Detiene la recursión si no hay más páginas
-        ),
-        filter(response => response !== null),
-        scan((acc, response) => acc.concat(response.data.Items), []),
-        startWith([]), // Asegura que siempre haya una emisión inicial
-      );
+    return this.serviceServ.getServicesPageKey(this.category, 'HABILITADO').pipe(
+      expand(response =>
+        response?.data?.nextPageKey
+          ? this.serviceServ.getServicesPageKey(this.category, 'HABILITADO', response.data.nextPageKey)
+          : of(null) // Detiene la recursión si no hay más páginas
+      ),
+      filter(response => response !== null),
+      scan((acc, response) => acc.concat(response.data.Items), []),
+      startWith([]), // Asegura que siempre haya una emisión inicial
+    );
   }
 
-  clearSearch(){
+  clearSearch() {
     this.formDate.get('dateEnd')?.setValue('')
     this.formDate.get('dateStart')?.setValue('')
     this.formDate.get('status')?.setValue('')
+    this.formDate.get('category')?.setValue('')
     this.formDate.get('entity')?.setValue('')
+    this.formDate.get('provider')?.setValue('')
     this.formDate.get('idService')?.setValue('')
     this.formDate.get('numDoc')?.setValue('')
+    this.formDate.get('supply')?.setValue('')
     //limpiar tabla de transacciones
     this.clearData();
     this.getDataTransaction(this.pageSize)
@@ -286,36 +316,43 @@ async ngOnInit(): Promise<void> {
 
   filterServices() {
     const value = this.serviceFilter?.toLowerCase() || '';
-    this.filteredServices = this.allItems.filter(service =>
+    this.filteredServices = this.allItems1.filter(service =>
       service.name.toLowerCase().includes(value)
     );
+    console.log("Servicio filtrado: ", value)
+    console.log("Todos los servicios: ", this.filteredServices)
   }
 
-  get dateStart(){
+  get dateStart() {
     return this.formDate?.get('dateStart')?.value;
   }
 
-  get numDoc(){
+  get numDoc() {
     return this.formDate?.get('numDoc')?.value;
   }
-
-  get dateEnd(){
+  get supply() {
+    return this.formDate?.get('supply')?.value;
+  }
+  get dateEnd() {
     return this.formDate?.get('dateEnd')?.value;
   }
 
-  get status(){
+  get status() {
     return this.formDate?.get('status')?.value;
   }
 
-  get entity(){
+  get entity() {
     return this.formDate?.get('entity')?.value;
   }
+  get provider() {
+    return this.formDate?.get('provider')?.value;
+  }
 
-  get idService(){
+  get idService(): any[] {
     return this.formDate?.get('idService')?.value;
   }
 
-  get category(){
+  get category() {
     return this.formDate?.get('category')?.value;
   }
 
@@ -326,7 +363,7 @@ async ngOnInit(): Promise<void> {
     // Preparar los filtros para la exportación
     const exportFilters: Record<string, any> = {
       idclient: this.entity,
-      idprovider: undefined,
+      idprovider: this.provider,
       status: this.status,
       date: this.dateStart || this.dateEnd ?
         JSON.stringify({
@@ -352,7 +389,7 @@ async ngOnInit(): Promise<void> {
         if (!response.body) {
           this.mytoastr.showError('La respuesta no contiene datos', '');
           return;
-        }else{
+        } else {
           console.log("Sí tiene datos el response")
         }
 

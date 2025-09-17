@@ -1,4 +1,4 @@
-import { HttpClient,  HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -15,8 +15,24 @@ export class BalanceService {
   ) { }
 
 
-  assignBalance(data:any):Observable<any>{
-    return this.httpClient.post(`${this.url}/transactions/balances`,data);
+  assignBalance(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/transactions/balances`, data);
+  }
+
+  verificateCode(code: string, user: string): Observable<any> {
+    const params = new HttpParams()
+      .set('verificateCode', true)
+      .set('code', code)
+      .set('userId', user);
+    return this.httpClient.post(`${this.url}/transactions/balances`, {}, { params });
+  }
+
+  generateCode(userId: string, token: string): Observable<any> {
+    const params = new HttpParams()
+      .set('generateCode', true)
+      .set('userId', userId)
+      .set('token', token);
+    return this.httpClient.post(`${this.url}/transactions/balances`, {}, { params });
   }
 
   exportBalances(
