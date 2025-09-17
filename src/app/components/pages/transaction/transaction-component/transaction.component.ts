@@ -32,8 +32,8 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Recaudador', 'attribute': 'client' },
     { 'name': 'Proveedor', 'attribute': 'provider' },
     { 'name': 'Servicio', 'attribute': 'service' },
-    { 'name': 'Num. Suministro', 'attribute': 'supply' },
-    { 'name': 'Num. recibo', 'attribute': 'concep' },
+    { 'name': 'N° Suministro', 'attribute': 'supply' },
+    { 'name': 'N° Recibo', 'attribute': 'concep' },
     { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
     // { 'name': 'Moneda', 'attribute': 'currency'},
@@ -44,7 +44,7 @@ export class TransactionComponent implements OnInit {
         'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
       }
     },
-    { 'name': 'Cod. respuesta', 'attribute': 'reference' },
+    { 'name': 'Cod. Respuesta', 'attribute': 'reference' },
     {
       'name': 'Estado',
       'attribute': 'status',
