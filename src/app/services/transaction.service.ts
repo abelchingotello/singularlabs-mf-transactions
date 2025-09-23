@@ -15,28 +15,26 @@ export class TransactionService {
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?:string,idprovider?:string,status?:string,dateStart?:any, dateEnd?:any,idService?:string,limit?:any ,page?:any,numDoc?:string,supply?:string, count?: any,totalAmount?:any):Observable<any>{
-    let params = new  HttpParams();
+  getTransaction(idclient?: string, idprovider?: string, status?: string, dateStart?: any, dateEnd?: any, idService?: string, limit?: any, page?: any, numDoc?: string, supply?: string, count?: any, totalAmount?: any): Observable<any> {
+    let params = new HttpParams();
 
-    console.log("idservicio: ",idService)
-
-    if(numDoc !== undefined){
-      params = params.set('concept',numDoc);
+    if (numDoc !== undefined) {
+      params = params.set('concept', numDoc);
     }
-    if(supply !== undefined){
-      params = params.set('supply',supply);
+    if (supply !== undefined) {
+      params = params.set('supply', supply);
     }
 
-    if(idclient !== undefined){
-      params = params.set('idclient',idclient);
+    if (idclient !== undefined) {
+      params = params.set('idclient', idclient);
     }
 
-    if(idprovider !== undefined){
-      params = params.set('idprovider',idprovider);
+    if (idprovider !== undefined) {
+      params = params.set('idprovider', idprovider);
     }
 
-    if(status !== undefined){
-      params = params.set('status',status);
+    if (status !== undefined) {
+      params = params.set('status', status);
     }
 
     if (dateStart !== undefined && dateStart !== null) {
@@ -46,8 +44,8 @@ export class TransactionService {
       params = params.set('dateEnd', dateEnd);
     }
 
-    if(idService !== undefined){
-      params = params.set('idService',idService);
+    if (idService !== undefined) {
+      params = params.set('idService', idService);
     }
 
     if (limit !== undefined) {
@@ -63,13 +61,17 @@ export class TransactionService {
     if (Number(totalAmount) >= 0) {
       params = params.set('totalAmount', Number(totalAmount));
     }
-    return this.httpClient.get(`${this.url}/transactions`,{params});
+    return this.httpClient.get(`${this.url}/transactions`, { params });
   }
 
-  getBalance(limit?:any ,page?:any,typeEntity?:any, entity?:any,typeAssign?:any,dateStart?:any,dateEnd?:any,count?:any):Observable<any>{
-    let params = new  HttpParams();
-    if(typeEntity !== undefined){
-      params = params.set('typeEntity',typeEntity);
+  updateTransactionStatus(data: any): Observable<any> {
+    return this.httpClient.post<any>(`${this.url}/transactions/status/`, data);
+  }
+
+  getBalance(limit?: any, page?: any, typeEntity?: any, entity?: any, typeAssign?: any, dateStart?: any, dateEnd?: any, count?: any): Observable<any> {
+    let params = new HttpParams();
+    if (typeEntity !== undefined) {
+      params = params.set('typeEntity', typeEntity);
     }
     if (entity !== undefined) {
       params = params.set('entity', entity);
@@ -92,13 +94,13 @@ export class TransactionService {
     if (count >= 0) {
       params = params.set('count', Number(count));
     }
-    return this.httpClient.get(`${this.url}/transactions/balances`,{params});
+    return this.httpClient.get(`${this.url}/transactions/balances`, { params });
   }
 
-   getCurrentBalances(limit?:any ,page?:any,typeEntity?:any, entity?:any,count?:any):Observable<any>{
-    let params = new  HttpParams();
-    if(typeEntity !== undefined){
-      params = params.set('typeEntity',typeEntity);
+  getCurrentBalances(limit?: any, page?: any, typeEntity?: any, entity?: any, count?: any): Observable<any> {
+    let params = new HttpParams();
+    if (typeEntity !== undefined) {
+      params = params.set('typeEntity', typeEntity);
     }
     if (entity !== undefined) {
       params = params.set('entity', entity);
@@ -112,26 +114,9 @@ export class TransactionService {
     if (count >= 0) {
       params = params.set('count', Number(count));
     }
-    return this.httpClient.get(`${this.url}/transactions/current-balances`,{params});
+    return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
   }
 
-  getIdTransaction(id:string,limit?:any ,pageKey?:any []):Observable<any>{
-    let params = new  HttpParams();
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-
-    if (pageKey !== undefined) {
-      params = params.set('pageKey', JSON.stringify(pageKey));
-    }
-    return this.httpClient.get(`${this.url}/transactions/${id}`,{params});
-  }
-
-  balanceVoucher(numberOperation:string){
-    let params = new HttpParams();
-    params = params.set('numberOperation', numberOperation);
-    return this.httpClient.get(`${this.url}/transactions/voucher`,{params});
-  }
   //-----Exportar de archivos
   exportTransactions(
     format: 'xlsx' | 'csv',

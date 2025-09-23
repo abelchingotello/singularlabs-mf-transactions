@@ -126,7 +126,6 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         if (this.paginator) {
           this.paginator.length = this.lengthTable;
           this.changeDetectorRef.detectChanges();
-          console.log('paginator', this.paginator.length);
         }
       });
       // Iniciar o reiniciar la tabla
@@ -144,7 +143,6 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   initTable() {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
-    console.log('dataSource.paginator', this.dataSource.paginator);
     this.obs = this.dataSource.connect();
   }
 

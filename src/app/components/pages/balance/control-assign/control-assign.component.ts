@@ -25,20 +25,18 @@ export class ReportBalanceComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Nombre', 'attribute': 'concep' },
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
-    //{ 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Fecha', 'attribute': 'date', 'config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }},
-    // { 'name': 'Estado', 'attribute': 'status','config':{
-    //   'styleClass':true
-    // }},
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      }
+    },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
   public typeEntitys: any;
   public selectedType: any;
   public pageKey: any;
-  public page:any = 1;
+  public page: any = 1;
   public count: any = -1;
   public assignForm!: FormGroup;
   public functionDataCurrent!: (pageSize: any) => any;
@@ -49,12 +47,12 @@ export class ReportBalanceComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
+    private spinner: SpinnerService,
     private router: Router,
     private transactionService: TransactionService,
     private personService: PersonService,
     private fb: FormBuilder,
-    private dateService : DateService,
+    private dateService: DateService,
     private mytoastr: MytoastrService,
     private masterService: MasterService,
     private balanceService: BalanceService,
@@ -69,13 +67,19 @@ export class ReportBalanceComponent implements OnInit {
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance(){
+  /**
+   * Redirige a la vista de asignación de saldo.
+   */
+  addBalance() {
     this.router.navigate(['balance/assign'])
   }
 
-  formAssign(){
+  /**
+   * Construye el formulario reactivo para asignación de balances.
+   */
+  formAssign() {
     this.assignForm = this.fb.group({
-      status:[''],
+      status: [''],
       entity: [''],
       typeEntity: [''],
       typeAssign: [''],
@@ -84,40 +88,42 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Carga tipos de entidad desde la tabla maestra y los ordena.
+   */
   listData() {
-      forkJoin([
-        this.masterService.getItemsMasterTable('11')
+    forkJoin([
+      this.masterService.getItemsMasterTable('11')
 
-      ]).subscribe({
-        next: ([typeEntity]) => {
-          this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
-          console.log("ENTIDAD: ", this.typeEntitys)
-        },
-        error: (err: any) => {
-          console.error('Error:', err);
-        },
-      })
+    ]).subscribe({
+      next: ([typeEntity]) => {
+        this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+      },
+    })
   }
 
-  getDataBalance(pageSize:any){
+  /**
+  * Obtiene saldos según filtros seleccionados y gestiona paginación.
+  * 
+  * @param {*} pageSize - Tamaño de página a consultar.
+  */
+  getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
     let typeEntity = this.typeEntity?.master_name || undefined;
     let entity = this.entity || undefined;
     let typeAssign = this.typeAssign || undefined;
-    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
 
-    console.log("ENTIDAD: ", entity)
-    console.log("TIPO DE ENTIDAD: ", typeEntity)
-    console.log("TIPO DE ASIGNACION: ", typeAssign)
-    console.log("FECHA INICIO: ", dateStart)
-    console.log("FECHA FIN: ", dateEnd)
 
-    this.transactionService.getBalance(pageSize,this.page,typeEntity,entity,typeAssign,dateStart,dateEnd,this.count).subscribe({
-      next: (value:any) => {
-        if(value.statusCode == 201){
+    this.transactionService.getBalance(pageSize, this.page, typeEntity, entity, typeAssign, dateStart, dateEnd, this.count).subscribe({
+      next: (value: any) => {
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
@@ -125,21 +131,19 @@ export class ReportBalanceComponent implements OnInit {
         let datanew = value.data.Items.map((item: any) => {
           return {
             ...item,
-            amountTransaction: item.amountTransaction+' '+item.currency,
+            amountTransaction: item.amountTransaction + ' ' + item.currency,
           };
         });
-        console.log("DATA DE BALANCE: ", datanew)
-        this.dataBalance = [...this.dataBalance,...datanew];
+        this.dataBalance = [...this.dataBalance, ...datanew];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
-        if(value.statusCode == 201){
+        if (value.data.count != 0) this.count = value.data.count;
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
 
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -157,26 +161,29 @@ export class ReportBalanceComponent implements OnInit {
     )
   }
 
+  /**
+   * Recarga datos: limpia tabla, selección y vuelve a consultar.
+   */
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
     this.functionDataCurrent(this.pageSize);
   }
 
+  /**
+   * Limpia la tabla y reinicia contadores de paginación.
+   */
   clearData() {
     this.pageKey = undefined;
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
-    //this.reload();
   }
 
   onPageChange(event: PageEvent) {
-    console.log("event onPageChange", event)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
-    console.log('Página cambiada', event);
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
@@ -235,19 +242,27 @@ export class ReportBalanceComponent implements OnInit {
     });
   }
 
+  /**
+   * Selecciona un tipo de entidad y busca personas asociadas.
+   * 
+   * @param {*} event - Evento del selector de tipo de entidad.
+   */
   selecType(event: any) {
-    console.log("ENTIDAD: ", event.value.master_relativeName)
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
   }
 
+  /**
+ * Busca personas asociadas a un tipo de entidad.
+ * 
+ * @param {*} nameType - Nombre relativo de la entidad.
+ */
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
     this.personService.getPerson(nameType, undefined).subscribe({
       next: (value) => {
         this.nameType = value.data
-        console.log('TYPE ENTITU POR ENTIDAD: ', this.nameType)
       },
       error: (error) => {
         console.log(error)
@@ -258,37 +273,42 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
-  searchData(){
+  /**
+   * Ejecuta búsqueda con los filtros del formulario.
+   */
+  searchData() {
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
     this.getDataBalance(this.pageSize);
   }
 
-
-  cleanSearch(){
+  /**
+   * Limpia filtros y reinicia la tabla de balances.
+   */
+  cleanSearch() {
     this.assignForm.reset();
     this.clearData();
   }
 
 
 
-  get dateStart(){
+  get dateStart() {
     return this.assignForm?.get('dateStart')?.value;
   }
 
-  get entity(){
-      return this.assignForm?.get('entity')?.value;
-    }
+  get entity() {
+    return this.assignForm?.get('entity')?.value;
+  }
 
-  get dateEnd(){
+  get dateEnd() {
     return this.assignForm?.get('dateEnd')?.value;
   }
-  get typeAssign(){
+  get typeAssign() {
     return this.assignForm?.get('typeAssign')?.value;
   }
 
-  get typeEntity(){
+  get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
   }
 
