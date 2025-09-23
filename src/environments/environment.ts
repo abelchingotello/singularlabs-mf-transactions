@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  URL_API_GATEWAY:'https://rrmnpgfzii.execute-api.us-east-1.amazonaws.com/test',
+  URL_API_GATEWAY:'https://rrmnpgfzii.execute-api.us-east-1.amazonaws.com/exp',
   URL_API_LOCAL:'http://localhost:3000/stage'
 };
 

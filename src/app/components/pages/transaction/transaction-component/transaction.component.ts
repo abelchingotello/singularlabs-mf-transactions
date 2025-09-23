@@ -1,7 +1,5 @@
-// import { CountryCodes } from './../../../../../../../singularlabs-mf-users/src/app/components/library/input-phone/country-codes';
 import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-// import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { PageEvent } from '@angular/material/paginator';
@@ -36,7 +34,6 @@ export class TransactionComponent implements OnInit {
     { 'name': 'N° Recibo', 'attribute': 'concep' },
     { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
-    // { 'name': 'Moneda', 'attribute': 'currency'},
     {
       'name': 'Fecha',
       'attribute': 'date',
@@ -86,6 +83,7 @@ export class TransactionComponent implements OnInit {
     private personService: PersonService,
     private dateService: DateService,
     private serviceServ: ServicesService,
+    public dialog: MatDialog,
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -96,14 +94,16 @@ export class TransactionComponent implements OnInit {
       await this.listData(); // Espera a que listData termine
       this.functionDataCurrent = this.getDataTransaction.bind(this);
       this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
-      
+
     } catch (error) {
       console.error("Error al cargar datos iniciales:", error);
     }
 
   }
 
-
+  /**
+   * Funcion que inicializa el formulario sin datos
+   */
   initialForm() {
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
@@ -121,27 +121,38 @@ export class TransactionComponent implements OnInit {
     });
   }
 
+  /**
+   * Funcion que carga los servicios segun la categoria
+   * @returns No retorna ningún valor, actualiza variables filteredServices y allItems1
+   */
   selectCategory() {
-
-    console.log("Categoria seleccionada: ", this.category);
-    if (this.category == undefined || this.category == '') {
+    if (this.category == undefined || this.category == '') { //Verifica si los campos del formulario estan vacios y no retorna nada
       this.selectedCategory = false;
       this.filteredServices = [];
       return;
     }
-    this.selectedCategory = true;
-    this.loadAllServices().subscribe(allItems => {
+    this.selectedCategory = true; //
+    this.loadAllServices().subscribe(allItems => { //actualiza las variables que cargan los servicios
       this.spinner.spinnerOnOff();
-      // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
       this.filteredServices = allItems;
       this.allItems1 = allItems;
       this.spinner.spinnerOnOff();
-
-      console.log("Servicios cargados: ", this.filteredServices);
     });
-
   }
 
+  /**
+   * Obtiene las transacciones según los filtros aplicados y las asigna a `dataTransaction`.
+   *
+   * @param {*} pageSize - (Opcional) Tamaño de página para la paginación de resultados.
+   * 
+   * @returns  No retorna un valor directamente. Actualiza propiedades internas:
+   *   - `dataTransaction`
+   *   - `pageKey`
+   *   - `count`
+   *   - `amountTransaction`
+   *   - `functionDataCurrent`
+   *
+   */
   getDataTransaction(pageSize?: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
@@ -153,7 +164,7 @@ export class TransactionComponent implements OnInit {
     let numDoc = this.numDoc || undefined;
     let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
-    console.log("idService: ", idServ)
+
     // return
     this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, supply, this.count, this.amountTransaction).subscribe({
       next: (value: any) => {
@@ -167,7 +178,7 @@ export class TransactionComponent implements OnInit {
         const updatedItems = value.data.Items.map((item: any) => {
           const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
           const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
-         
+
 
           return {
             ...item,
@@ -180,7 +191,6 @@ export class TransactionComponent implements OnInit {
         this.pageKey = value.data.hasMore;
         if (value.data.count != 0) this.count = value.data.count;
         if (value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
-        console.log("DATA DE TRANSACTION: ", value.data)
       },
       error: (error: any) => {
         console.error('ERROR', error);
@@ -190,6 +200,7 @@ export class TransactionComponent implements OnInit {
         this.spinner.spinnerOnOff();
       }
     })
+
     this.functionDataCurrent = this.getDataTransaction
   }
 
@@ -201,45 +212,85 @@ export class TransactionComponent implements OnInit {
     )
   }
 
-
+  /**
+   * Restablece el estado de las transacciones.
+   *
+   * @returns No retorna ningún valor, solo reinicia las propiedades internas.
+   *
+   */
   clearData() {
-    this.pageKey = undefined;
-    this.dataTransaction = [];
-    this.count = -1;
+    this.pageKey = undefined; //Reinicia los valores de paginación (`pageKey`, `page`).
+    this.dataTransaction = []; //Limpia la lista de transacciones (`dataTransaction`).
+    this.count = -1; //Resetea los contadores (`count`, `amountTransaction`) a -1.
     this.page = 1;
     this.amountTransaction = -1;
   }
 
+  /**
+   * Recarga la información de transacciones.
+   *
+   * @returns No retorna ningún valor, solo actualiza el estado del componente.
+   *
+   */
   reload() {
-    this.clearData();
+    this.clearData(); // Limpia los datos actuales mediante
     this.dynamic.clearSelection();
     this.functionDataCurrent(this.pageSize);
   }
 
+  clearSelectionOnly() {
+    this.dataTransaction = [];
+  }
+
+
+  lastPageEvent!: PageEvent;
+
   onPageChange(event: PageEvent) {
-    console.log("keyyyyyy", this.pageKey)
+    this.lastPageEvent = event;
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
-    console.log('Página cambiada', event);
   }
 
-  selectedHandle(event: any[]) {
-    console.log("SELECTED HANDLE", event)
+  dataDialog: any;
+
+  selectedHandle(event: any) {
+    this.dataDialog = event[0]
+    console.log()
   }
 
+  openDialog(): void {
+    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
+      width: '600px',
+      data: {
+        concep: this.dataDialog.concep,
+        statusTrans: this.dataDialog.status,
+        id: this.dataDialog.id_transaction,
+        sk: this.dataDialog.sk,
+        masterStatus: this.masterStatus,
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('The dialog was closed');
+      console.log(this.lastPageEvent)
+      this.clearSelectionOnly();
+      this.getDataTransaction();
+      this.dynamic.clearSelection();
+    });
+
+  }
 
   handleSelectedIds(selectedIds: any[]) {
-    // console.log("Id's: ", selectedIds)
     this.disabledEditOption = selectedIds.length !== 1;
-    // this.editOption = selectedIds.length == 1;
-    console.log("DESAHIBILITR: ", this.disabledEditOption)
-    // this.selectedIds = selectedIds;
-    console.log("Id--s: ", selectedIds)
   }
 
+  /**
+  * Realiza la búsqueda de transacciones en base a los filtros del formulario.
+  * 
+  * @returns No retorna ningún valor. Solo actualiza el estado del componente y muestra resultados.
+  *
+  */
   search() {
-    console.log("formulario busqueda: ", this.formDate)
     if (this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
@@ -250,12 +301,10 @@ export class TransactionComponent implements OnInit {
       this.mytoastr.showWarning("Seleccione un filtro", "")
       return
     }
-
     this.clearData();
-
     this.getDataTransaction(this.pageSize)
-    // console.log("fecha buscar",this.formDate.get('date')?.value)
   }
+
 
   async listData(): Promise<void> {
     this.spinner.spinnerOnOff();
@@ -285,7 +334,12 @@ export class TransactionComponent implements OnInit {
     });
   }
 
-
+  /**
+   * Carga todos los servicios habilitados de la categoría seleccionada de forma paginada.
+   *
+   * @returns Observable que emite progresivamente el arreglo acumulado de todos los servicios habilitados.
+   *
+   */
   loadAllServices() {  //revisar para que traiga los 2000
     return this.serviceServ.getServicesPageKey(this.category, 'HABILITADO').pipe(
       expand(response =>
@@ -299,6 +353,12 @@ export class TransactionComponent implements OnInit {
     );
   }
 
+  /**
+   * Limpia los filtros de búsqueda y recarga las transacciones.
+   *
+   * @returns  No retorna ningún valor. Actualiza el formulario y la tabla de transacciones.
+   *
+   */
   clearSearch() {
     this.formDate.get('dateEnd')?.setValue('')
     this.formDate.get('dateStart')?.setValue('')
@@ -314,13 +374,14 @@ export class TransactionComponent implements OnInit {
     this.getDataTransaction(this.pageSize)
   }
 
+  /**
+   * Filtra la lista de servicios por nombre en base al valor de `serviceFilter`.
+   */
   filterServices() {
     const value = this.serviceFilter?.toLowerCase() || '';
     this.filteredServices = this.allItems1.filter(service =>
       service.name.toLowerCase().includes(value)
     );
-    console.log("Servicio filtrado: ", value)
-    console.log("Todos los servicios: ", this.filteredServices)
   }
 
   get dateStart() {
@@ -330,9 +391,11 @@ export class TransactionComponent implements OnInit {
   get numDoc() {
     return this.formDate?.get('numDoc')?.value;
   }
+
   get supply() {
     return this.formDate?.get('supply')?.value;
   }
+
   get dateEnd() {
     return this.formDate?.get('dateEnd')?.value;
   }

@@ -25,7 +25,7 @@ export class ListBalanceComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Entidad', 'attribute': 'entity' },
     { 'name': 'Tipo Monto', 'attribute': 'typeAmount' },
-    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
     //{ 'name': 'Moneda', 'attribute': 'currency' },
   ];
   public dataBalance: any[] = [];
@@ -69,13 +69,17 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Carga tipos de entidad desde la tabla maestra.
+   *
+   * @returns Actualiza `typeEntitys` con los valores ordenados.
+   */
   listData() {
     forkJoin([
       this.masterService.getItemsMasterTable('11')
     ]).subscribe({
       next: ([typeEntity]) => {
         this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
-        console.log("ENTIDAD: ", this.typeEntitys)
       },
       error: (err: any) => {
         console.error('Error:', err);
@@ -83,6 +87,12 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Obtiene saldos actuales según filtros seleccionados.
+   *
+   * @param {*} pageSize - Tamaño de página para la consulta.
+   * @returns Actualiza `dataBalance`, `pageKey`, `count`.
+   */
   getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
@@ -90,17 +100,15 @@ export class ListBalanceComponent implements OnInit {
     let typeEntity = this.typeEntity?.master_name || undefined;
     let entity = this.entity || undefined;
 
-    console.log("ENTIDAD: ", entity)
-    console.log("TIPO DE ENTIDAD: ", typeEntity)
 
-    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
-        this.spinner.spinnerOnOff();
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.spinner.spinnerOnOff();
       return;
     }
 
-    this.transactionService.getCurrentBalances(pageSize,this.page,typeEntity,entity,this.count).subscribe({
-      next: (value:any) => {
-        if(value.statusCode == 201){
+    this.transactionService.getCurrentBalances(pageSize, this.page, typeEntity, entity, this.count).subscribe({
+      next: (value: any) => {
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
@@ -109,21 +117,20 @@ export class ListBalanceComponent implements OnInit {
           const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
           return {
             ...item,
-            amountTransaction: item.amountTransaction+' '+item.currency,
+            amountTransaction: item.amountTransaction + ' ' + item.currency,
             entity: person ? person.servicePerson.nameAlias : item.entity, // Asignar el nombre
           };
         });
-        this.dataBalance = [...this.dataBalance,...dataNew];
+        this.dataBalance = [...this.dataBalance, ...dataNew];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
-        if(value.statusCode == 201){
+        if (value.data.count != 0) this.count = value.data.count;
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
 
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -141,12 +148,18 @@ export class ListBalanceComponent implements OnInit {
     )
   }
 
+  /**
+   * Recarga datos limpiando la tabla y restableciendo la selección.
+   */
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
     this.functionDataCurrent(this.pageSize);
   }
 
+  /**
+   * Limpia la tabla de balances y reinicia contadores de paginación.
+   */
   clearData() {
     this.pageKey = undefined;
     this.dataBalance = [];
@@ -155,11 +168,9 @@ export class ListBalanceComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent) {
-    console.log("keyyyyyy", this.pageKey)
-    this.page ++;
+    this.page++;
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
-    this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
-    console.log('Página cambiada', event);
+    this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);;
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
@@ -218,13 +229,20 @@ export class ListBalanceComponent implements OnInit {
     });
   }
 
+
+  /**
+   * Limpia los filtros del formulario de búsqueda y resetea la tabla.
+   */
   cleanSearch() {
     this.assignForm.reset();
     this.clearData();
   }
 
+  /**
+  * Ejecuta búsqueda de balances según filtros seleccionados.
+  */
   searchData() {
-    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
       this.mytoastr.showWarning('Seleccione un Tipo Entidad', '');
       return;
     }
@@ -233,20 +251,28 @@ export class ListBalanceComponent implements OnInit {
     this.page = 1;
     this.getDataBalance(this.pageSize);
   }
-
-  selecType(event: any) {   
-    console.log("ENTIDAD: ", event.value.master_relativeName)
+  /**
+   * Selecciona un tipo de entidad y dispara búsqueda de personas asociadas.
+  *
+  * @param {*} event - Evento del selector de tipo de entidad.
+  */
+  selecType(event: any) {
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
   }
 
+  /**
+ * Consulta las personas asociadas a un tipo de entidad específico.
+ *
+ * @param {*} nameType - Nombre relativo de la entidad.
+ * @returns {void}
+ */
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
     this.personService.getPerson(nameType, undefined).subscribe({
       next: (value) => {
         this.nameType = value.data
-        console.log('TYPE ENTITY POR ENTIDAD: ', this.nameType)
       },
       error: (error) => {
         console.log(error)

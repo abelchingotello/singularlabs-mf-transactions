@@ -35,22 +35,8 @@ export class AuthService {
     }
   }
 
-  // getToken(): string {
-  //   //Buscamos el key que tenga el accessToken, y retornamos el token
-  //   for (let i = 0; i < localStorage.length; i++) {
-
-
-  //       if (localStorage.key(i).endsWith('accessToken')) {
-  //         return localStorage.getItem(localStorage.key(i));
-  //       }
-      
-  //   }
-  //   return null;
-  // }
-
   //ALTERNATIVA DE OBTENER TOKEN
   getToken(): string {
-    // console.log("INGRESO PARA VALIDAR TOKEN")
     // Buscamos el key que tenga el accessToken, y retornamos el token
     const defaultValue: string = 'ERROR'
     for (let i = 0; i < localStorage.length; i++) {
