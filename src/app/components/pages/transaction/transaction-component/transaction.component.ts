@@ -272,10 +272,7 @@ export class TransactionComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');
-      console.log(this.lastPageEvent)
-      this.clearSelectionOnly();
-      this.getDataTransaction();
-      this.dynamic.clearSelection();
+      this.reload();
     });
 
   }

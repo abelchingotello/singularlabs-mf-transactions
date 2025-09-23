@@ -65,7 +65,7 @@ export class TransactionService {
   }
 
   updateTransactionStatus(data: any): Observable<any> {
-    return this.httpClient.post<any>(`${this.url}/transactions/status/`, data);
+    return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
   }
 
   getBalance(limit?: any, page?: any, typeEntity?: any, entity?: any, typeAssign?: any, dateStart?: any, dateEnd?: any, count?: any): Observable<any> {
