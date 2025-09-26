@@ -1,4 +1,3 @@
-
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -120,19 +119,51 @@ export class TransactionService {
   //-----Exportar de archivos
   exportTransactions(
     format: 'xlsx' | 'csv',
-    filters: any
-  ): Observable<HttpResponse<string>> {
-    const params = new HttpParams({
-      fromObject: {
-        ...filters,
-        format: format
-      }
-    });
+    filters: any,
+    bandeja: string
+  ): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams();
+
+    Object
+
+    if (filters.supply !== undefined) {
+      params = params.set('supply', filters.supply);
+    }
+
+    if (filters.idclient !== undefined) {
+      params = params.set('idclient', filters.idclient);
+    }
+
+    if (filters.idprovider !== undefined) {
+      params = params.set('idprovider', filters.idprovider);
+    }
+
+    if (filters.concept !== undefined) {
+      params = params.set('concept', filters.concept);
+    }
+
+    if (filters.status !== undefined) {
+      params = params.set('status', filters.status);
+    }
+
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    if (filters.idService !== undefined) {
+      params = params.set('idService', filters.idService);
+    }
+
+    params = params.set('format', format);
+    params = params.set('inbx', bandeja);
 
     return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
-      responseType: 'text' // para manejar base64
+      responseType: 'blob' // para manejar base64
     });
   }
 }

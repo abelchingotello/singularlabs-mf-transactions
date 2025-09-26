@@ -23,7 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './dynamic-table.component.html',
   styleUrls: ['./dynamic-table.component.scss'],
   standalone: true,
-  imports:[
+  imports: [
     CommonModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -116,7 +116,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
       if (this.pageKey) {
         // Si hay un pageKey válido o los datos han aumentado de tamaño, activamos hasNextPage
         //this.paginator.hasNextPage = () => true;
-      }else{
+      } else {
         // this.paginator.hasNextPage = () => false;
       }
 
@@ -196,32 +196,32 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   getSelectedIds() {
     // Verificar que `element_id` está definido
     if (!this.element_id) {
-        console.warn("element_id no está definido");
-        return;
+      console.warn("element_id no está definido");
+      return;
     }
 
-    if(this.element_id === 'ALL'){
+    if (this.element_id === 'ALL') {
       this.selectedIds = this.selection.selected;
     }
     // Si `element_id` es un string, manejarlo como un solo campo
     else if (typeof this.element_id === 'string') {
-        this.selectedIds = this.selection.selected.map(row => row[this.element_id!.toString()]);
+      this.selectedIds = this.selection.selected.map(row => row[this.element_id!.toString()]);
     }
     // Si `element_id` es un array de strings, extraer múltiples campos
     else if (Array.isArray(this.element_id)) {
       let element: any[] = this.element_id
-        this.selectedIds = this.selection.selected.map(row => {
-            let result: { [key: string]: any } = {};
-            element.forEach(field => {
-                if (row[field]) {
-                    result[field] = row[field];  // Extraer el valor de cada campo
-                }
-            });
-            return result;
+      this.selectedIds = this.selection.selected.map(row => {
+        let result: { [key: string]: any } = {};
+        element.forEach(field => {
+          if (row[field]) {
+            result[field] = row[field];  // Extraer el valor de cada campo
+          }
         });
+        return result;
+      });
     } else {
-        console.warn("Formato de element_id no reconocido");
-        return;
+      console.warn("Formato de element_id no reconocido");
+      return;
     }
 
     // Activar o desactivar opciones del encabezado según el resultado
@@ -230,7 +230,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     // Emitir los IDs seleccionados
     this.selectedIdsChange.emit(this.selectedIds);
     this.selectedChange.emit(this.selection.selected);
-}
+  }
 
   onSelectionChange() {
     this.updateSort();
@@ -257,14 +257,14 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   print() {
-    if(this.element){
-    const tableElement = this.element.nativeElement.querySelector('table');
-    const clonedTable = tableElement.cloneNode(true);
-    const styles = this.componentStyles();
-    const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if(printWindow){
-    printWindow.document.write(`
+    if (this.element) {
+      const tableElement = this.element.nativeElement.querySelector('table');
+      const clonedTable = tableElement.cloneNode(true);
+      const styles = this.componentStyles();
+      const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
+      const printWindow = window.open('', '', 'width=800,height=600');
+      if (printWindow) {
+        printWindow.document.write(`
             <html>
               <head>
                 <title>Imprimir tabla</title>
@@ -280,16 +280,16 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
               </body>
             </html>
           `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    setTimeout(() => {
-      if (!printWindow.closed) {
-        printWindow.close();
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        setTimeout(() => {
+          if (!printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1000);
       }
-    }, 1000);
-   }
-   } // Ajusta el tiempo según sea necesario
+    } // Ajusta el tiempo según sea necesario
   }
 
   getStyles() {
@@ -310,7 +310,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   formatDate(date: string | number | Date, format: string, locale: string) {
-    if(!date){
+    if (!date) {
       return '';
     }
     return formatDate(date, format, locale);
@@ -340,26 +340,25 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   exportExcel() {
     if (this.customExportFunction) {
       this.customExportFunction('xlsx');
+    } else {
+      this.exportRequest.emit('xlsx');
+      const wb = this.createWorkbook('Transactions');
+      const ws = wb.Sheets['Transactions'];
+
+      // Ajusta el ancho de las columnas según el contenido
+      const columnWidths = this.columns.map(col => {
+        const maxWidth = Math.max(
+          col.name.length, // Longitud del encabezado
+          ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
+        );
+        return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
+      });
+
+      // Establece los anchos de las columnas
+      ws['!cols'] = columnWidths;
+
+      XLSX.writeFile(wb, 'Transactions.xlsx');
     }
-    // else {
-    //   this.exportRequest.emit('xlsx');
-    //   const wb = this.createWorkbook('Transactions');
-    //   const ws = wb.Sheets['Transactions'];
-
-    //   // Ajusta el ancho de las columnas según el contenido
-    //   const columnWidths = this.columns.map(col => {
-    //     const maxWidth = Math.max(
-    //       col.name.length, // Longitud del encabezado
-    //       ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
-    //     );
-    //     return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
-    //   });
-
-    //   // Establece los anchos de las columnas
-    //   ws['!cols'] = columnWidths;
-
-    //   XLSX.writeFile(wb, 'Excel tabla.xlsx');
-    // }
   }
 
   exportCsv() {
@@ -406,7 +405,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         const columnConfig = columnConfigMap.get(attribute);
         let value = item[attribute];
 
-        if(!value){ //Evitar errores cuando el elemento no contiene el atributo
+        if (!value) { //Evitar errores cuando el elemento no contiene el atributo
           newObj[attribute] = '';
           break;
         }

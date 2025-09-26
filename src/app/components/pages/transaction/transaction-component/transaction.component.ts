@@ -16,6 +16,7 @@ import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
 import { expand, filter, of, scan, startWith } from 'rxjs';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-transaction',
@@ -42,8 +43,9 @@ export class TransactionComponent implements OnInit {
       }
     },
     { 'name': 'Cod. Respuesta', 'attribute': 'reference' },
+    { 'name': 'Est. Conciliacion', 'attribute': 'statusConc' },
     {
-      'name': 'Estado',
+      'name': 'Est. Transaccion',
       'attribute': 'status',
       'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
     },
@@ -60,8 +62,10 @@ export class TransactionComponent implements OnInit {
   public transaction: any;
   public respSearch: any;
   public masterStatus: any;
+  public masterStatusConc: any;
   public entityTypes: any[] = [];
   public count: any = -1;
+  public bodyexport: any;
   public page: any = 1;
   public amountTransaction: any = -1;
   public filteredServices: any[] = []; // Lista filtrada que se mostrará
@@ -71,6 +75,8 @@ export class TransactionComponent implements OnInit {
   public categoryTypes: any[] = [];
   public listProviders: any[] = [];
   public selectedCategory: boolean = false;
+  public listServicesSelected: any[] = [];
+  public listServicesSelected1: any[] = [];
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
@@ -115,20 +121,43 @@ export class TransactionComponent implements OnInit {
       provider: [''],
       category: [''],
       idService: [''],
+      statusConc: [''],
       numDoc: [''],
       supply: [''],
       status: [''],
     });
   }
 
+  onServicesChange(event: any) {
+    const selectedIds = event.value; // array con todos los seleccionados del select actual
+    const idsCategoriaActual = this.allItems1.map(s => s.id);
+    this.listServicesSelected = [
+      // Mantener los seleccionados de otras categorías
+      ...this.listServicesSelected.filter(id => !idsCategoriaActual.includes(id)),
+      // Agregar los seleccionados actuales de la categoría
+      ...selectedIds
+    ];
+    // Eliminar duplicados
+    this.listServicesSelected = Array.from(new Set(this.listServicesSelected));
+    // Mantener sincronizado el formControl con todos los seleccionados
+    this.formDate.get('idService')?.setValue(this.listServicesSelected);
+    console.log('Servicios seleccionados acumulados:', this.listServicesSelected);
+  }
+
+  onCategoryChange() {
+
+  }
   /**
    * Funcion que carga los servicios segun la categoria
    * @returns No retorna ningún valor, actualiza variables filteredServices y allItems1
    */
   selectCategory() {
+    this.spinner.spinnerOnOff();
+
     if (this.category == undefined || this.category == '') { //Verifica si los campos del formulario estan vacios y no retorna nada
       this.selectedCategory = false;
       this.filteredServices = [];
+      this.spinner.spinnerOnOff();
       return;
     }
     this.selectedCategory = true; //
@@ -136,8 +165,13 @@ export class TransactionComponent implements OnInit {
       this.spinner.spinnerOnOff();
       this.filteredServices = allItems;
       this.allItems1 = allItems;
+      this.serviceFilter = '';
+      this.filterServices();
+      this.serviceFilter = '';
       this.spinner.spinnerOnOff();
     });
+    this.spinner.spinnerOnOff();
+
   }
 
   /**
@@ -154,12 +188,14 @@ export class TransactionComponent implements OnInit {
    *
    */
   getDataTransaction(pageSize?: any) {
+    console.log("Servicios seleccionados para filtro:", this.listServicesSelected);
+    console.log("Servicios seleccionados para filtro1:", this.idService);
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
     let entity = this.entity || undefined;
     let provider = this.provider || undefined;
     let status = this.status || undefined;
-    let idServ = this.idService || undefined;
+    let idServ = this.listServicesSelected || undefined;
     let supply = this.supply || undefined;
     let numDoc = this.numDoc || undefined;
     let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
@@ -191,6 +227,10 @@ export class TransactionComponent implements OnInit {
         this.pageKey = value.data.hasMore;
         if (value.data.count != 0) this.count = value.data.count;
         if (value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
+        if (value.error === "Unauthorized: Invalid or expired token.") {
+          this.mytoastr.showWarning('Vuelve a iniciar Sesion', '');
+          return;
+        }
       },
       error: (error: any) => {
         console.error('ERROR', error);
@@ -224,6 +264,13 @@ export class TransactionComponent implements OnInit {
     this.count = -1; //Resetea los contadores (`count`, `amountTransaction`) a -1.
     this.page = 1;
     this.amountTransaction = -1;
+    this.allItems = [];
+  }
+  clearFilter() {
+    this.serviceFilter = '';
+    this.filteredServices = [];
+    this.selectedCategory = false;
+    this.listServicesSelected = [];
   }
 
   /**
@@ -271,10 +318,12 @@ export class TransactionComponent implements OnInit {
       }
     });
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
-      this.reload();
-    });
+      console.log('The dialog was closed', result);
+      if (result === true) {
+        this.reload();
+      }
 
+    });
   }
 
   handleSelectedIds(selectedIds: any[]) {
@@ -288,6 +337,8 @@ export class TransactionComponent implements OnInit {
   *
   */
   search() {
+    console.log("Servicios seleccionados para filt121ro:", this.formDate.get('idService')?.value);
+    console.log("Servicios seleccionados :", this.listServicesSelected);
     if (this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
@@ -307,18 +358,19 @@ export class TransactionComponent implements OnInit {
     this.spinner.spinnerOnOff();
     return new Promise((resolve, reject) => {
       forkJoin([
+        this.masterService.getItemsMasterTable('17'),
         this.masterService.getItemsMasterTable('16'),
         this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
         this.masterService.getItemsMasterTable('14'),
         this.personService.getPerson('PROVEEDOR'),
       ]).subscribe({
         next: (response) => {
-          const [masterStatus, entity, category, providers] = response;
+          const [masterStatusConc, masterStatus, entity, category, providers] = response;
+          this.masterStatusConc = ["Completado", "Pendiente", "En Disputa"];
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
           this.entityTypes = entity.data;
           this.categoryTypes = category;
           this.listProviders = providers.data;
-
           this.spinner.spinnerOnOff();
           resolve(); //  Indica que terminó exitosamente
         },
@@ -368,6 +420,7 @@ export class TransactionComponent implements OnInit {
     this.formDate.get('supply')?.setValue('')
     //limpiar tabla de transacciones
     this.clearData();
+    this.clearFilter();
     this.getDataTransaction(this.pageSize)
   }
 
@@ -409,11 +462,28 @@ export class TransactionComponent implements OnInit {
   }
 
   get idService(): any[] {
-    return this.formDate?.get('idService')?.value;
+    return this.listServicesSelected
   }
 
   get category() {
     return this.formDate?.get('category')?.value;
+  }
+
+  showAlarmSelectCategory() {
+    if (this.category == undefined || this.category == '') {
+      this.mytoastr.showError('Selecciona una Categoria Primero', '');
+    }
+  }
+
+  formatCustomDate(dateString: string): string {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const MM = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const HH = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
@@ -422,16 +492,18 @@ export class TransactionComponent implements OnInit {
 
     // Preparar los filtros para la exportación
     const exportFilters: Record<string, any> = {
-      idclient: this.entity,
-      idprovider: this.provider,
-      status: this.status,
-      date: this.dateStart || this.dateEnd ?
-        JSON.stringify({
-          from: this.dateStart ? this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') : undefined,
-          to: this.dateEnd ? this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') : undefined
-        }) : undefined,
-      idService: this.idService?.toString(),
-      CONCEPT: this.numDoc
+      dateStart: this.dateStart
+        ? `${this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '-')} 00:00:00`
+        : undefined,
+      dateEnd: this.dateEnd
+        ? `${this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '-')} 23:59:59`
+        : undefined,
+      idService: this.idService?.toString() || undefined,
+      status: this.status || undefined,
+      idprovider: this.provider || undefined,
+      idclient: this.entity || undefined,
+      concept: this.numDoc || undefined,
+      supply: this.supply || undefined
     };
 
     // Eliminar propiedades undefined
@@ -440,56 +512,53 @@ export class TransactionComponent implements OnInit {
         delete exportFilters[key];
       }
     });
+    const inbx = 'tr';
 
-    this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
+    this.transactionService.exportTransactions(fileType, exportFilters, inbx/*,this.listProviders, this.entityTypes*/).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
-        // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
-        } else {
-          console.log("Sí tiene datos el response")
-        }
+        if (response.body) {
+          const blob = new Blob([response.body], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filterParts: string[] = [];
+          if (exportFilters['dateStart']) filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`);
+          if (exportFilters['dateEnd']) filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`);
 
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody);
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
+          let filename = `transacciones_`;
+          if (filterParts.length) {
+            if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+              const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `_${diainicio}`;
+            } else {
+              const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+              const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `_${diainicio}_${diafin}`;
+            }
+          } else {
+            filename += this.formatCustomDate(new Date().toISOString());
           }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
-        console.error('Error al exportar los datos:', error);
-        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
+        console.error('Error durante la exportación:', error);
+        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
+
   }
 }

@@ -96,14 +96,16 @@ export class DialogTransactionStatusComponent implements OnInit {
         console.error('ERROR', err);
         this.mytoastr.showError('Error al guardar estado', '');
         this.spinner.spinnerOnOff();
-        this.dialogRef.close(); 
+        const cambio_realizado = false;
+        this.dialogRef.close(cambio_realizado); 
         this.isDisable = false;  
         
       },
       complete: () => {
         this.spinner.spinnerOnOff();
-        this.isDisable= false;  
-        this.dialogRef.close();
+        this.isDisable= false;
+        const cambio_realizado = true;
+        this.dialogRef.close(cambio_realizado);
       },
     });
   }
