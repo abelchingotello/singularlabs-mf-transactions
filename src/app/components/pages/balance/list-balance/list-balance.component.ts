@@ -12,6 +12,7 @@ import { FormBuilder, FormGroup, Validator } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
+import { Toast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-list-balance',
@@ -173,53 +174,46 @@ export class ListBalanceComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);;
   }
 
+  showAlarmSelectTypeEntity() {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showError('Seleccione un Tipo Entidad', '');
+      return;
+    }
+  }
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
-    const exportFilters: Record<string, any> = {};
-
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    const exportFilters: Record<string, any> = {
+      typeEntity: this.typeEntity?.master_name || undefined,
+      entity: this.entity || undefined,
+    };
+    const bandeja = "lb";
+    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
+        if (response.body) {
+          const blob = new Blob([response.body], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filename = `Lis_Saldo_${this.formatCustomDate(new Date().toISOString())}`;
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
-
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody); //-----
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
-          }
-        }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
         console.error('Error al exportar los datos:', error);
@@ -236,6 +230,8 @@ export class ListBalanceComponent implements OnInit {
   cleanSearch() {
     this.assignForm.reset();
     this.clearData();
+    this.dynamic.clearSelection();
+    this.nameType = [];
   }
 
   /**
@@ -291,4 +287,14 @@ export class ListBalanceComponent implements OnInit {
     return this.assignForm?.get('typeEntity')?.value;
   }
 
+  formatCustomDate(dateString: string): string {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const MM = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const HH = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+  }
 }

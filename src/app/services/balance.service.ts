@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 export class BalanceService {
 
   private url = `${environment.URL_API_GATEWAY}`;
+  //private url = `${environment.URL_API_LOCAL}`;
 
   constructor(
     private httpClient: HttpClient,
@@ -37,19 +38,37 @@ export class BalanceService {
 
   exportBalances(
     format: 'xlsx' | 'csv',
-    filters: any
-  ): Observable<HttpResponse<string>> {
-    const params = new HttpParams({
-      fromObject: {
-        ...filters,
-        format: format
-      }
-    });
+    filters: any,
+    bandeja: any
+  ): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams();
+    Object
+    if (filters.entity !== undefined) {
+      params = params.set('entity', filters.entity);
+    }
 
-    return this.httpClient.get(`${this.url}/transactions/balances/export`, {
+    if (filters.typeEntity !== undefined) {
+      params = params.set('typeEntity', filters.typeEntity);
+    }
+
+    if (filters.typeAssign !== undefined) {
+      params = params.set('typeAssign', filters.typeAssign);
+    }
+
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    params = params.set('format', format);
+    params = params.set('inbx', bandeja);
+    console.log('Exporting balances with params:', params.toString());
+    return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
-      responseType: 'text' // para manejar base64
+      responseType: 'blob'
     });
   }
 }

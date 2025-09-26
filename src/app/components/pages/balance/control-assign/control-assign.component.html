@@ -33,15 +33,12 @@
                 <mat-option *ngFor="let type of typeEntitys" [value]="type">{{type.master_relativeName}}</mat-option>
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="col-md-3">
+            <mat-form-field appearance="outline" class="col-md-3"(click)="showAlarmSelectTypeEntity()">
               <mat-label>Entidad</mat-label>
               <mat-select formControlName="entity">
                 <mat-option *ngFor="let type of nameType"
                   [value]="type.servicePerson.idPerson">{{type.servicePerson.nameAlias}}</mat-option>
               </mat-select>
-              <mat-hint class="text-danger" *ngIf="typeEntity == '' && assignForm.get('entity')?.touched">
-                Primero selecciona un Tipo de Entidad.
-              </mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline" class="col-md-3">
               <mat-label>Tipo de Asignación</mat-label>

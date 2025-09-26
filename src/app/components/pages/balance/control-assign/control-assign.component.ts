@@ -140,7 +140,6 @@ export class ReportBalanceComponent implements OnInit {
         if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
-
       },
       error: (error: any) => {
         console.error('ERROR', error);
@@ -186,53 +185,64 @@ export class ReportBalanceComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
   }
 
+  showAlarmSelectTypeEntity() {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showError('Primero Selecciona un tipo de entidad', '');
+      return;
+    }
+  }
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
-    const exportFilters: Record<string, any> = {};
-
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    const exportFilters: Record<string, any> = {
+      entity: this.entity || undefined,
+      typeEntity: this.typeEntity?.master_name || undefined,
+      typeAssign: this.typeAssign || undefined,
+      dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
+      dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    };
+    const bandeja = "ca";
+    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
-        }
+        if (response.body) {
+          const blob = new Blob([response.body], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filterParts: string[] = [];
+          if (exportFilters['dateStart']) filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`);
+          if (exportFilters['dateEnd']) filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`);
 
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody); //-----
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
+          let filename = `cntrl_assing_`;
+          if (filterParts.length) {
+            if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+              const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}`;
+            } else {
+              const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+              const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}_${diafin}`;
+            }
+          } else {
+            filename += this.formatCustomDate(new Date().toISOString());
           }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
         console.error('Error al exportar los datos:', error);
@@ -250,6 +260,17 @@ export class ReportBalanceComponent implements OnInit {
   selecType(event: any) {
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
+  }
+
+  formatCustomDate(dateString: string): string {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const MM = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const HH = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
   }
 
   /**
@@ -277,6 +298,13 @@ export class ReportBalanceComponent implements OnInit {
    * Ejecuta búsqueda con los filtros del formulario.
    */
   searchData() {
+    if (this.assignForm.get('dateEnd')?.value == '' &&
+      this.assignForm.get('typeAssign')?.value == '' &&
+      this.assignForm.get('entity')?.value == '' &&
+      this.assignForm.get('typeEntity')?.value == '') {
+      this.mytoastr.showWarning("Seleccione un filtro", "")
+      return
+    }
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
@@ -289,6 +317,12 @@ export class ReportBalanceComponent implements OnInit {
   cleanSearch() {
     this.assignForm.reset();
     this.clearData();
+    this.nameType = [];
+    this.assignForm.get('dateEnd')?.setValue('')
+    this.assignForm.get('typeAssign')?.setValue('')
+    this.assignForm.get('entity')?.setValue('')
+    this.assignForm.get('typeEntity')?.setValue('')
+    this.getDataBalance(this.pageSize);
   }
 
 
@@ -311,5 +345,4 @@ export class ReportBalanceComponent implements OnInit {
   get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
   }
-
 }

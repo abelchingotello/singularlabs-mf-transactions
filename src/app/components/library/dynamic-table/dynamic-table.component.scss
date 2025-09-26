@@ -212,3 +212,21 @@ th.mat-header-cell {
     color: #000000  !important;
 }
 
+.table-custom {
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.table-custom th,
+.table-custom td {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.table-checkbox {
+  width: 50px;
+  min-width: 50px;   /* importante en mat-table */
+  max-width: 50px;
+  text-align: center;
+}
