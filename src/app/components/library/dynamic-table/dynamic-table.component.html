@@ -3,7 +3,7 @@
         <div *ngIf="headerOptions || alwaysShowHeaderOptions"
             class="container-fluid d-flex flex-wrap align-items-center ps-4">
             <div class="d-flex align-items-center me-auto me-md-0">
-                Seleccionados: {{ selectedIds?.length }}
+                Seleccionados: {{ selectedIds.length }}
             </div>
             <div class="d-flex align-items-center justify-content-start flex-wrap">
                 <ng-content></ng-content>
@@ -97,7 +97,7 @@
                 </tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumnsWithSelect"></tr>
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" [colSpan]="displayedColumns?.length">No hay datos para mostrar</td>
+                    <td class="mat-cell" [colSpan]="displayedColumns.length">No hay datos para mostrar</td>
                 </tr>
             </table>
         </div>
