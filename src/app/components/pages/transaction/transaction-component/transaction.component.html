@@ -41,7 +41,7 @@
                                         (keydown.enter)="$event.stopPropagation()" />
                                 </mat-option>
 
-                                <!-- Mostrar todos los servicios filtrados -->
+                                <!-- Mostrar los servicios filtrados -->
                                 <mat-option *ngFor="let service of filteredServices" [value]="service.id">
                                     {{ service.name }}
                                 </mat-option>

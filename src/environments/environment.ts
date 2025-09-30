@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  URL_API_GATEWAY:'https://rrmnpgfzii.execute-api.us-east-1.amazonaws.com/exp',
+  URL_API_GATEWAY:'https://rrmnpgfzii.execute-api.us-east-1.amazonaws.com/sandbox',
   URL_API_LOCAL:'http://localhost:3000/stage'
 };
 
@@ -15,4 +15,3 @@ export const environment = {
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown.
  */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

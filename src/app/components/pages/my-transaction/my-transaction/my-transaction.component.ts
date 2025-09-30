@@ -4,7 +4,6 @@ import { PageEvent } from '@angular/material/paginator';
 import { CookieService } from 'ngx-cookie-service';
 import { forkJoin } from 'rxjs';
 import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
-import { AuthService } from 'src/app/services/auth.service';
 import { DateService } from 'src/app/services/date.service';
 import { MasterService } from 'src/app/services/master.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
@@ -21,7 +20,7 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 })
 export class MyTransactionComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
   public functionDataCurrent!: ((pageSize: any) => any);
 
 
@@ -63,16 +62,16 @@ export class MyTransactionComponent implements OnInit {
   
 
   constructor(
-    private transactionService : TransactionService,
-    private spinner : SpinnerService,
-    private mytoastr : MytoastrService,
-    private person : PersonService,
-    private cookie : CookieService,
-    private fb : FormBuilder,
-    private masterService : MasterService,
-    private personService : PersonService,
-    private dateService : DateService,
-    private serviceServ : ServicesService
+    private readonly transactionService : TransactionService,
+    private readonly spinner : SpinnerService,
+    private readonly mytoastr : MytoastrService,
+    private readonly person : PersonService,
+    private readonly cookie : CookieService,
+    private readonly fb : FormBuilder,
+    private readonly masterService : MasterService,
+    private readonly personService : PersonService,
+    private readonly dateService : DateService,
+    private readonly serviceServ : ServicesService
   ) { 
     this.pagUtils = new PaginationUtils();
   }
@@ -131,15 +130,20 @@ export class MyTransactionComponent implements OnInit {
     }
 
     console.log("params: ",this.params)
-
-    this.transactionService.getTransaction(this.params?.idclient,this.params?.idprovider,undefined,undefined,undefined,pageSize,this.pageKey).subscribe({
+    const listfilters = {
+      idclient:this.params?.idclient,idprovider:this.params?.idprovider,
+    }
+//  this.transactionService.getTransaction(listfilters, pageSize, this.page, this.count, this.amountTransaction).subscribe({
+    this.transactionService.getTransaction(listfilters,pageSize,this.pageKey).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201 || value.data.statusCode === 201){
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
           return
         }
         this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        if(value.data.Count != 0) this.count = value.data.Count;
+        if(value.data.Count != 0) {
+          this.count = value.data.Count
+        };
         // this.amountTransaction = (value.data.Total).toFixed(2)
         this.pageKey = value.data.nextPageKey ?? null
         console.log("DATA DE TRANSACTION: " ,value.data)
@@ -166,7 +170,6 @@ export class MyTransactionComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // this.reload();
   }
 
   reload() {

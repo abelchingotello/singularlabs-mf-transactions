@@ -9,7 +9,7 @@ import { environment } from 'src/environments/environment';
 })
 export class VariablesService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   subdomain: string;
   config: any;
   company: any;
@@ -17,7 +17,7 @@ export class VariablesService {
   recaptchaSiteKey: string | null = null;
   recaptchav3Enabled: boolean | null = null;
 
-  constructor(private httpClient: HttpClient, private cookieService: CookieService
+  constructor(private readonly httpClient: HttpClient, private readonly cookieService: CookieService
 
   ) { }
 
@@ -83,33 +83,6 @@ export class VariablesService {
   }
   
 }
-
-// Factory function para obtener la clave de reCAPTCHA
-// export function recaptchaSiteKeyFactory(variables: VariablesService): string {
-//   // Obtener y verificar si reCAPTCHA está habilitado
-//   const isRecaptchaEnabled: boolean = variables.getConfig('recaptchaV3_enabled') === 'true';
-
-//   // Si no está habilitado, devolver clave por defecto inmediatamente
-//   if (!isRecaptchaEnabled) {
-//     return 'default_key_if_cookie_not_found';
-//   }
-
-//   // Obtener la clave recaptchav3_site_key
-//   const recaptchaKeyBase64: string | null = variables.getConfig('recaptchav3_site_key');
-
-//   // Si no existe la clave o no es válida, devolver clave por defecto
-//   if (!recaptchaKeyBase64) {
-//     return 'default_key_if_cookie_not_found';
-//   }
-
-//   // Intentar decodificar la clave en Base64
-//   try {
-//     return atob(recaptchaKeyBase64);
-//   } catch {
-//     return 'default_key_if_cookie_not_found';
-//   }
-// }
-
 
 export function appLoadFactory(config: VariablesService) {
   return () => config.setConfigurations().then();

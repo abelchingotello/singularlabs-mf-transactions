@@ -10,14 +10,14 @@ import jwtDecode from 'jwt-decode';
 })
 export class AuthService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   private userId: string = '';
   private user: any;
   private roles: any[] = [];
 
   constructor(
-    private httpClient: HttpClient,
-    private cookieService: CookieService
+    private readonly httpClient: HttpClient,
+    private readonly cookieService: CookieService
   ) { }
 
   //Verificar si el usuario esta logeado en api gateway
@@ -26,7 +26,7 @@ export class AuthService {
       auth: 'validateSession'
     }
     try {
-      const res: any = await this.httpClient.post<any>(`${this.url}/oauth`, credentials).toPromise();
+      const res: any = await firstValueFrom(this.httpClient.post<any>(`${this.url}/oauth`, credentials));
       this.decodeToken()
       return res.validSession;
     } catch (err) {
@@ -43,7 +43,7 @@ export class AuthService {
       const key = localStorage.key(i);
       
       // Verificamos que key no sea null
-      if (key && key.endsWith('accessToken')) {
+      if (key?.endsWith('accessToken')) {
         return localStorage.getItem(key) || defaultValue;
       }
     }
@@ -109,7 +109,7 @@ export class AuthService {
 
     // Verificar si el userId está presente
     if (!this.userId) {
-      return Promise.reject('No se encontró el ID del usuario');
+      return Promise.reject( new Error ('No se encontró el ID del usuario'));
     }
 
     try {
@@ -120,7 +120,7 @@ export class AuthService {
     } catch (err) {
       // Manejo de errores en la consulta HTTP
       console.error('Error al obtener datos del usuario:', err);
-      return Promise.reject(err);
+      return Promise.reject(new Error(String(err)));
     }
   }
 

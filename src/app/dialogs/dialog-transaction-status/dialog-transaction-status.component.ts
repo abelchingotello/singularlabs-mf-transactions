@@ -11,27 +11,27 @@ import { MytoastrService } from 'src/app/services/mytoastr';
   styleUrls: ['./dialog-transaction-status.component.scss']
 })
 export class DialogTransactionStatusComponent implements OnInit {
- 
+
   public formOperation!: FormGroup;
   estadosDisponibles: string[] = [];
-  public isDisable:any;
+  public isDisable: any;
   private estados: any = {};
-  
+
   constructor(
-    private TransactionService: TransactionService,
-    private fb: FormBuilder,
+    private readonly TransactionService: TransactionService,
+    private readonly fb: FormBuilder,
     public dialogRef: MatDialogRef<DialogTransactionStatusComponent>,
     @Inject(MAT_DIALOG_DATA)
     public data: DialogData,
-    private spinner: SpinnerService,
-    private mytoastr: MytoastrService,
+    private readonly spinner: SpinnerService,
+    private readonly mytoastr: MytoastrService,
   ) { }
 
   /**
    * Inicializa el formulario y configura los estados disponibles.
    */
   ngOnInit(): void {
-    this.isDisable = true,
+    this.isDisable = true;
     this.estados = {
       trans: this.estadosTransaccion.map((e: any) => e.master_name), // extraes solo los nombres
       cons: ['PENDIENTE', 'CONCILIADO', 'OBSERVADO']
@@ -63,8 +63,8 @@ export class DialogTransactionStatusComponent implements OnInit {
    *
    * @param nuevoEstado Nuevo estado seleccionado.
    */
-  onEstadoChange(nuevoEstado:any){
-    if (nuevoEstado== this.data.statusTrans) {
+  onEstadoChange(nuevoEstado: any) {
+    if (nuevoEstado == this.data.statusTrans) {
       this.isDisable = true;
 
     } else {
@@ -89,21 +89,21 @@ export class DialogTransactionStatusComponent implements OnInit {
     this.TransactionService.updateTransactionStatus(data1).subscribe({
       next: (resp) => {
         this.mytoastr.showSuccess(resp.message, '');
-        this.isDisable = true;  
-        
+        this.isDisable = true;
+
       },
       error: (err) => {
         console.error('ERROR', err);
         this.mytoastr.showError('Error al guardar estado', '');
         this.spinner.spinnerOnOff();
         const cambio_realizado = false;
-        this.dialogRef.close(cambio_realizado); 
-        this.isDisable = false;  
-        
+        this.dialogRef.close(cambio_realizado);
+        this.isDisable = false;
+
       },
       complete: () => {
         this.spinner.spinnerOnOff();
-        this.isDisable= false;
+        this.isDisable = false;
         const cambio_realizado = true;
         this.dialogRef.close(cambio_realizado);
       },

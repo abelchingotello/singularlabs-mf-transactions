@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
@@ -8,9 +8,9 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
   templateUrl: './extort-transaction.component.html',
   styleUrls: ['./extort-transaction.component.scss']
 })
-export class ExtortTransactionComponent implements OnInit {
+export class ExtortTransactionComponent {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
   public columns: any[] = [
     { 'name': 'Concepto', 'attribute': 'concep' },
     { 'name': 'Comisión', 'attribute': 'comission'},
@@ -35,9 +35,6 @@ export class ExtortTransactionComponent implements OnInit {
     this.pagUtils = new PaginationUtils();
    }
 
-  ngOnInit(): void {
-  }
-
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
@@ -47,7 +44,6 @@ export class ExtortTransactionComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataExtort = [];
-    // this.reload();
   }
 
   onPageChange(event: PageEvent) {

@@ -8,10 +8,10 @@ import { environment } from 'src/environments/environment';
 })
 export class PersonService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
 
   constructor(
-    private httpClient: HttpClient,
+    private readonly httpClient: HttpClient,
   ) { }
 
   postPerson(data:any):Observable<any> {

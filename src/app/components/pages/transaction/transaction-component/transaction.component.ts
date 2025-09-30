@@ -7,16 +7,13 @@ import { SpinnerService } from 'src/app/services/spinner.service';
 import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-operation/dialog-search-operation.component';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
-import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
 import { expand, filter, of, scan, startWith } from 'rxjs';
-import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-transaction',
@@ -25,7 +22,7 @@ import * as XLSX from 'xlsx';
 })
 export class TransactionComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Recaudador', 'attribute': 'client' },
@@ -54,7 +51,7 @@ export class TransactionComponent implements OnInit {
   public dataTransaction: any[] = [];
 
   public pageSize: any = 5;
-  public pageKey: any | undefined;
+  public pageKey: any;
   public disabledEditOption: any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation!: FormGroup<any>;
@@ -81,30 +78,32 @@ export class TransactionComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner: SpinnerService,
-    private transactionService: TransactionService,
-    private fb: FormBuilder,
-    private mytoastr: MytoastrService,
-    private masterService: MasterService,
-    private personService: PersonService,
-    private dateService: DateService,
-    private serviceServ: ServicesService,
+    private readonly spinner: SpinnerService,
+    private readonly transactionService: TransactionService,
+    private readonly fb: FormBuilder,
+    private readonly mytoastr: MytoastrService,
+    private readonly masterService: MasterService,
+    private readonly personService: PersonService,
+    private readonly dateService: DateService,
+    private readonly serviceServ: ServicesService,
     public dialog: MatDialog,
   ) {
     this.pagUtils = new PaginationUtils();
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    this.initializeAsync();
+  }
+
+  private async initializeAsync(): Promise<void> {
     this.initialForm();
     try {
       await this.listData(); // Espera a que listData termine
       this.functionDataCurrent = this.getDataTransaction.bind(this);
-      this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
-
+      this.functionDataCurrent(this.pageSize);
     } catch (error) {
       console.error("Error al cargar datos iniciales:", error);
     }
-
   }
 
   /**
@@ -192,18 +191,24 @@ export class TransactionComponent implements OnInit {
     console.log("Servicios seleccionados para filtro1:", this.idService);
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
-    let entity = this.entity || undefined;
-    let provider = this.provider || undefined;
-    let status = this.status || undefined;
-    let idServ = this.listServicesSelected || undefined;
-    let supply = this.supply || undefined;
-    let numDoc = this.numDoc || undefined;
-    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    const entity = this.entity || undefined;
+    const provider = this.provider || undefined;
+    const status = this.status || undefined;
+    const idServ = this.listServicesSelected || undefined;
+    const supply = this.supply || undefined;
+    const numDoc = this.numDoc || undefined;
+    const dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    const dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
 
     // return
-    this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, supply, this.count, this.amountTransaction).subscribe({
+    const listfilters = {
+      idclient: entity, idprovider: provider, status, dateStart, dateEnd, idService: idServ.toString(), numDoc, supply
+    }
+    this.transactionService.getTransaction(listfilters, pageSize, this.page, this.count, this.amountTransaction).subscribe({
       next: (value: any) => {
+        if (value.error === "Unauthorized: Invalid or expired token.") {
+          this.mytoastr.showWarning('Vuelve a iniciar Sesion', '');
+        }
         if (value.statusCode === 201) {
           this.amountTransaction = 0;
           this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
@@ -225,12 +230,12 @@ export class TransactionComponent implements OnInit {
 
         this.dataTransaction = [...this.dataTransaction, ...updatedItems];
         this.pageKey = value.data.hasMore;
-        if (value.data.count != 0) this.count = value.data.count;
-        if (value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
-        if (value.error === "Unauthorized: Invalid or expired token.") {
-          this.mytoastr.showWarning('Vuelve a iniciar Sesion', '');
-          return;
-        }
+        if (value.data.count != 0) {
+          this.count = value.data.count
+        };
+        if (value.data.totalAmount != 0) {
+          this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2)
+        };
       },
       error: (error: any) => {
         console.error('ERROR', error);
@@ -336,23 +341,21 @@ export class TransactionComponent implements OnInit {
   * @returns No retorna ningún valor. Solo actualiza el estado del componente y muestra resultados.
   *
   */
+  private isEmptyForm(): boolean {
+    const fields = ['dateEnd', 'status', 'numDoc', 'supply', 'idService', 'entity', 'provider'];
+    return fields.every(field => this.formDate.get(field)?.value === '');
+  }
+
   search() {
     console.log("Servicios seleccionados para filt121ro:", this.formDate.get('idService')?.value);
     console.log("Servicios seleccionados :", this.listServicesSelected);
-    if (this.formDate.get('dateEnd')?.value == '' &&
-      this.formDate.get('status')?.value == '' &&
-      this.formDate.get('numDoc')?.value == '' &&
-      this.formDate.get('supply')?.value == '' &&
-      this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == '' &&
-      this.formDate.get('provider')?.value == '') {
+    if (this.isEmptyForm()) {
       this.mytoastr.showWarning("Seleccione un filtro", "")
       return
     }
     this.clearData();
     this.getDataTransaction(this.pageSize)
   }
-
 
   async listData(): Promise<void> {
     this.spinner.spinnerOnOff();
@@ -377,7 +380,7 @@ export class TransactionComponent implements OnInit {
         error: (error) => {
           this.spinner.spinnerOnOff();
           console.error("Error loading master table data:", error);
-          reject(error); // Indica que falló
+          reject(new Error(error)); // Indica que falló
         }
       });
     });
@@ -514,51 +517,58 @@ export class TransactionComponent implements OnInit {
     });
     const inbx = 'tr';
 
-    this.transactionService.exportTransactions(fileType, exportFilters, inbx/*,this.listProviders, this.entityTypes*/).subscribe({
-      next: (response) => {
-        this.spinner.spinnerOnOff();
+      this.transactionService.exportTransactions(fileType, exportFilters, inbx).subscribe({
+        next: (response) => {
+          this.spinner.spinnerOnOff();
 
-        if (response.body) {
-          const blob = new Blob([response.body], {
-            type: fileType === 'xlsx'
-              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-              : 'text/csv;charset=utf-8;'
-          });
-          const filterParts: string[] = [];
-          if (exportFilters['dateStart']) filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`);
-          if (exportFilters['dateEnd']) filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`);
+          if (response?.body) {
 
-          let filename = `transacciones_`;
-          if (filterParts.length) {
-            if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
-              const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
-              filename += `_${diainicio}`;
-            } else {
-              const diainicio = this.formatCustomDate(exportFilters['dateStart']);
-              const diafin = this.formatCustomDate(exportFilters['dateEnd']);
-              filename += `_${diainicio}_${diafin}`;
+            const byteCharacters = atob(response.body);
+            const byteArray = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteArray[i] = byteCharacters.charCodeAt(i);
             }
+
+            const blob = new Blob([byteArray], {
+              type: fileType === 'xlsx'
+                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                : 'text/csv;charset=utf-8;'
+            });
+            const filterParts: string[] = [];
+            if (exportFilters['dateStart']) { filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`) };
+            if (exportFilters['dateEnd']) { filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`) };
+
+            let filename = `transacciones_`;
+            if (filterParts.length) {
+              if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+                const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+                filename += `_${diainicio}`;
+              } else {
+                const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+                const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+                filename += `_${diainicio}_${diafin}`;
+              }
+            } else {
+              filename += this.formatCustomDate(new Date().toISOString());
+            }
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.${fileType}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
           } else {
-            filename += this.formatCustomDate(new Date().toISOString());
+            this.mytoastr.showError('No se recibió ningún dato para exportar', '');
           }
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${filename}.${fileType}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        } else {
-          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
+        },
+        error: (error) => {
+          this.spinner.spinnerOnOff();
+          console.error('Error durante la exportación:', error);
+          this.mytoastr.showError('Error durante la exportación', '');
         }
-      },
-      error: (error) => {
-        this.spinner.spinnerOnOff();
-        console.error('Error durante la exportación:', error);
-        this.mytoastr.showError('Error durante la exportación', '');
-      }
-    });
+      });
 
   }
 }

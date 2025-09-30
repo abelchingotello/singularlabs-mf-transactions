@@ -8,43 +8,44 @@ import { environment } from 'src/environments/environment';
 })
 export class TransactionService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   //private url = `${environment.URL_API_LOCAL}`; //LAMBDA LOCAL
   constructor(
-    private httpClient: HttpClient,
+    private readonly httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?: string, idprovider?: string, status?: string, dateStart?: any, dateEnd?: any, idService?: string, limit?: any, page?: any, numDoc?: string, supply?: string, count?: any, totalAmount?: any): Observable<any> {
+  getTransaction(filters: any, limit?: any, page?: any, count?: any, totalAmount?: any): Observable<any> {
     let params = new HttpParams();
 
-    if (numDoc !== undefined) {
-      params = params.set('concept', numDoc);
+    if (filters.numDoc !== undefined) {
+      params = params.set('concept', filters.numDoc);
     }
-    if (supply !== undefined) {
-      params = params.set('supply', supply);
-    }
-
-    if (idclient !== undefined) {
-      params = params.set('idclient', idclient);
+    if (filters.supply !== undefined) {
+      params = params.set('supply', filters.supply);
     }
 
-    if (idprovider !== undefined) {
-      params = params.set('idprovider', idprovider);
+    if (filters.idclient !== undefined) {
+      params = params.set('idclient', filters.idclient);
     }
 
-    if (status !== undefined) {
-      params = params.set('status', status);
+    if (filters.idprovider !== undefined) {
+      params = params.set('idprovider', filters.idprovider);
     }
 
-    if (dateStart !== undefined && dateStart !== null) {
-      params = params.set('dateStart', dateStart);
-    }
-    if (dateEnd !== undefined && dateEnd !== null) {
-      params = params.set('dateEnd', dateEnd);
+    if (filters.status !== undefined) {
+      params = params.set('status', filters.status);
     }
 
-    if (idService !== undefined) {
-      params = params.set('idService', idService);
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    if (filters.idService !== undefined) {
+      params = params.set('idService', filters.idService);
     }
 
     if (limit !== undefined) {
@@ -66,23 +67,22 @@ export class TransactionService {
   updateTransactionStatus(data: any): Observable<any> {
     return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
   }
-
-  getBalance(limit?: any, page?: any, typeEntity?: any, entity?: any, typeAssign?: any, dateStart?: any, dateEnd?: any, count?: any): Observable<any> {
+  getBalance(filters?: any, limit?: any, page?: any, count?: any): Observable<any> {
     let params = new HttpParams();
-    if (typeEntity !== undefined) {
-      params = params.set('typeEntity', typeEntity);
+    if (filters.typeEntity !== undefined) {
+      params = params.set('typeEntity', filters.typeEntity);
     }
-    if (entity !== undefined) {
-      params = params.set('entity', entity);
+    if (filters.entity !== undefined) {
+      params = params.set('entity', filters.entity);
     }
-    if (typeAssign !== undefined) {
-      params = params.set('typeAssign', typeAssign);
+    if (filters.typeAssign !== undefined) {
+      params = params.set('typeAssign', filters.typeAssign);
     }
-    if (dateStart !== undefined && dateStart !== null) {
-      params = params.set('dateStart', dateStart);
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
     }
-    if (dateEnd !== undefined && dateEnd !== null) {
-      params = params.set('dateEnd', dateEnd);
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
     }
     if (limit !== undefined) {
       params = params.set('limit', limit);
@@ -121,10 +121,8 @@ export class TransactionService {
     format: 'xlsx' | 'csv',
     filters: any,
     bandeja: string
-  ): Observable<HttpResponse<Blob>> {
+  ): Observable<HttpResponse<string>> {
     let params = new HttpParams();
-
-    Object
 
     if (filters.supply !== undefined) {
       params = params.set('supply', filters.supply);
@@ -163,7 +161,7 @@ export class TransactionService {
     return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
-      responseType: 'blob' // para manejar base64
+      responseType: 'text' //  para manejar base64
     });
   }
 }
