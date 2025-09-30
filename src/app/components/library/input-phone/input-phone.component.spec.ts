@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
 import {InputPhoneComponent, PhoneErrorMatcher, phoneValidator} from './input-phone.component';
 import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
@@ -9,7 +9,7 @@ describe('PhoneComponent', () => {
     let component: InputPhoneComponent;
     let fixture: ComponentFixture<InputPhoneComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(waitForAsync(() => {
         TestBed.configureTestingModule({
             declarations: [InputPhoneComponent],
             providers: [FormBuilder],
@@ -93,12 +93,11 @@ describe('PhoneErrorMatcher', () => {
     let phoneNumber: FormControl;
     let phoneCountry: FormControl;
     beforeEach(() => {
-        phoneForm = fb.group({
-            phone: fb.group({
-                    country: ['US'],
-                    number: ['']
-                },
-                {validators: phoneValidator})
+        phoneForm = new FormGroup({
+            phone: new FormGroup({
+                country: new FormControl('US'),
+                number: new FormControl('')
+            }, { validators: phoneValidator })
         });
         phoneNumber = phoneForm.get('phone.number') as FormControl;
         phoneCountry = phoneForm.get('phone.country') as FormControl;

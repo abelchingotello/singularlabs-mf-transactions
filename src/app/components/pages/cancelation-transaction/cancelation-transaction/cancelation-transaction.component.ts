@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
@@ -8,9 +8,9 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
   templateUrl: './cancelation-transaction.component.html',
   styleUrls: ['./cancelation-transaction.component.scss']
 })
-export class CancelationTransactionComponent implements OnInit {
+export class CancelationTransactionComponent {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Concepto', 'attribute': 'concep' },
@@ -36,9 +36,6 @@ export class CancelationTransactionComponent implements OnInit {
     this.pagUtils = new PaginationUtils();
   }
 
-  ngOnInit(): void {
-  }
-
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
@@ -48,7 +45,6 @@ export class CancelationTransactionComponent implements OnInit {
   clearData() {
     this.pageKey = undefined;
     this.dataCancelation = [];
-    // this.reload();
   }
 
   onPageChange(event: PageEvent) {

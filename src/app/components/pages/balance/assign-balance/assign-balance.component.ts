@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
@@ -9,7 +9,6 @@ import { MytoastrService } from 'src/app/services/mytoastr';
 import { PersonService } from 'src/app/services/person.service';
 import { SpinnerService } from 'src/app/services/spinner.service';
 import { onMessage, getMessaging } from 'firebase/messaging';
-import { NgZone } from '@angular/core';
 // firebase-config.ts
 import { initializeApp } from 'firebase/app';
 
@@ -40,15 +39,15 @@ export class AssignBalanceComponent implements OnInit {
   public verificationForm!: FormGroup;
 
   constructor(
-    private fb: FormBuilder,
-    private assignService: BalanceService,
-    private masterService: MasterService,
-    private personService: PersonService,
-    private spinner: SpinnerService,
-    private router: Router,
-    private mytoastr: MytoastrService,
-    private cookieService: CookieService,
-    private ngZone: NgZone
+    private readonly fb: FormBuilder,
+    private readonly assignService: BalanceService,
+    private readonly masterService: MasterService,
+    private readonly personService: PersonService,
+    private readonly spinner: SpinnerService,
+    private readonly router: Router,
+    private readonly mytoastr: MytoastrService,
+    private readonly cookieService: CookieService,
+    private readonly ngZone: NgZone
   ) { }
 
   ngOnInit(): void {
@@ -143,7 +142,7 @@ export class AssignBalanceComponent implements OnInit {
     console.log("ENTIDAD para asignar: ", event.value.idPerson)
     this.idPerson = event.value.idPerson;
     this.concept?.setValue(this.nameConcept)
-    let name = this.concept?.value.concat(' ' + event.value.nameAlias)
+    const name = this.concept?.value.concat(' ' + event.value.nameAlias)
     this.concept?.setValue(name)
     if (this.selectedType == this.provider) {
       this.idProvider?.setValue(event.value.idPerson)
@@ -162,7 +161,7 @@ export class AssignBalanceComponent implements OnInit {
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType, undefined).subscribe({
+    this.personService.getPerson(nameType).subscribe({
       next: (value) => {
         this.nameType = value.data
         console.log('TYPE ENTITU POR ENTIDAD: ', this.nameType)

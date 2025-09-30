@@ -20,7 +20,7 @@ import { MasterService } from 'src/app/services/master.service';
 })
 export class ReportBalanceComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Nombre', 'attribute': 'concep' },
@@ -47,15 +47,15 @@ export class ReportBalanceComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner: SpinnerService,
-    private router: Router,
-    private transactionService: TransactionService,
-    private personService: PersonService,
-    private fb: FormBuilder,
-    private dateService: DateService,
-    private mytoastr: MytoastrService,
-    private masterService: MasterService,
-    private balanceService: BalanceService,
+    private readonly spinner: SpinnerService,
+    private readonly router: Router,
+    private readonly transactionService: TransactionService,
+    private readonly personService: PersonService,
+    private readonly fb: FormBuilder,
+    private readonly dateService: DateService,
+    private readonly mytoastr: MytoastrService,
+    private readonly masterService: MasterService,
+    private readonly balanceService: BalanceService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -114,21 +114,29 @@ export class ReportBalanceComponent implements OnInit {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
-    let typeEntity = this.typeEntity?.master_name || undefined;
-    let entity = this.entity || undefined;
-    let typeAssign = this.typeAssign || undefined;
-    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    const typeEntity = this.typeEntity?.master_name || undefined;
+    const entity = this.entity || undefined;
+    const typeAssign = this.typeAssign || undefined;
+    const dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    const dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
 
-
-    this.transactionService.getBalance(pageSize, this.page, typeEntity, entity, typeAssign, dateStart, dateEnd, this.count).subscribe({
+    const listfilters = {
+      entity: entity,
+      typeEntity: typeEntity,
+      typeAssign: typeAssign,
+      dateStart: dateStart,
+      dateEnd: dateEnd
+    }
+    console.log('listfilters', listfilters)
+    // return 
+    this.transactionService.getBalance(listfilters, pageSize, this.page, this.count).subscribe({
       next: (value: any) => {
         if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
         //recorrer lista y concatenar el monto con la moneda
-        let datanew = value.data.Items.map((item: any) => {
+        const datanew = value.data.Items.map((item: any) => {
           return {
             ...item,
             amountTransaction: item.amountTransaction + ' ' + item.currency,
@@ -136,7 +144,9 @@ export class ReportBalanceComponent implements OnInit {
         });
         this.dataBalance = [...this.dataBalance, ...datanew];
         this.pageKey = value.data.hasMore;
-        if (value.data.count != 0) this.count = value.data.count;
+        if (value.data.count != 0) {
+          this.count = value.data.count
+        };
         if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
@@ -187,8 +197,7 @@ export class ReportBalanceComponent implements OnInit {
 
   showAlarmSelectTypeEntity() {
     if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
-      this.mytoastr.showError('Primero Selecciona un tipo de entidad', '');
-      return;
+      this.mytoastr.showError('Selecciona un tipo de entidad', '');
     }
   }
 
@@ -209,15 +218,20 @@ export class ReportBalanceComponent implements OnInit {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (response.body) {
-          const blob = new Blob([response.body], {
+        if (response?.body) {
+
+          const byteCharacters = atob(response.body);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          } const blob = new Blob([byteArray], {
             type: fileType === 'xlsx'
               ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
               : 'text/csv;charset=utf-8;'
           });
           const filterParts: string[] = [];
-          if (exportFilters['dateStart']) filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`);
-          if (exportFilters['dateEnd']) filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`);
+          if (exportFilters['dateStart']) { filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`) };
+          if (exportFilters['dateEnd']) { filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`) };
 
           let filename = `cntrl_assing_`;
           if (filterParts.length) {
@@ -281,7 +295,7 @@ export class ReportBalanceComponent implements OnInit {
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType, undefined).subscribe({
+    this.personService.getPerson(nameType).subscribe({
       next: (value) => {
         this.nameType = value.data
       },

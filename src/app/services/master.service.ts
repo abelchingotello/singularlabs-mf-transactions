@@ -1,4 +1,4 @@
-import { Attribute, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
@@ -8,11 +8,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 })
 export class MasterService {
 
-  private url = `${environment.URL_API_GATEWAY}/master`;
+  private readonly url = `${environment.URL_API_GATEWAY}/master`;
   data = new BehaviorSubject<any[]>([]);
   dataParent = new BehaviorSubject<any>(null);
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private readonly httpClient: HttpClient) { }
 
   getItemsMasterTable(group: string | number | boolean) : Observable <any> {
     let params = new HttpParams()

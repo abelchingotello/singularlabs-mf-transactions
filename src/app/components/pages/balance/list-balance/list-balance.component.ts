@@ -8,11 +8,10 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
-import { FormBuilder, FormGroup, Validator } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
-import { Toast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-list-balance',
@@ -21,7 +20,7 @@ import { Toast } from 'ngx-toastr';
 })
 export class ListBalanceComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Entidad', 'attribute': 'entity' },
@@ -43,15 +42,15 @@ export class ListBalanceComponent implements OnInit {
   public selectType: boolean = false;
 
   constructor(
-    private spinner: SpinnerService,
-    private router: Router,
-    private transactionService: TransactionService,
-    private personService: PersonService,
-    private dateService: DateService,
-    private fb: FormBuilder,
-    private masterService: MasterService,
-    private mytoastr: MytoastrService,
-    private balanceService: BalanceService,
+    private readonly spinner: SpinnerService,
+    private readonly router: Router,
+    private readonly transactionService: TransactionService,
+    private readonly personService: PersonService,
+    private readonly DdateService: DateService,
+    private readonly fb: FormBuilder,
+    private readonly masterService: MasterService,
+    private readonly mytoastr: MytoastrService,
+    private readonly balanceService: BalanceService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -98,8 +97,8 @@ export class ListBalanceComponent implements OnInit {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
-    let typeEntity = this.typeEntity?.master_name || undefined;
-    let entity = this.entity || undefined;
+    const typeEntity = this.typeEntity?.master_name || undefined;
+    const entity = this.entity || undefined;
 
 
     if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
@@ -114,7 +113,7 @@ export class ListBalanceComponent implements OnInit {
           return;
         }
         // cambiar el id entity por el servicePerson.nameAlias de la lista nameType
-        let dataNew = value.data.Items.map((item: any) => {
+        const dataNew = value.data.Items.map((item: any) => {
           const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
           return {
             ...item,
@@ -124,7 +123,9 @@ export class ListBalanceComponent implements OnInit {
         });
         this.dataBalance = [...this.dataBalance, ...dataNew];
         this.pageKey = value.data.hasMore;
-        if (value.data.count != 0) this.count = value.data.count;
+        if (value.data.count != 0) {
+          this.count = value.data.count
+        };
         if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
@@ -177,7 +178,6 @@ export class ListBalanceComponent implements OnInit {
   showAlarmSelectTypeEntity() {
     if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
       this.mytoastr.showError('Seleccione un Tipo Entidad', '');
-      return;
     }
   }
 
@@ -195,8 +195,13 @@ export class ListBalanceComponent implements OnInit {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (response.body) {
-          const blob = new Blob([response.body], {
+        if (response?.body) {
+
+          const byteCharacters = atob(response.body);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          } const blob = new Blob([byteArray], {
             type: fileType === 'xlsx'
               ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
               : 'text/csv;charset=utf-8;'
@@ -266,7 +271,7 @@ export class ListBalanceComponent implements OnInit {
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType, undefined).subscribe({
+    this.personService.getPerson(nameType).subscribe({
       next: (value) => {
         this.nameType = value.data
       },

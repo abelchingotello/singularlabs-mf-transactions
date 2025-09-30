@@ -3,7 +3,7 @@ import { ToastrService, IndividualConfig } from 'ngx-toastr';
 
 @Injectable({ providedIn: 'root' })
 export class MytoastrService {
-    constructor(private toastr: ToastrService) { }
+    constructor(private readonly toastr: ToastrService) { }
 
     showSuccess(title: string, message: string) {
         const options: Partial<IndividualConfig> = {

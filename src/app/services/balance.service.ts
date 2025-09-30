@@ -8,11 +8,11 @@ import { environment } from 'src/environments/environment';
 })
 export class BalanceService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   //private url = `${environment.URL_API_LOCAL}`;
 
   constructor(
-    private httpClient: HttpClient,
+    private readonly httpClient: HttpClient,
   ) { }
 
 
@@ -40,9 +40,8 @@ export class BalanceService {
     format: 'xlsx' | 'csv',
     filters: any,
     bandeja: any
-  ): Observable<HttpResponse<Blob>> {
+    ): Observable<HttpResponse<string>> {
     let params = new HttpParams();
-    Object
     if (filters.entity !== undefined) {
       params = params.set('entity', filters.entity);
     }
@@ -68,7 +67,7 @@ export class BalanceService {
     return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'text'
     });
   }
 }

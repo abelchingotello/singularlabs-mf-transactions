@@ -71,16 +71,6 @@
 
     <mat-checkbox class="col-md-4" formControlName="verify_phone">Celular Verificado</mat-checkbox>
 
-
-    <!-- <mat-form-field appearance="outline" fxFlex="25%"  class="col-md-4">
-            <mat-label>Celular</mat-label>
-            <input formControlName="person_phone" matInput placeholder="Número Cel." [maxlength]="9" (keypress)="validateOnlyNumber1($event)" (paste)="onPasteOnlyNumber($event)">
-            <mat-error *ngIf="phone?.hasError('required')">
-                Este campo es requerido
-            </mat-error>
-            <mat-hint align="end">{{phone?.value?.length ?? 0}} / 9</mat-hint>
-        </mat-form-field> -->
-
     <mat-form-field *ngIf="formTrue" formGroupName="gender" appearance="outline" fxFlex="25%" class="col-md-4">
         <mat-label>Género</mat-label>
         <mat-select formControlName="type_gen">
