@@ -8,19 +8,6 @@
             <h2 style="margin-top: 23px; margin-left: 20px;"> Datos de Búsqueda </h2>
 
             <form [formGroup]="formDate" class="d-flex align-items-center justify-content-space-evenly flex-wrap">
-                <!-- <mat-form-field appearance="outline" class="col-md-3">
-                    <mat-label>Elige una fecha</mat-label>
-                    <input formControlName="date" matInput [matDatepicker]="datepicker">
-                    <mat-hint align="end">MM/DD/YYYY</mat-hint>
-                    <mat-datepicker-toggle matSuffix [for]="datepicker"></mat-datepicker-toggle>
-                    <mat-datepicker #datepicker>
-                        <mat-datepicker-actions>
-                            <button mat-button matDatepickerCancel>Cancel</button>
-                            <button mat-raised-button color="primary" matDatepickerApply>Apply</button>
-                        </mat-datepicker-actions>
-                    </mat-datepicker>
-                </mat-form-field> -->
-
                 <mat-form-field appearance="outline" class="col-md-3">
                     <mat-label>Seleccionar fecha</mat-label>
                     <mat-date-range-input [rangePicker]="picker">
@@ -30,9 +17,6 @@
                     <mat-hint align="end">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
                     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                     <mat-date-range-picker #picker></mat-date-range-picker>
-                  
-                    <!-- <mat-error *ngIf="formDate.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
-                    <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error> -->
                   </mat-form-field>
                 
                 <mat-form-field appearance="outline" class="col-md-2">

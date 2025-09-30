@@ -4,34 +4,11 @@
             externImage="https://static.vecteezy.com/system/resources/previews/004/341/304/non_2x/easy-to-use-banking-app-flat-illustration-credit-card-financial-transactions-cartoon-concept-e-payment-online-bill-pay-isolated-metaphor-on-white-background-ewallet-ebanking-application-vector.jpg"
             size="8%">
         </uni-image-card>
-
-        <!-- <mat-card class="custom-border-radius-1-25">
-            <h2 style="margin-top: 23px; margin-left: 20px;">Búsqueda de Operaciones</h2>
-            <div class="p-4">
-                <form [formGroup]="formOperation" class="d-flex flex-wrap align-items-center gap-3">
-                    <mat-form-field class="flex-grow-1" appearance="outline">
-                        <mat-label>Número de operación</mat-label>
-                        <input formControlName="numOperation" matInput placeholder="Número">
-                    </mat-form-field>
-
-                    <button type="button" class="btn-primary btn" (click)="searchOperation()">
-                        Buscar
-                    </button>
-                </form>
-            </div>
-        </mat-card> -->
-
-        <!-- <mat-card class="custom-border-radius-1-25">
-
-        </mat-card> -->
-
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
                     <h2 class="mt-4 ml-3 text-default"> Datos de Búsqueda </h2>
-                    <!-- <mat-card-title style="margin-top: 23px; margin-left: 20px;" >Búsqueda transacciones</mat-card-title> -->
                     <form [formGroup]="formDate" class="d-flex flex-wrap">
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar fecha</mat-label>
                             <mat-date-range-input [rangePicker]="picker">
@@ -42,7 +19,6 @@
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-date-range-picker #picker></mat-date-range-picker>
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Categoria de Servicio</mat-label>
                             <mat-select formControlName="category" (selectionChange)="selectCategory()">
@@ -52,41 +28,33 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3" (click)="showAlarmSelectCategory()">
+                            <mat-label >Seleccionar servicio</mat-label>
+                            <mat-select formControlName="idService" multiple
+                                (selectionChange)="onServicesChange($event)">
 
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar servicio</mat-label>
-                            <mat-select formControlName="idService" disableOptionCentering
-                                panelClass="custom-select-panel" multiple>
-                                <!-- Buscador dentro de un mat-option que NO se selecciona -->
-                                <mat-option disabled class="search-option" mat-pseudo-checkbox>
+                                <!-- Input de búsqueda -->
+                                <mat-option disabled class="search-option" *ngIf="selectedCategory">
                                     <input matInput placeholder="Buscar servicio..." [(ngModel)]="serviceFilter"
                                         [ngModelOptions]="{standalone: true}" (ngModelChange)="filterServices()"
                                         (click)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()"
                                         (keydown.enter)="$event.stopPropagation()" />
                                 </mat-option>
 
-                                <!-- Opciones filtradas -->
+                                <!-- Mostrar los servicios filtrados -->
                                 <mat-option *ngFor="let service of filteredServices" [value]="service.id">
                                     {{ service.name }}
                                 </mat-option>
                             </mat-select>
-                            <!-- Mensaje si no hay categoría seleccionada -->
-                            <mat-hint class="text-danger"
-                                *ngIf="!selectedCategory && formDate.get('idService')?.touched">
-                                Primero selecciona una categoría.
-                            </mat-hint>
-
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar Estado</mat-label>
+                            <mat-label>Estado de Transferencia</mat-label>
                             <mat-select formControlName="status" multiple>
                                 <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
                                     {{status.master_name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Proveedor</mat-label>
                             <mat-select formControlName="provider">
@@ -97,7 +65,6 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Recaudador</mat-label>
                             <mat-select formControlName="entity">
@@ -107,16 +74,21 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Numero de Suministro</mat-label>
                             <input formControlName="supply" type="text" matInput>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Estado de Conciliacion</mat-label>
+                            <mat-select formControlName="statusConc" multiple>
+                                <mat-option *ngFor="let status of masterStatusConc" [value]="status">
+                                    {{status}}
+                                </mat-option>
+                            </mat-select>
                         </mat-form-field>
                     </form>
                     <div class="row">
@@ -147,14 +119,18 @@
         </mat-card>
 
         <mat-card class="custom-border-radius-1-25">
-
             <mat-card-content>
                 <div>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
-                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
-                        [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
+                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [actionsOptions]="true"
+                        [lengthTable]="count" [refreshFunction]="reload.bind(this)" element_id="concep"
+                        (pageChange)="onPageChange($event)" [pageKey]="pageKey"
                         (selectedIdsChange)="handleSelectedIds($event)"
-                        [customExportFunction]="exportDataViaAPI.bind(this)">
+                        [customExportFunction]="exportDataViaAPI.bind(this)" (selectedChange)="selectedHandle($event)">
+                        <div class="action-buttons d-inline-block">
+                            <button [disabled]="disabledEditOption" mat-icon-button (click)="openDialog()">
+                                <mat-icon matTooltip="Actualizar Estado" matTooltipPosition="above">edit</mat-icon>
+                            </button>
+                        </div>
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>

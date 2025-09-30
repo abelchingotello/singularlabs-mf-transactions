@@ -9,15 +9,15 @@ import { environment } from 'src/environments/environment';
 })
 export class UserService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   // private urlIframe = `${environment.URL_IFRAME}`;
-  public data = new BehaviorSubject<any | null>(null);
-  public user = new BehaviorSubject<any | null>(null);
+  public data = new BehaviorSubject<any>(null);
+  public user = new BehaviorSubject<any>(null);
   public config = new BehaviorSubject<{route?: any, refresh?: any, method?: any} | null>(null);
 
   constructor(
-    private httpClient: HttpClient,
-    private cookieService: CookieService
+    private readonly httpClient: HttpClient,
+    private readonly cookieService: CookieService
   ) { }
 
   getUsers(limit? : any, pageKey? :any []): Observable<any>{

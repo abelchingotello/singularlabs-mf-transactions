@@ -10,11 +10,11 @@ import { CookieService } from 'ngx-cookie-service';
 export class CompanyService {
 
   public data = new BehaviorSubject<any[]>([]);
-  private url = `${environment.URL_API_GATEWAY}/company`;
+  private readonly url = `${environment.URL_API_GATEWAY}/company`;
 
   constructor(
-    private httpClient: HttpClient,
-    private cookieService: CookieService
+    private readonly httpClient: HttpClient,
+    private readonly cookieService: CookieService
   ) { }
 
   getCompanies(limit : any, pageKey :any []): Observable <any>{

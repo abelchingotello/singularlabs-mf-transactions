@@ -1,4 +1,3 @@
-
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -9,45 +8,44 @@ import { environment } from 'src/environments/environment';
 })
 export class TransactionService {
 
-  private url = `${environment.URL_API_GATEWAY}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
   //private url = `${environment.URL_API_LOCAL}`; //LAMBDA LOCAL
   constructor(
-    private httpClient: HttpClient,
+    private readonly httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?:string,idprovider?:string,status?:string,dateStart?:any, dateEnd?:any,idService?:string,limit?:any ,page?:any,numDoc?:string,supply?:string, count?: any,totalAmount?:any):Observable<any>{
-    let params = new  HttpParams();
+  getTransaction(filters: any, limit?: any, page?: any, count?: any, totalAmount?: any): Observable<any> {
+    let params = new HttpParams();
 
-    console.log("idservicio: ",idService)
-
-    if(numDoc !== undefined){
-      params = params.set('concept',numDoc);
+    if (filters.numDoc !== undefined) {
+      params = params.set('concept', filters.numDoc);
     }
-    if(supply !== undefined){
-      params = params.set('supply',supply);
+    if (filters.supply !== undefined) {
+      params = params.set('supply', filters.supply);
     }
 
-    if(idclient !== undefined){
-      params = params.set('idclient',idclient);
+    if (filters.idclient !== undefined) {
+      params = params.set('idclient', filters.idclient);
     }
 
-    if(idprovider !== undefined){
-      params = params.set('idprovider',idprovider);
+    if (filters.idprovider !== undefined) {
+      params = params.set('idprovider', filters.idprovider);
     }
 
-    if(status !== undefined){
-      params = params.set('status',status);
+    if (filters.status !== undefined) {
+      params = params.set('status', filters.status);
     }
 
-    if (dateStart !== undefined && dateStart !== null) {
-      params = params.set('dateStart', dateStart);
-    }
-    if (dateEnd !== undefined && dateEnd !== null) {
-      params = params.set('dateEnd', dateEnd);
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
     }
 
-    if(idService !== undefined){
-      params = params.set('idService',idService);
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    if (filters.idService !== undefined) {
+      params = params.set('idService', filters.idService);
     }
 
     if (limit !== undefined) {
@@ -63,91 +61,107 @@ export class TransactionService {
     if (Number(totalAmount) >= 0) {
       params = params.set('totalAmount', Number(totalAmount));
     }
-    return this.httpClient.get(`${this.url}/transactions`,{params});
+    return this.httpClient.get(`${this.url}/transactions`, { params });
   }
 
-  getBalance(limit?:any ,page?:any,typeEntity?:any, entity?:any,typeAssign?:any,dateStart?:any,dateEnd?:any,count?:any):Observable<any>{
-    let params = new  HttpParams();
-    if(typeEntity !== undefined){
-      params = params.set('typeEntity',typeEntity);
-    }
-    if (entity !== undefined) {
-      params = params.set('entity', entity);
-    }
-    if (typeAssign !== undefined) {
-      params = params.set('typeAssign', typeAssign);
-    }
-    if (dateStart !== undefined && dateStart !== null) {
-      params = params.set('dateStart', dateStart);
-    }
-    if (dateEnd !== undefined && dateEnd !== null) {
-      params = params.set('dateEnd', dateEnd);
-    }
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (count >= 0) {
-      params = params.set('count', Number(count));
-    }
-    return this.httpClient.get(`${this.url}/transactions/balances`,{params});
+  updateTransactionStatus(data: any): Observable<any> {
+    return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
   }
-
-   getCurrentBalances(limit?:any ,page?:any,typeEntity?:any, entity?:any,count?:any):Observable<any>{
-    let params = new  HttpParams();
-    if(typeEntity !== undefined){
-      params = params.set('typeEntity',typeEntity);
-    }
-    if (entity !== undefined) {
-      params = params.set('entity', entity);
-    }
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (count >= 0) {
-      params = params.set('count', Number(count));
-    }
-    return this.httpClient.get(`${this.url}/transactions/current-balances`,{params});
-  }
-
-  getIdTransaction(id:string,limit?:any ,pageKey?:any []):Observable<any>{
-    let params = new  HttpParams();
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-
-    if (pageKey !== undefined) {
-      params = params.set('pageKey', JSON.stringify(pageKey));
-    }
-    return this.httpClient.get(`${this.url}/transactions/${id}`,{params});
-  }
-
-  balanceVoucher(numberOperation:string){
+  getBalance(filters?: any, limit?: any, page?: any, count?: any): Observable<any> {
     let params = new HttpParams();
-    params = params.set('numberOperation', numberOperation);
-    return this.httpClient.get(`${this.url}/transactions/voucher`,{params});
+    if (filters.typeEntity !== undefined) {
+      params = params.set('typeEntity', filters.typeEntity);
+    }
+    if (filters.entity !== undefined) {
+      params = params.set('entity', filters.entity);
+    }
+    if (filters.typeAssign !== undefined) {
+      params = params.set('typeAssign', filters.typeAssign);
+    }
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+    if (limit !== undefined) {
+      params = params.set('limit', limit);
+    }
+    if (page !== undefined) {
+      params = params.set('page', page);
+    }
+    if (count >= 0) {
+      params = params.set('count', Number(count));
+    }
+    return this.httpClient.get(`${this.url}/transactions/balances`, { params });
   }
+
+  getCurrentBalances(limit?: any, page?: any, typeEntity?: any, entity?: any, count?: any): Observable<any> {
+    let params = new HttpParams();
+    if (typeEntity !== undefined) {
+      params = params.set('typeEntity', typeEntity);
+    }
+    if (entity !== undefined) {
+      params = params.set('entity', entity);
+    }
+    if (limit !== undefined) {
+      params = params.set('limit', limit);
+    }
+    if (page !== undefined) {
+      params = params.set('page', page);
+    }
+    if (count >= 0) {
+      params = params.set('count', Number(count));
+    }
+    return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
+  }
+
   //-----Exportar de archivos
   exportTransactions(
     format: 'xlsx' | 'csv',
-    filters: any
+    filters: any,
+    bandeja: string
   ): Observable<HttpResponse<string>> {
-    const params = new HttpParams({
-      fromObject: {
-        ...filters,
-        format: format
-      }
-    });
+    let params = new HttpParams();
+
+    if (filters.supply !== undefined) {
+      params = params.set('supply', filters.supply);
+    }
+
+    if (filters.idclient !== undefined) {
+      params = params.set('idclient', filters.idclient);
+    }
+
+    if (filters.idprovider !== undefined) {
+      params = params.set('idprovider', filters.idprovider);
+    }
+
+    if (filters.concept !== undefined) {
+      params = params.set('concept', filters.concept);
+    }
+
+    if (filters.status !== undefined) {
+      params = params.set('status', filters.status);
+    }
+
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    if (filters.idService !== undefined) {
+      params = params.set('idService', filters.idService);
+    }
+
+    params = params.set('format', format);
+    params = params.set('inbx', bandeja);
 
     return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
-      responseType: 'text' // para manejar base64
+      responseType: 'text' //  para manejar base64
     });
   }
 }

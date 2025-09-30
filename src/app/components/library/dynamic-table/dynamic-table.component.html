@@ -3,7 +3,7 @@
         <div *ngIf="headerOptions || alwaysShowHeaderOptions"
             class="container-fluid d-flex flex-wrap align-items-center ps-4">
             <div class="d-flex align-items-center me-auto me-md-0">
-                Seleccionados: {{ selectedIds?.length }}
+                Seleccionados: {{ selectedIds.length }}
             </div>
             <div class="d-flex align-items-center justify-content-start flex-wrap">
                 <ng-content></ng-content>
@@ -51,37 +51,43 @@
         <div class="container-view">
             <table mat-table [dataSource]="dataSource" matSort class="table-custom">
                 <ng-container *ngIf="actionsOptions == true" matColumnDef="select">
-                    <th mat-header-cell *matHeaderCellDef class="custom-headercell-dynamictable">
+                    <th mat-header-cell *matHeaderCellDef class="custom-headercell-dynamictable table-checkbox">
                         <mat-checkbox (change)="$event ? toggleAllRows() : null"
                             [checked]="selection.hasValue() && isAllSelected()"
                             [indeterminate]="selection.hasValue() && !isAllSelected()" [aria-label]="checkboxLabel()">
                         </mat-checkbox>
                     </th>
-                    <td mat-cell *matCellDef="let row" [class.checked-class]="selection.isSelected(row)">
+                    <td mat-cell *matCellDef="let row" class="table-checkbox"
+                        [class.checked-class]="selection.isSelected(row)">
                         <mat-checkbox (click)="$event.stopPropagation()"
                             (change)="$event ? selection.toggle(row) : null; getSelectedIds()"
                             [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)">
                         </mat-checkbox>
                     </td>
                 </ng-container>
+
                 <ng-container *ngFor="let column of columns" [matColumnDef]="column.name">
                     <th mat-header-cell *matHeaderCellDef [mat-sort-header]="column.attribute"
                         class="custom-headercell-dynamictable">
                         {{ column.name }}
                     </th>
                     <td mat-cell *matCellDef="let element" [class.checked-class]="selection.isSelected(element)">
+                        <!--Si `column.config.renderIcon` es true-->
                         <ng-container *ngIf="column.config?.renderIcon; else normalCell">
                             <mat-icon class="text-{{ element[column.config.coloricon] }}"
                                 matTooltip="{{ element[column.attribute] }}" matTooltipPosition="after">{{
-                                element[column.config.icon] }}</mat-icon>
+                                element[column.config.icon] }}
+                            </mat-icon>
                         </ng-container>
                         <ng-template #normalCell>
-                            <span (click)="column.config?.clickable ? onCellClick(element) : null" [ngClass]="[column.config?.styleClass ? (element[column.attribute] || '') : '',
-          column.config?.clickable? 'link':'']">
+                            <span class="ellipsis-cell" (click)="column.config?.clickable ? onCellClick(element) : null"
+                                [ngClass]="[column.config?.styleClass ? (element[column.attribute] || '') : '', column.config?.clickable ? 'link' : '']"
+                                matTooltip='{{ column.config?.formatDate ? formatDate(element[column.attribute],column.config.formatDate.format, column.config.formatDate.locale) : element[column.attribute] }}' matTooltipPosition="above">
                                 {{ column.config?.formatDate ? formatDate(element[column.attribute],
                                 column.config.formatDate.format, column.config.formatDate.locale) :
                                 element[column.attribute] }}
                             </span>
+
                         </ng-template>
                     </td>
 
@@ -91,7 +97,7 @@
                 </tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumnsWithSelect"></tr>
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" [colSpan]="displayedColumns?.length">No hay datos para mostrar</td>
+                    <td class="mat-cell" [colSpan]="displayedColumns.length">No hay datos para mostrar</td>
                 </tr>
             </table>
         </div>
@@ -112,18 +118,19 @@
                                         [checked]="selection.isSelected(element)" [aria-label]="checkboxLabel(element)">
                                     </mat-checkbox>
                                 </div>
-                                <mat-card-title class="card-text-title ">{{ displayedColumns[0]}}:</mat-card-title>
-                                <mat-card-subtitle>{{ element[attributeNames[0]]}}</mat-card-subtitle>
+                                <mat-card-title class="card-text-title text">{{ displayedColumns[0]}}:</mat-card-title>
+                                <mat-card-subtitle
+                                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                    matTooltip="{{ element[attributeNames[0]] }}" matTooltipPosition="above">{{
+                                    element[attributeNames[0]]}}</mat-card-subtitle>
                             </mat-card-header>
                             <mat-card-content class="card-item-content">
                                 <ng-container *ngFor="let column of columns | slice:1">
-                                    <div>
-                                        <span class="text-default fw-bold">{{ column.name }}</span>
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" matTooltip='{{ column.config?.formatDate ? formatDate(element[column.attribute],column.config.formatDate.format, column.config.formatDate.locale) : element[column.attribute] }}' matTooltipPosition="above">
+                                        <span class="text-default fw-bold" >{{ column.name }}</span>
                                         <span
                                             [ngClass]="column.styleClass && element[column.attribute] ? column.styleClass : ''">
-                                            {{ column.config?.formatDate ? formatDate(element[column.attribute],
-                                            column.config.formatDate.format, column.config.formatDate.locale) :
-                                            element[column.attribute] }}
+                                            {{ column.config?.formatDate ? formatDate(element[column.attribute], column.config.formatDate.format, column.config.formatDate.locale) : element[column.attribute] }}
                                         </span>
                                     </div>
                                 </ng-container>

@@ -7,9 +7,6 @@
 table {
     width: 100%; // Cambié `min-width` a `width` para asegurar que la tabla ocupe el 100% del contenedor.
     border-collapse: separate; // Mantén las celdas de la tabla unidas para evitar bordes dobles.
-    // border-radius: 1.25rem; // Mantiene el borde redondeado.
-    // overflow: hidden; // Asegura que el contenido de la tabla respete los bordes redondeados.
-    // border: 1px solid black; 
 }
 
 td.mat-cell {
@@ -66,7 +63,6 @@ th.mat-header-cell {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     max-width: 100%;
-    // max-width: 100%;
     overflow: auto;
     height: auto;
 }
@@ -152,20 +148,12 @@ th.mat-header-cell {
 }
 
 ::ng-deep .custom-header-row-dynamic-table .mat-sort-header .mat-sort-header-content {
-    color: #333;
-    /* Color del texto */
-    font-weight: bold;
-    /* Negrita para el texto */
-    // overflow-wrap: break-word;
-    // word-break: break-word;
+    color: #333; // Color del texto
+    font-weight: bold; // Negrita para el texto
 }
 
 .custom-header-row-dynamic-table {
-    /* Mantener la fila fija en la parte superior */
-    top: 0;
-    /* Pegado a la parte superior */
-    // z-index: 10;
-    /* Asegurarse de que esté por encima de otras filas */
+    top: 0; // Mantener la fila fija en la parte superior
 }
 
 .custom-headercell-dynamictable {
@@ -173,7 +161,6 @@ th.mat-header-cell {
     color: #333;
     font-weight: bold;
     top: 0;
-    // z-index: 1;
 }
 
 .checkbox-container {
@@ -212,3 +199,21 @@ th.mat-header-cell {
     color: #000000  !important;
 }
 
+.table-custom {
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.table-custom th,
+.table-custom td {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.table-checkbox {
+  width: 50px;
+  min-width: 50px;   /* importante en mat-table */
+  max-width: 50px;
+  text-align: center;
+}

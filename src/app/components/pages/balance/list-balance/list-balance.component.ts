@@ -8,7 +8,7 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { DateService } from 'src/app/services/date.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { BalanceService } from 'src/app/services/balance.service';
-import { FormBuilder, FormGroup, Validator } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
@@ -20,12 +20,12 @@ import { PersonService } from 'src/app/services/person.service';
 })
 export class ListBalanceComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Entidad', 'attribute': 'entity' },
     { 'name': 'Tipo Monto', 'attribute': 'typeAmount' },
-    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
     //{ 'name': 'Moneda', 'attribute': 'currency' },
   ];
   public dataBalance: any[] = [];
@@ -42,15 +42,15 @@ export class ListBalanceComponent implements OnInit {
   public selectType: boolean = false;
 
   constructor(
-    private spinner: SpinnerService,
-    private router: Router,
-    private transactionService: TransactionService,
-    private personService: PersonService,
-    private dateService: DateService,
-    private fb: FormBuilder,
-    private masterService: MasterService,
-    private mytoastr: MytoastrService,
-    private balanceService: BalanceService,
+    private readonly spinner: SpinnerService,
+    private readonly router: Router,
+    private readonly transactionService: TransactionService,
+    private readonly personService: PersonService,
+    private readonly DdateService: DateService,
+    private readonly fb: FormBuilder,
+    private readonly masterService: MasterService,
+    private readonly mytoastr: MytoastrService,
+    private readonly balanceService: BalanceService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -69,13 +69,17 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Carga tipos de entidad desde la tabla maestra.
+   *
+   * @returns Actualiza `typeEntitys` con los valores ordenados.
+   */
   listData() {
     forkJoin([
       this.masterService.getItemsMasterTable('11')
     ]).subscribe({
       next: ([typeEntity]) => {
         this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
-        console.log("ENTIDAD: ", this.typeEntitys)
       },
       error: (err: any) => {
         console.error('Error:', err);
@@ -83,47 +87,52 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Obtiene saldos actuales según filtros seleccionados.
+   *
+   * @param {*} pageSize - Tamaño de página para la consulta.
+   * @returns Actualiza `dataBalance`, `pageKey`, `count`.
+   */
   getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
-    let typeEntity = this.typeEntity?.master_name || undefined;
-    let entity = this.entity || undefined;
+    const typeEntity = this.typeEntity?.master_name || undefined;
+    const entity = this.entity || undefined;
 
-    console.log("ENTIDAD: ", entity)
-    console.log("TIPO DE ENTIDAD: ", typeEntity)
 
-    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
-        this.spinner.spinnerOnOff();
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.spinner.spinnerOnOff();
       return;
     }
 
-    this.transactionService.getCurrentBalances(pageSize,this.page,typeEntity,entity,this.count).subscribe({
-      next: (value:any) => {
-        if(value.statusCode == 201){
+    this.transactionService.getCurrentBalances(pageSize, this.page, typeEntity, entity, this.count).subscribe({
+      next: (value: any) => {
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
         // cambiar el id entity por el servicePerson.nameAlias de la lista nameType
-        let dataNew = value.data.Items.map((item: any) => {
+        const dataNew = value.data.Items.map((item: any) => {
           const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
           return {
             ...item,
-            amountTransaction: item.amountTransaction+' '+item.currency,
+            amountTransaction: item.amountTransaction + ' ' + item.currency,
             entity: person ? person.servicePerson.nameAlias : item.entity, // Asignar el nombre
           };
         });
-        this.dataBalance = [...this.dataBalance,...dataNew];
+        this.dataBalance = [...this.dataBalance, ...dataNew];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
-        if(value.statusCode == 201){
+        if (value.data.count != 0) {
+          this.count = value.data.count
+        };
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
 
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -141,12 +150,18 @@ export class ListBalanceComponent implements OnInit {
     )
   }
 
+  /**
+   * Recarga datos limpiando la tabla y restableciendo la selección.
+   */
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
     this.functionDataCurrent(this.pageSize);
   }
 
+  /**
+   * Limpia la tabla de balances y reinicia contadores de paginación.
+   */
   clearData() {
     this.pageKey = undefined;
     this.dataBalance = [];
@@ -155,60 +170,55 @@ export class ListBalanceComponent implements OnInit {
   }
 
   onPageChange(event: PageEvent) {
-    console.log("keyyyyyy", this.pageKey)
-    this.page ++;
+    this.page++;
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
-    this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
-    console.log('Página cambiada', event);
+    this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);;
+  }
+
+  showAlarmSelectTypeEntity() {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showError('Seleccione un Tipo Entidad', '');
+    }
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
-    const exportFilters: Record<string, any> = {};
-
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    const exportFilters: Record<string, any> = {
+      typeEntity: this.typeEntity?.master_name || undefined,
+      entity: this.entity || undefined,
+    };
+    const bandeja = "lb";
+    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
+        if (response?.body) {
+
+          const byteCharacters = atob(response.body);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          } const blob = new Blob([byteArray], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filename = `Lis_Saldo_${this.formatCustomDate(new Date().toISOString())}`;
+
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
-
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody); //-----
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
-          }
-        }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
         console.error('Error al exportar los datos:', error);
@@ -218,13 +228,22 @@ export class ListBalanceComponent implements OnInit {
     });
   }
 
+
+  /**
+   * Limpia los filtros del formulario de búsqueda y resetea la tabla.
+   */
   cleanSearch() {
     this.assignForm.reset();
     this.clearData();
+    this.dynamic.clearSelection();
+    this.nameType = [];
   }
 
+  /**
+  * Ejecuta búsqueda de balances según filtros seleccionados.
+  */
   searchData() {
-    if(this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
       this.mytoastr.showWarning('Seleccione un Tipo Entidad', '');
       return;
     }
@@ -233,20 +252,28 @@ export class ListBalanceComponent implements OnInit {
     this.page = 1;
     this.getDataBalance(this.pageSize);
   }
-
-  selecType(event: any) {   
-    console.log("ENTIDAD: ", event.value.master_relativeName)
+  /**
+   * Selecciona un tipo de entidad y dispara búsqueda de personas asociadas.
+  *
+  * @param {*} event - Evento del selector de tipo de entidad.
+  */
+  selecType(event: any) {
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
   }
 
+  /**
+ * Consulta las personas asociadas a un tipo de entidad específico.
+ *
+ * @param {*} nameType - Nombre relativo de la entidad.
+ * @returns {void}
+ */
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType, undefined).subscribe({
+    this.personService.getPerson(nameType).subscribe({
       next: (value) => {
         this.nameType = value.data
-        console.log('TYPE ENTITY POR ENTIDAD: ', this.nameType)
       },
       error: (error) => {
         console.log(error)
@@ -265,4 +292,14 @@ export class ListBalanceComponent implements OnInit {
     return this.assignForm?.get('typeEntity')?.value;
   }
 
+  formatCustomDate(dateString: string): string {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const MM = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const HH = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+  }
 }

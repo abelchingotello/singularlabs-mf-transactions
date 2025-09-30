@@ -83,20 +83,18 @@
     background: #f9fafb;
 
     mat-icon {
-        // color: #4f46e5;
         margin-right: 12px;
     }
 
     mat-card-title {
         font-size: 18px;
-        // font-weight: 600;
         color: #1f2937;
     }
 }
 
 @media (max-width: 600px) {
 
-    ::ng-deep .mat-dialog-container{
+    ::ng-deep .mat-dialog-container {
         padding: 0 !important;
     }
 }

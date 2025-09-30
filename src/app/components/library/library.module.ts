@@ -1,4 +1,4 @@
-import { NgModule, ElementRef } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -20,8 +20,6 @@ import { ImageCardComponent } from './image-card/image-card.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
-// import { InputPhoneComponent } from './input-phone/input-phone.component';
-// import { UserFormComponent } from './user-form/user-form.component';
 import { SearchSelectComponent } from './search-select/search-select.component';
 
 @NgModule({

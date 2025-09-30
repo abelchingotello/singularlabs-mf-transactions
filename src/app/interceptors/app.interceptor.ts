@@ -8,9 +8,7 @@ import {
   HttpErrorResponse
 } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
-// import { AuthService } from '../services/auth.service';
 
-import { CompanyService } from '../services/company.service';
 import { Router } from '@angular/router';
 import { MytoastrService } from '../services/mytoastr';
 import { AuthService } from '../services/auth.service';
@@ -19,28 +17,14 @@ import { AuthService } from '../services/auth.service';
 export class AppInterceptor implements HttpInterceptor {
 
   constructor(
-    private authService: AuthService,
-    // private companyService: CompanyService,
-    private router: Router,
-    private myToastr : MytoastrService,
-    private companyService: CompanyService,
+    private readonly authService: AuthService,
+    private readonly router: Router,
+    private readonly myToastr : MytoastrService,
   ) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     let intReq = request;
     const token = this.authService.getToken();
-    // console.log("TOKENNNN: ",token)
-    const companyId = this.companyService.getCompanyId();
-    // const companyId = this.companyService.getCompanyId();
-
-    // if ((request.method === 'POST' || request.method === 'PUT') && (!company_id || company_id === 'null' || company_id === 'undefined' )) {
-    //   // Create an error response for invalid company_id
-    //   return throwError(() => new HttpErrorResponse({
-    //     status: 400.1,
-    //     statusText: 'Bad Request',
-    //     error: 'Invalid companyId: companyId is required for POST and PUT requests.'
-    //   }));
-    // }
 
     if (token) {
 

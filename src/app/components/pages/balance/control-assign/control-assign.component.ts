@@ -20,25 +20,23 @@ import { MasterService } from 'src/app/services/master.service';
 })
 export class ReportBalanceComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Nombre', 'attribute': 'concep' },
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
-    //{ 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Fecha', 'attribute': 'date', 'config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }},
-    // { 'name': 'Estado', 'attribute': 'status','config':{
-    //   'styleClass':true
-    // }},
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      }
+    },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
   public typeEntitys: any;
   public selectedType: any;
   public pageKey: any;
-  public page:any = 1;
+  public page: any = 1;
   public count: any = -1;
   public assignForm!: FormGroup;
   public functionDataCurrent!: (pageSize: any) => any;
@@ -49,15 +47,15 @@ export class ReportBalanceComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
-    private router: Router,
-    private transactionService: TransactionService,
-    private personService: PersonService,
-    private fb: FormBuilder,
-    private dateService : DateService,
-    private mytoastr: MytoastrService,
-    private masterService: MasterService,
-    private balanceService: BalanceService,
+    private readonly spinner: SpinnerService,
+    private readonly router: Router,
+    private readonly transactionService: TransactionService,
+    private readonly personService: PersonService,
+    private readonly fb: FormBuilder,
+    private readonly dateService: DateService,
+    private readonly mytoastr: MytoastrService,
+    private readonly masterService: MasterService,
+    private readonly balanceService: BalanceService,
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -69,13 +67,19 @@ export class ReportBalanceComponent implements OnInit {
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance(){
+  /**
+   * Redirige a la vista de asignación de saldo.
+   */
+  addBalance() {
     this.router.navigate(['balance/assign'])
   }
 
-  formAssign(){
+  /**
+   * Construye el formulario reactivo para asignación de balances.
+   */
+  formAssign() {
     this.assignForm = this.fb.group({
-      status:[''],
+      status: [''],
       entity: [''],
       typeEntity: [''],
       typeAssign: [''],
@@ -84,62 +88,71 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
+  /**
+   * Carga tipos de entidad desde la tabla maestra y los ordena.
+   */
   listData() {
-      forkJoin([
-        this.masterService.getItemsMasterTable('11')
+    forkJoin([
+      this.masterService.getItemsMasterTable('11')
 
-      ]).subscribe({
-        next: ([typeEntity]) => {
-          this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
-          console.log("ENTIDAD: ", this.typeEntitys)
-        },
-        error: (err: any) => {
-          console.error('Error:', err);
-        },
-      })
+    ]).subscribe({
+      next: ([typeEntity]) => {
+        this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+      },
+    })
   }
 
-  getDataBalance(pageSize:any){
+  /**
+  * Obtiene saldos según filtros seleccionados y gestiona paginación.
+  * 
+  * @param {*} pageSize - Tamaño de página a consultar.
+  */
+  getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
-    let typeEntity = this.typeEntity?.master_name || undefined;
-    let entity = this.entity || undefined;
-    let typeAssign = this.typeAssign || undefined;
-    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+    const typeEntity = this.typeEntity?.master_name || undefined;
+    const entity = this.entity || undefined;
+    const typeAssign = this.typeAssign || undefined;
+    const dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    const dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
 
-    console.log("ENTIDAD: ", entity)
-    console.log("TIPO DE ENTIDAD: ", typeEntity)
-    console.log("TIPO DE ASIGNACION: ", typeAssign)
-    console.log("FECHA INICIO: ", dateStart)
-    console.log("FECHA FIN: ", dateEnd)
-
-    this.transactionService.getBalance(pageSize,this.page,typeEntity,entity,typeAssign,dateStart,dateEnd,this.count).subscribe({
-      next: (value:any) => {
-        if(value.statusCode == 201){
+    const listfilters = {
+      entity: entity,
+      typeEntity: typeEntity,
+      typeAssign: typeAssign,
+      dateStart: dateStart,
+      dateEnd: dateEnd
+    }
+    console.log('listfilters', listfilters)
+    // return 
+    this.transactionService.getBalance(listfilters, pageSize, this.page, this.count).subscribe({
+      next: (value: any) => {
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
         //recorrer lista y concatenar el monto con la moneda
-        let datanew = value.data.Items.map((item: any) => {
+        const datanew = value.data.Items.map((item: any) => {
           return {
             ...item,
-            amountTransaction: item.amountTransaction+' '+item.currency,
+            amountTransaction: item.amountTransaction + ' ' + item.currency,
           };
         });
-        console.log("DATA DE BALANCE: ", datanew)
-        this.dataBalance = [...this.dataBalance,...datanew];
+        this.dataBalance = [...this.dataBalance, ...datanew];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
-        if(value.statusCode == 201){
+        if (value.data.count != 0) {
+          this.count = value.data.count
+        };
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
-
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -157,75 +170,93 @@ export class ReportBalanceComponent implements OnInit {
     )
   }
 
+  /**
+   * Recarga datos: limpia tabla, selección y vuelve a consultar.
+   */
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
     this.functionDataCurrent(this.pageSize);
   }
 
+  /**
+   * Limpia la tabla y reinicia contadores de paginación.
+   */
   clearData() {
     this.pageKey = undefined;
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
-    //this.reload();
   }
 
   onPageChange(event: PageEvent) {
-    console.log("event onPageChange", event)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
     this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
-    console.log('Página cambiada', event);
+  }
+
+  showAlarmSelectTypeEntity() {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showError('Selecciona un tipo de entidad', '');
+    }
   }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
-    const exportFilters: Record<string, any> = {};
-
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    const exportFilters: Record<string, any> = {
+      entity: this.entity || undefined,
+      typeEntity: this.typeEntity?.master_name || undefined,
+      typeAssign: this.typeAssign || undefined,
+      dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
+      dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    };
+    const bandeja = "ca";
+    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
         // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
-        }
+        if (response?.body) {
 
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody); //-----
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
+          const byteCharacters = atob(response.body);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          } const blob = new Blob([byteArray], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filterParts: string[] = [];
+          if (exportFilters['dateStart']) { filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`) };
+          if (exportFilters['dateEnd']) { filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`) };
 
-        // Obtener nombre del archivo desde headers
-        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
+          let filename = `cntrl_assing_`;
+          if (filterParts.length) {
+            if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+              const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}`;
+            } else {
+              const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+              const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}_${diafin}`;
+            }
+          } else {
+            filename += this.formatCustomDate(new Date().toISOString());
           }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
         console.error('Error al exportar los datos:', error);
@@ -235,19 +266,38 @@ export class ReportBalanceComponent implements OnInit {
     });
   }
 
+  /**
+   * Selecciona un tipo de entidad y busca personas asociadas.
+   * 
+   * @param {*} event - Evento del selector de tipo de entidad.
+   */
   selecType(event: any) {
-    console.log("ENTIDAD: ", event.value.master_relativeName)
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
   }
 
+  formatCustomDate(dateString: string): string {
+    const date = new Date(dateString);
+    const yyyy = date.getFullYear();
+    const MM = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const HH = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
+  }
+
+  /**
+ * Busca personas asociadas a un tipo de entidad.
+ * 
+ * @param {*} nameType - Nombre relativo de la entidad.
+ */
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType, undefined).subscribe({
+    this.personService.getPerson(nameType).subscribe({
       next: (value) => {
         this.nameType = value.data
-        console.log('TYPE ENTITU POR ENTIDAD: ', this.nameType)
       },
       error: (error) => {
         console.log(error)
@@ -258,38 +308,55 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
-  searchData(){
+  /**
+   * Ejecuta búsqueda con los filtros del formulario.
+   */
+  searchData() {
+    if (this.assignForm.get('dateEnd')?.value == '' &&
+      this.assignForm.get('typeAssign')?.value == '' &&
+      this.assignForm.get('entity')?.value == '' &&
+      this.assignForm.get('typeEntity')?.value == '') {
+      this.mytoastr.showWarning("Seleccione un filtro", "")
+      return
+    }
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
     this.getDataBalance(this.pageSize);
   }
 
-
-  cleanSearch(){
+  /**
+   * Limpia filtros y reinicia la tabla de balances.
+   */
+  cleanSearch() {
     this.assignForm.reset();
     this.clearData();
+    this.nameType = [];
+    this.assignForm.get('dateEnd')?.setValue('')
+    this.assignForm.get('typeAssign')?.setValue('')
+    this.assignForm.get('entity')?.setValue('')
+    this.assignForm.get('typeEntity')?.setValue('')
+    this.getDataBalance(this.pageSize);
   }
 
 
 
-  get dateStart(){
+  get dateStart() {
     return this.assignForm?.get('dateStart')?.value;
   }
 
-  get entity(){
-      return this.assignForm?.get('entity')?.value;
-    }
+  get entity() {
+    return this.assignForm?.get('entity')?.value;
+  }
 
-  get dateEnd(){
+  get dateEnd() {
     return this.assignForm?.get('dateEnd')?.value;
   }
-  get typeAssign(){
+  get typeAssign() {
     return this.assignForm?.get('typeAssign')?.value;
   }
 
-  get typeEntity(){
+  get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
   }
-
 }

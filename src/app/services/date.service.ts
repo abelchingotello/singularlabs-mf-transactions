@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 export class DateService {
 
   constructor(
-    private datePipe: DatePipe
+    private readonly datePipe: DatePipe
   ) { }
 
 

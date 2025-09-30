@@ -1,4 +1,29 @@
-<div class="header-box">
-    <h3 style="margin: 0;padding: 7px;">ACTUALIZACION Transacción</h3>
+<div mat-dialog-content>
+    <form [formGroup]="formOperation">
+        <p>Actualizar estado</p>
+
+        <mat-form-field class="col-md-6" appearance="outline">
+            <mat-label>Seleccionar Estado</mat-label>
+            <mat-select formControlName="estadoTipo" (selectionChange)="onEstadoTipoChange($event.value)">
+                <mat-option value="trans">Estado de Transferencia</mat-option>
+                <mat-option value="cons">Estado de Conciliación</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="col-md-6" appearance="outline">
+            <mat-label>Seleccionar Nuevo Estado</mat-label>
+            <mat-select formControlName="nuevoEstado" (selectionChange)="onEstadoChange($event.value)">
+                <mat-option *ngFor="let estado of estadosDisponibles" [value]="estado">
+                    {{ estado }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <div class="d-flex justify-content-end">
+            <button mat-button class="btn btn-default3" cdkFocusInitial (click)="updateEstado()" [disabled]="isDisable" formButtonName="btnActualizar">
+                <mat-icon> update</mat-icon>
+                Actualizar
+            </button>
+        </div>
+    </form>
+
 </div>
-<p>dialog-transaction-status works!</p>

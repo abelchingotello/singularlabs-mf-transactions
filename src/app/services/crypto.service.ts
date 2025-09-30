@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import { VariablesService } from './variables.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CryptoService {
 
-  private keySize: number = 256; // 256-bit key
-  private publicKeyRSA: string =
+  private readonly keySize: number = 256; // 256-bit key
+  private readonly publicKeyRSA: string =
     `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr4o5VxhQ3lzkmsafWPgg
 +LOy5ZWx3PupvSk5MNazWFB08kIDchJnnVvV+1oaKl04aBySY5jRtfxm7meuCY5j
