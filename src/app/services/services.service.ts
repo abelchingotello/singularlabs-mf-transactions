@@ -35,10 +35,6 @@ export class ServicesService {
     if (pageKey !== undefined) {
       params = params.set('pageKey', JSON.stringify(pageKey));
     }
-    if (category =="TELECOMUNICACIONES") {
-      params = params.set('electrosentro',true);
-    }
-
     params = params.set('status', status);
     params = params.set('category', category);
     

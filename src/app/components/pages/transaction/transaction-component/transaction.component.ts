@@ -13,14 +13,13 @@ import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
-import { expand, filter, of, scan, startWith, lastValueFrom, tap } from 'rxjs';
+import { expand, filter, of, scan, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-transaction',
   templateUrl: './transaction.component.html',
   styleUrls: ['./transaction.component.scss']
 })
-
 export class TransactionComponent implements OnInit {
 
   private readonly pagUtils: PaginationUtils | undefined;
@@ -29,7 +28,6 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Recaudador', 'attribute': 'client' },
     { 'name': 'Proveedor', 'attribute': 'provider' },
     { 'name': 'Servicio', 'attribute': 'service' },
-    { 'name': 'Negocio', 'attribute': 'und_serv' },
     { 'name': 'N° Suministro', 'attribute': 'supply' },
     { 'name': 'N° Recibo', 'attribute': 'concep' },
     { 'name': 'Titular', 'attribute': 'bill' },
@@ -76,8 +74,6 @@ export class TransactionComponent implements OnInit {
   public selectedCategory: boolean = false;
   public listServicesSelected: any[] = [];
   public listServicesSelected1: any[] = [];
-  public listUndServicesElectrocentro: any[] = [];
-  public select_electrocentro: any = false;
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
@@ -90,15 +86,16 @@ export class TransactionComponent implements OnInit {
     private readonly personService: PersonService,
     private readonly dateService: DateService,
     private readonly serviceServ: ServicesService,
-    public dialog: MatDialog,) {
+    public dialog: MatDialog,
+  ) {
     this.pagUtils = new PaginationUtils();
   }
 
   ngOnInit(): void {
     this.initializeAsync();
   }
-  private async initializeAsync(): Promise<void> {
 
+  private async initializeAsync(): Promise<void> {
     this.initialForm();
     try {
       await this.listData(); // Espera a que listData termine
@@ -107,7 +104,6 @@ export class TransactionComponent implements OnInit {
     } catch (error) {
       console.error("Error al cargar datos iniciales:", error);
     }
-
   }
 
   /**
@@ -128,77 +124,54 @@ export class TransactionComponent implements OnInit {
       numDoc: [''],
       supply: [''],
       status: [''],
-      und_service: [''],
     });
-  }
-  
-  get servicesNames(): string {
-    return this.listServicesSelected.map(s => s.name).join(', ');
   }
 
   onServicesChange(event: any) {
     const selectedIds = event.value; // array con todos los seleccionados del select actual
     const idsCategoriaActual = this.allItems1.map(s => s.id);
-
-    // Convertir a objetos {id, name} los seleccionados actuales
-    const selectedObjects = this.allItems1
-      .filter(s => selectedIds.includes(s.id))
-      .map(s => ({ id: s.id, name: s.name }));
-
-    // Mantener los seleccionados de otras categorías
-    const filteredPrev = this.listServicesSelected.filter(
-      (item: any) => !idsCategoriaActual.includes(item.id)
-    );
-
-    // Actualizar lista con los objetos {id, name}
     this.listServicesSelected = [
-      ...filteredPrev,
-      ...selectedObjects
+      // Mantener los seleccionados de otras categorías
+      ...this.listServicesSelected.filter(id => !idsCategoriaActual.includes(id)),
+      // Agregar los seleccionados actuales de la categoría
+      ...selectedIds
     ];
-
-    // Eliminar duplicados por id
-    this.listServicesSelected = this.listServicesSelected.filter(
-      (item, index, self) =>
-        index === self.findIndex(t => t.id === item.id)
-    );
-
-    // Mantener sincronizado el formControl con todos los IDs seleccionados
-    this.formDate.get('idService')?.setValue(this.listServicesSelected.map(s => s.id));
-
-    if (this.listServicesSelected.some(s => s.id === 'SAC0000011')) {
-      this.select_electrocentro = true;
-    } else {
-      this.formDate.get('und_service')?.setValue('');
-      this.select_electrocentro = false;
-    }
-
+    // Eliminar duplicados
+    this.listServicesSelected = Array.from(new Set(this.listServicesSelected));
+    // Mantener sincronizado el formControl con todos los seleccionados
+    this.formDate.get('idService')?.setValue(this.listServicesSelected);
     console.log('Servicios seleccionados acumulados:', this.listServicesSelected);
   }
 
-  cargarServicios(): Promise<any> {
-    const response = lastValueFrom(this.loadAllServices().pipe(
-      tap((allItems: any) => {
-        this.spinner.spinnerOnOff();
-        this.filteredServices = allItems;
-        this.allItems1 = allItems;
-        this.serviceFilter = '';
-        this.filterServices();
-        this.serviceFilter = '';
-      })
-    ));
-    return response;
-  }
+  onCategoryChange() {
 
-  async selectCategory() {
-    if (!this.category) {
+  }
+  /**
+   * Funcion que carga los servicios segun la categoria
+   * @returns No retorna ningún valor, actualiza variables filteredServices y allItems1
+   */
+  selectCategory() {
+    this.spinner.spinnerOnOff();
+
+    if (this.category == undefined || this.category == '') { //Verifica si los campos del formulario estan vacios y no retorna nada
       this.selectedCategory = false;
       this.filteredServices = [];
+      this.spinner.spinnerOnOff();
       return;
     }
-    this.selectedCategory = true;
-    await this.cargarServicios();
-  }
+    this.selectedCategory = true; //
+    this.loadAllServices().subscribe(allItems => { //actualiza las variables que cargan los servicios
+      this.spinner.spinnerOnOff();
+      this.filteredServices = allItems;
+      this.allItems1 = allItems;
+      this.serviceFilter = '';
+      this.filterServices();
+      this.serviceFilter = '';
+      this.spinner.spinnerOnOff();
+    });
+    this.spinner.spinnerOnOff();
 
+  }
 
   /**
    * Obtiene las transacciones según los filtros aplicados y las asigna a `dataTransaction`.
@@ -221,8 +194,7 @@ export class TransactionComponent implements OnInit {
     const entity = this.entity || undefined;
     const provider = this.provider || undefined;
     const status = this.status || undefined;
-    const idServ = this.listServicesSelected.map(s => s.id) || undefined;
-    const idUndServ = this.id_und_service || undefined;
+    const idServ = this.listServicesSelected || undefined;
     const supply = this.supply || undefined;
     const numDoc = this.numDoc || undefined;
     const dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
@@ -230,7 +202,7 @@ export class TransactionComponent implements OnInit {
 
     // return
     const listfilters = {
-      idclient: entity, idprovider: provider, status, dateStart, dateEnd, idService: idServ, numDoc, supply, idundServ: idUndServ
+      idclient: entity, idprovider: provider, status, dateStart, dateEnd, idService: idServ.toString(), numDoc, supply
     }
     this.transactionService.getTransaction(listfilters, pageSize, this.page, this.count, this.amountTransaction).subscribe({
       next: (value: any) => {
@@ -245,12 +217,12 @@ export class TransactionComponent implements OnInit {
 
         // Actualizar client con nameAlias
         const updatedItems = value.data.Items.map((item: any) => {
-          const undServi = this.listUndServicesElectrocentro?.find((und: any) => String(und.id) === String(item.und_serv));
           const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
           const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
+
+
           return {
             ...item,
-            und_serv: undServi ? undServi.name : item.und_serv,
             client: person ? person.servicePerson.nameAlias : item.client, // Asignar el nombre
             provider: provider ? provider.servicePerson.nameAlias : item.provider, // Asignar el nombre
           };
@@ -391,39 +363,17 @@ export class TransactionComponent implements OnInit {
       forkJoin([
         this.masterService.getItemsMasterTable('17'),
         this.masterService.getItemsMasterTable('16'),
-        this.personService.getPersonsPandR(),
+        this.personService.getPerson('RECAUDADORA DE SERVICIOS'),
         this.masterService.getItemsMasterTable('14'),
+        this.personService.getPerson('PROVEEDOR'),
       ]).subscribe({
         next: (response) => {
-          const [masterStatusConc, masterStatus, persons, category] = response;
-          this.listProviders = persons.data.providerTransform;
-          this.entityTypes = persons.data.recaudadorTransform;
-          console.log(persons)
-          console.log(this.listProviders)
-          console.log(this.entityTypes)
-          const dluz = this.listProviders.find(
-            (p: any) => p.servicePerson.idPerson === "00000304"
-          );
-
-          if (dluz && dluz.servicePerson.und_serv !== "N/A") {
-            try {
-              // Quitar los backslashes para que sea JSON válido
-              const cleaned = dluz.servicePerson.und_serv.replace(/\\/g, "");
-
-              // Ahora sí parsear
-              this.listUndServicesElectrocentro = JSON.parse(cleaned);
-
-              console.log("UND_SERV de DLUZ limpio:", this.listUndServicesElectrocentro);
-            } catch (e) {
-              console.error("Error al parsear und_serv de DLUZ:", e);
-              this.listUndServicesElectrocentro = [];
-            }
-          } else {
-            this.listUndServicesElectrocentro = [];
-          }
+          const [masterStatusConc, masterStatus, entity, category, providers] = response;
           this.masterStatusConc = ["Completado", "Pendiente", "En Disputa"];
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+          this.entityTypes = entity.data;
           this.categoryTypes = category;
+          this.listProviders = providers.data;
           this.spinner.spinnerOnOff();
           resolve(); //  Indica que terminó exitosamente
         },
@@ -442,24 +392,17 @@ export class TransactionComponent implements OnInit {
    * @returns Observable que emite progresivamente el arreglo acumulado de todos los servicios habilitados.
    *
    */
-  loadAllServices() {
-    //revisar para que traiga los 2000
-    const response$ = this.serviceServ.getServicesPageKey(this.category, 'HABILITADO').pipe(
+  loadAllServices() {  //revisar para que traiga los 2000
+    return this.serviceServ.getServicesPageKey(this.category, 'HABILITADO').pipe(
       expand(response =>
         response?.data?.nextPageKey
           ? this.serviceServ.getServicesPageKey(this.category, 'HABILITADO', response.data.nextPageKey)
-          : of(null) // ✅ Detiene la recursión cuando no hay más páginas
+          : of(null) // Detiene la recursión si no hay más páginas
       ),
-      filter(response => response !== null), // ✅ Ignora la emisión final null
-      scan((acc, response) => acc.concat(response.data.Items), []), // ✅ Acumula los resultados
-      startWith([]) // ✅ Emite un valor inicial vacío
+      filter(response => response !== null),
+      scan((acc, response) => acc.concat(response.data.Items), []),
+      startWith([]), // Asegura que siempre haya una emisión inicial
     );
-
-    response$.subscribe({
-      next: data => console.log('Servicios acumulados:', data),
-      error: err => console.error('Error:', err)
-    });
-    return response$
   }
 
   /**
@@ -492,7 +435,6 @@ export class TransactionComponent implements OnInit {
     this.filteredServices = this.allItems1.filter(service =>
       service.name.toLowerCase().includes(value)
     );
-    console.log("servicioooooos")
   }
 
   get dateStart() {
@@ -509,10 +451,6 @@ export class TransactionComponent implements OnInit {
 
   get dateEnd() {
     return this.formDate?.get('dateEnd')?.value;
-  }
-
-  get id_und_service() {
-    return this.formDate?.get('und_service')?.value;
   }
 
   get status() {
@@ -578,21 +516,59 @@ export class TransactionComponent implements OnInit {
       }
     });
     const inbx = 'tr';
-    const token = localStorage.getItem('fcmToken');
-    this.transactionService.exportTransactions(fileType, exportFilters, inbx, token).subscribe({
-      next: (response) => {
-        this.spinner.spinnerOnOff();
-        if (response.statusCode === 200) {
-          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000);
-        } else {
-          this.mytoastr.showError('', 'Error al enviar la solicitud')
+
+      this.transactionService.exportTransactions(fileType, exportFilters, inbx).subscribe({
+        next: (response) => {
+          this.spinner.spinnerOnOff();
+
+          if (response?.body) {
+
+            const byteCharacters = atob(response.body);
+            const byteArray = new Uint8Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteArray[i] = byteCharacters.charCodeAt(i);
+            }
+
+            const blob = new Blob([byteArray], {
+              type: fileType === 'xlsx'
+                ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                : 'text/csv;charset=utf-8;'
+            });
+            const filterParts: string[] = [];
+            if (exportFilters['dateStart']) { filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`) };
+            if (exportFilters['dateEnd']) { filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`) };
+
+            let filename = `transacciones_`;
+            if (filterParts.length) {
+              if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+                const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+                filename += `_${diainicio}`;
+              } else {
+                const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+                const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+                filename += `_${diainicio}_${diafin}`;
+              }
+            } else {
+              filename += this.formatCustomDate(new Date().toISOString());
+            }
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.${fileType}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          } else {
+            this.mytoastr.showError('No se recibió ningún dato para exportar', '');
+          }
+        },
+        error: (error) => {
+          this.spinner.spinnerOnOff();
+          console.error('Error durante la exportación:', error);
+          this.mytoastr.showError('Error durante la exportación', '');
         }
-      },
-      error: (error) => {
-        this.spinner.spinnerOnOff();
-        console.error('Error durante la exportación:', error);
-        this.mytoastr.showError('Error durante la exportación', '');
-      }
-    });
+      });
+
   }
 }

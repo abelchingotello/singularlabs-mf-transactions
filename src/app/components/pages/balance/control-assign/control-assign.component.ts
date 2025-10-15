@@ -64,7 +64,7 @@ export class ReportBalanceComponent implements OnInit {
     this.formAssign();
     this.listData();
     this.functionDataCurrent = this.getDataBalance.bind(this);
-    this.functionDataCurrent(this.pageSize);
+    this.functionDataCurrent(this.pageSize)
   }
 
   /**
@@ -212,21 +212,56 @@ export class ReportBalanceComponent implements OnInit {
       dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
       dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
     };
-    const inbx = 'ca';
-    const token = localStorage.getItem('fcmToken');
-    this.balanceService.exportBalances(fileType, exportFilters, inbx, token).subscribe({
+    const bandeja = "ca";
+    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
-        if (response.statusCode === 200) {
-          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000)
+
+        // Verificar si la respuesta tiene cuerpo
+        if (response?.body) {
+
+          const byteCharacters = atob(response.body);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          } const blob = new Blob([byteArray], {
+            type: fileType === 'xlsx'
+              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+              : 'text/csv;charset=utf-8;'
+          });
+          const filterParts: string[] = [];
+          if (exportFilters['dateStart']) { filterParts.push(`${exportFilters['dateStart'].split(' ')[0]}`) };
+          if (exportFilters['dateEnd']) { filterParts.push(`${exportFilters['dateEnd'].split(' ')[0]}`) };
+
+          let filename = `cntrl_assing_`;
+          if (filterParts.length) {
+            if (exportFilters['dateStart'].split(' ')[0] === exportFilters['dateEnd'].split(' ')[0]) {
+              const diainicio = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}`;
+            } else {
+              const diainicio = this.formatCustomDate(exportFilters['dateStart']);
+              const diafin = this.formatCustomDate(exportFilters['dateEnd']);
+              filename += `${diainicio}_${diafin}`;
+            }
+          } else {
+            filename += this.formatCustomDate(new Date().toISOString());
+          }
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${fileType}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
         } else {
-          this.mytoastr.showError('', 'Error al enviar la solicitud')
+          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
         }
       },
       error: (error) => {
+        console.error('Error al exportar los datos:', error);
+        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
-        console.error('Error durante la exportación:', error);
-        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
   }
