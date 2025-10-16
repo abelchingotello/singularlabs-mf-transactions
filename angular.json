@@ -52,7 +52,7 @@
                   "maximumError": "4kb"
                 }
               ],
-              "deployUrl":"https://d2m1ue0tbianp0.cloudfront.net/singularlabs-mf-transactions/",
+              "deployUrl":"https://hub-integracion.agentecash.com/singularlabs-mf-transactions/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
