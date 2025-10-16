@@ -189,41 +189,21 @@ export class ListBalanceComponent implements OnInit {
       typeEntity: this.typeEntity?.master_name || undefined,
       entity: this.entity || undefined,
     };
-    const bandeja = "lb";
-    this.balanceService.exportBalances(fileType, exportFilters, bandeja).subscribe({
+    const inbx = 'lb';
+    const token = localStorage.getItem('fcmToken');
+    this.balanceService.exportBalances(fileType, exportFilters, inbx, token).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
-
-        // Verificar si la respuesta tiene cuerpo
-        if (response?.body) {
-
-          const byteCharacters = atob(response.body);
-          const byteArray = new Uint8Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteArray[i] = byteCharacters.charCodeAt(i);
-          } const blob = new Blob([byteArray], {
-            type: fileType === 'xlsx'
-              ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-              : 'text/csv;charset=utf-8;'
-          });
-          const filename = `Lis_Saldo_${this.formatCustomDate(new Date().toISOString())}`;
-
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${filename}.${fileType}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
+        if (response.statusCode === 200) {
+          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000)
         } else {
-          this.mytoastr.showError('No se recibió ningún dato para exportar', '');
+          this.mytoastr.showError('', 'Error al enviar la solicitud')
         }
       },
       error: (error) => {
-        console.error('Error al exportar los datos:', error);
-        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
+        console.error('Error durante la exportación:', error);
+        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
   }

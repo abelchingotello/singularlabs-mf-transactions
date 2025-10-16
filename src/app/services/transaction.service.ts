@@ -48,6 +48,10 @@ export class TransactionService {
       params = params.set('idService', filters.idService);
     }
 
+    if (filters.idundServ !== undefined) {
+      params = params.set('idundServ', filters.idundServ);
+    }
+
     if (limit !== undefined) {
       params = params.set('limit', limit);
     }
@@ -67,6 +71,7 @@ export class TransactionService {
   updateTransactionStatus(data: any): Observable<any> {
     return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
   }
+  
   getBalance(filters?: any, limit?: any, page?: any, count?: any): Observable<any> {
     let params = new HttpParams();
     if (filters.typeEntity !== undefined) {
@@ -120,8 +125,9 @@ export class TransactionService {
   exportTransactions(
     format: 'xlsx' | 'csv',
     filters: any,
-    bandeja: string
-  ): Observable<HttpResponse<string>> {
+    bandeja: string,
+    token: any
+  ): Observable<any> {
     let params = new HttpParams();
 
     if (filters.supply !== undefined) {
@@ -157,11 +163,8 @@ export class TransactionService {
 
     params = params.set('format', format);
     params = params.set('inbx', bandeja);
+    params = params.set('token', token);
 
-    return this.httpClient.get(`${this.url}/transactions/export`, {
-      params,
-      observe: 'response',
-      responseType: 'text' //  para manejar base64
-    });
+    return this.httpClient.get(`${this.url}/export`, { params });
   }
 }

@@ -39,8 +39,9 @@ export class BalanceService {
   exportBalances(
     format: 'xlsx' | 'csv',
     filters: any,
-    bandeja: any
-    ): Observable<HttpResponse<string>> {
+    bandeja: string,
+    token: any
+  ): Observable<any> {
     let params = new HttpParams();
     if (filters.entity !== undefined) {
       params = params.set('entity', filters.entity);
@@ -63,11 +64,9 @@ export class BalanceService {
 
     params = params.set('format', format);
     params = params.set('inbx', bandeja);
+    params = params.set('token', token);
+
     console.log('Exporting balances with params:', params.toString());
-    return this.httpClient.get(`${this.url}/transactions/export`, {
-      params,
-      observe: 'response',
-      responseType: 'text'
-    });
+    return this.httpClient.get(`${this.url}/export`, { params });
   }
 }
