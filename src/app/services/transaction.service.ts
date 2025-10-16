@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 export class TransactionService {
 
   private readonly url = `${environment.URL_API_GATEWAY}`;
+
   //private url = `${environment.URL_API_LOCAL}`; //LAMBDA LOCAL
   constructor(
     private readonly httpClient: HttpClient,
