@@ -375,8 +375,6 @@ export class TransactionComponent implements OnInit {
   }
 
   search() {
-    console.log("Servicios seleccionados para filt121ro:", this.formDate.get('idService')?.value);
-    console.log("Servicios seleccionados :", this.listServicesSelected);
     if (this.isEmptyForm()) {
       this.mytoastr.showWarning("Seleccione un filtro", "")
       return
@@ -563,7 +561,7 @@ export class TransactionComponent implements OnInit {
       dateEnd: this.dateEnd
         ? `${this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '-')} 23:59:59`
         : undefined,
-      idService: this.idService?.toString() || undefined,
+      idService: this.listServicesSelected.map(s => s.id) || undefined,
       status: this.status || undefined,
       idprovider: this.provider || undefined,
       idclient: this.entity || undefined,
