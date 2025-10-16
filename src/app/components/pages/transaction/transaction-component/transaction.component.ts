@@ -400,7 +400,7 @@ export class TransactionComponent implements OnInit {
           console.log(this.listProviders)
           console.log(this.entityTypes)
           const dluz = this.listProviders.find(
-            (p: any) => p.servicePerson.idPerson === "00000304"
+            (p: any) => p.servicePerson.idPerson === "31399400"
           );
 
           if (dluz && dluz.servicePerson.und_serv !== "N/A") {
