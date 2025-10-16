@@ -1,4 +1,4 @@
-<!--
+
 <div class="content bg-gray-3">
     <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
         <uni-image-card title="Extornar" externImage="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKcAOZwwCAKy0LFWgLVGIGPw6Z5P9-Y6QnJSoGotpjptJbm897A8Ey_Bc&s=10" size="18%">
@@ -17,90 +17,5 @@
             </mat-card-content>
         </mat-card>
 
-    </div>
-</div>
--->
-
-<div class="content bg-gray-3">
-    <div class="container-fluid px-2 px-md-5 pb-2 pt-4 py-md-4">
-        <uni-image-card title="Notificaciones del sistema"></uni-image-card>
-        <mat-card class="custom-border-radius-1-25 ">
-            <mat-card-content>
-                <div class="row  align-items-center m-4">
-                    <div class="col-auto">
-                        <button class="btn btn-default4">Todas</button>
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-outline-secondary">Pendientes</button>
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-outline-secondary">Importantes</button>
-                    </div>
-                    <div class="col ms-auto text-end">
-                        <button (click)="markAllNotificationsAsRead()" class="btn btn-sm text-default fs-6 text-decoration-none">Marcar todos como
-                            leídos</button>
-                    </div>
-                </div>
-                <div class="row">
-                    <div *ngFor="let notificacion of Notificaciones" class="row align-items-center p-3 border rounded"
-                        [ngClass]="notificacion.status == 'leido' ? 'bg-light' : ''">
-                        <div [ngSwitch]="notificacion.type" class="col-1 text-center">
-                            <ng-container *ngSwitchCase="'info'">
-                                <div class="rounded d-inline-flex justify-content-center align-items-center icon-blue"
-                                    style="width:48px; height:48px;">
-                                    <mat-icon class="fs-4">
-                                        <span class="material-symbols-sharp">check_circle</span>
-                                    </mat-icon>
-                                </div>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'warning'">
-                                <div class="rounded d-inline-flex justify-content-center align-items-center icon-yellow"
-                                    style="width:48px; height:48px;">
-                                    <mat-icon class="fs-4">
-                                        <span class="material-symbols-sharp">info</span>
-                                    </mat-icon>
-                                </div>
-                            </ng-container>
-                            <ng-container *ngSwitchCase="'alert'">
-                                <div class="rounded d-inline-flex justify-content-center align-items-center icon-red"
-                                    style="width:48px; height:48px;">
-                                    <mat-icon class="fs-4">
-                                        <span class="material-symbols-sharp">warning</span>
-                                    </mat-icon>
-                                </div>
-                            </ng-container>
-                            <ng-container *ngSwitchDefault>info_i</ng-container>
-
-                        </div>
-                        <div class="col-9">
-                            <div class="fw-semibold fs-5 text-dark">{{notificacion.title}}</div>
-                            <div class="text-muted fs-6">
-                                {{notificacion.description}}
-                                <div *ngIf="notificacion.attached_file && notificacion.attached_file.type === 'filedrive'"
-                                    class="row mt-2 ml-1">
-                                    <a [href]="'https://drive.google.com/file/d/' + notificacion.attached_file.id + '/view'"
-                                        target="_blank" class="btn btn-default4 col-auto"
-                                        (click)="onChangeStatus(notificacion)">Ver Archivo</a>
-                                    <a [href]="'https://drive.usercontent.google.com/u/0/uc?id=' + notificacion.attached_file.id + '&export=download'"
-                                        target="_blank" class="btn btn-default4 col-auto"
-                                        (click)="onChangeStatus(notificacion)">Descargar Archivo</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-2 text-end">
-                            <div class="text-muted fs-6">{{notificacion.date}}</div>
-                            <button *ngIf="notificacion.status != 'leido'" mat-raised-button class="mt-2"
-                                (click)="changeStatus(notificacion.PK)">
-                                <mat-icon class="fs-4">
-                                    <span class="material-symbols-sharp"> drafts </span>
-                                </mat-icon>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
     </div>
 </div>
