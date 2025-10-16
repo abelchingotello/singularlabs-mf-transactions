@@ -124,7 +124,7 @@ export class TransactionService {
 
   //-----Exportar de archivos
   exportTransactions(
-    format: 'xlsx' | 'csv',
+    format: 'xlsx' | 'csv', //formatos de exportacion
     filters: any,
     bandeja: string,
     token: any
