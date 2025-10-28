@@ -149,7 +149,7 @@ export class AssignBalanceComponent implements OnInit {
     if (this.selectedType == this.provider) {
       this.idProvider?.setValue(event.value.idPerson)
       this.idClient?.setValue(null)
-    } else if (this.selectedType === "RECAUDADORA DE SERVICIOS") {
+    } else{
       this.idClient?.setValue(event.value.idPerson)
       this.idProvider?.setValue(null)
     }
@@ -198,7 +198,7 @@ export class AssignBalanceComponent implements OnInit {
         error: (err) => {
           console.error('❌ Error al enviar código:', err);
         },
-        complete: () => {
+        complete: () =>{
           this.spinner.spinnerOnOff();
         },
       });
