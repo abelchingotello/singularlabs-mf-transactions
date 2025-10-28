@@ -12,7 +12,7 @@ import { DatePipe } from '@angular/common';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserModule,
@@ -21,11 +21,11 @@ import { DatePipe } from '@angular/common';
     ToastrModule.forRoot(),
     LibraryModule,
     HttpClientModule,
-    DialogTransactionModule
+    DialogTransactionModule,
   ],
   providers: [interceptorSpringProvider,
-    DatePipe
+    DatePipe,
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 export class AppModule { }

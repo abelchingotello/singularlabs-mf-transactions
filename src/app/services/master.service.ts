@@ -14,11 +14,11 @@ export class MasterService {
 
   constructor(private readonly httpClient: HttpClient) { }
 
-  getItemsMasterTable(group: string | number | boolean) : Observable <any> {
-    let params = new HttpParams()
-    .set('group', group);
-    return this.httpClient.get<any>(`${this.url}/group`, {params: params});
+  getItemsMasterTable(group: string | number | boolean): Observable<any> {
+    const params = new HttpParams()
+      .set('group', group);
+    return this.httpClient.get<any>(`${this.url}/group`, { params: params });
   }
-  
+
 
 }

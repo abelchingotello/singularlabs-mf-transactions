@@ -25,60 +25,61 @@ export class MyTransactionComponent implements OnInit {
 
 
   public columns: any[] = [
-    { 'name': 'Titular', 'attribute': 'bill'},
-    { 'name': 'Recaudador', 'attribute': 'client'},
-    { 'name': 'Num. recibo', 'attribute': 'concep'},
-    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    { 'name': 'Titular', 'attribute': 'bill' },
+    { 'name': 'Recaudador', 'attribute': 'client' },
+    { 'name': 'Num. recibo', 'attribute': 'concep' },
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
     // { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Proveedor', 'attribute': 'provider'},
-    { 'name': 'Fecha', 'attribute': 'date','config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    } 
-  },
-  { 'name': 'Cod. respuesta', 'attribute': 'reference' },
-    { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+    { 'name': 'Proveedor', 'attribute': 'provider' },
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      }
+    },
+    { 'name': 'Cod. respuesta', 'attribute': 'reference' },
+    { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true } },
   ];
 
   public params: any = {};
 
   public typePersonMapping: Record<string, string> = {
-  "PROVIDER": "idprovider",
-  "RECAUDADOR": "idclient"
-};
+    "PROVIDER": "idprovider",
+    "RECAUDADOR": "idclient"
+  };
 
-  public formDate! : FormGroup<any>;
-  
+  public formDate!: FormGroup<any>;
 
-  public dataTransaction : any;
-  public pageKey : any[] | undefined;
+
+  public dataTransaction: any;
+  public pageKey: string | number | undefined;
   public pageSize: any = 5;
-  public personId :string = '';
-  public typePerson : string  = '';
+  public personId: string = '';
+  public typePerson: string = '';
   public masterStatus: any[] = [];
-  public serviceName : any;
-  public count :any
+  public serviceName: any;
+  public count: any
 
-    @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
-  
+  @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
+
 
   constructor(
-    private readonly transactionService : TransactionService,
-    private readonly spinner : SpinnerService,
-    private readonly mytoastr : MytoastrService,
-    private readonly person : PersonService,
-    private readonly cookie : CookieService,
-    private readonly fb : FormBuilder,
-    private readonly masterService : MasterService,
-    private readonly personService : PersonService,
-    private readonly dateService : DateService,
-    private readonly serviceServ : ServicesService
-  ) { 
+    private readonly transactionService: TransactionService,
+    private readonly spinner: SpinnerService,
+    private readonly mytoastr: MytoastrService,
+    private readonly person: PersonService,
+    private readonly cookie: CookieService,
+    private readonly fb: FormBuilder,
+    private readonly masterService: MasterService,
+    private readonly personService: PersonService,
+    private readonly dateService: DateService,
+    private readonly serviceServ: ServicesService
+  ) {
     this.pagUtils = new PaginationUtils();
   }
 
   ngOnInit(): void {
-    this.personId= this.cookie.get('person_id')
-    console.log("dataUser: ",this.personId)
+    this.personId = this.cookie.get('person_id')
+    console.log("dataUser: ", this.personId)
     // this.getPerson(this.personId)
     this.typePerson = this.cookie.get('prefix');
     this.initialForm();
@@ -87,69 +88,70 @@ export class MyTransactionComponent implements OnInit {
     this.functionDataCurrent(this.pageSize);
   }
 
-  initialForm(){
-      this.formDate = this.fb.group({
-        dateStart: [''],
-        dateEnd: [''],
-        entity: [''],
-        idService : [''],
-        numDoc : [''],
-        status: [''],
-      });
-    }
-  
+  initialForm() {
+    this.formDate = this.fb.group({
+      dateStart: [''],
+      dateEnd: [''],
+      entity: [''],
+      idService: [''],
+      numDoc: [''],
+      status: [''],
+    });
+  }
 
-  getPerson(id:string){
+
+  getPerson(id: string) {
     this.spinner.spinnerOnOff();
     this.person.getIdPerson(id).subscribe({
-      next:(value)=> {
-         this.typePerson= value.Items[0].PREFIX;
-         console.log("typePerson: ",this.typePerson)
+      next: (value) => {
+        this.typePerson = value.Items[0].PREFIX;
+        console.log("typePerson: ", this.typePerson)
       },
-      error:(error)=>{
-        console.log("error: ",error)
+      error: (error) => {
+        console.log("error: ", error)
         this.spinner.spinnerOnOff();
       },
-      complete:() =>{
-          this.spinner.spinnerOnOff();
+      complete: () => {
+        this.spinner.spinnerOnOff();
       },
     })
   }
 
 
-  getDataIdTransaction(pageSize?: any){
+  getDataIdTransaction(pageSize?: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataIdTransaction)
     const key = this.typePersonMapping[this.typePerson];
 
-    console.log("typePersn: ",this.typePerson)
-    console.log("key: ",key)
-    
+    console.log("typePersn: ", this.typePerson)
+    console.log("key: ", key)
+
     if (key) {
       this.params[key] = this.personId;
     }
 
-    console.log("params: ",this.params)
+    console.log("params: ", this.params)
     const listfilters = {
-      idclient:this.params?.idclient,idprovider:this.params?.idprovider,
+      idclient: this.params?.idclient,
+      idprovider: this.params?.idprovider,
     }
-//  this.transactionService.getTransaction(listfilters, pageSize, this.page, this.count, this.amountTransaction).subscribe({
-    this.transactionService.getTransaction(listfilters,pageSize,this.pageKey).subscribe({
-      next: (value:any) => {
-        if(value.statusCode === 201 || value.data.statusCode === 201){
-          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+    //  this.transactionService.getTransaction(listfilters, pageSize, this.page, this.count, this.amountTransaction).subscribe({
+    this.transactionService.getTransaction(listfilters, pageSize, this.pageKey).subscribe({
+      next: (value: any) => {
+        if (value.statusCode === 201 || value.data.statusCode === 201) {
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
           return
         }
-        this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        if(value.data.Count != 0) {
+        this.dataTransaction = [...this.dataTransaction, ...value.data.Items];
+        if (value.data.Count != 0) {
           this.count = value.data.Count
         };
         // this.amountTransaction = (value.data.Total).toFixed(2)
         this.pageKey = value.data.nextPageKey ?? null
-        console.log("DATA DE TRANSACTION: " ,value.data)
+        console.log("DATA DE TRANSACTION: ", value.data)
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {

@@ -110,7 +110,9 @@ export class AssignBalanceComponent implements OnInit {
 
     ]).subscribe({
       next: ([typeEntity]) => {
-        this.typeEntity = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.typeEntity = typeEntity
+          .filter((item: any) => item.master_name !== "USER")
+          .sort((a: any, b: any) => a.master_order - b.master_order);
         console.log("ENTIDAD: ", this.typeEntity)
       },
       error: (err: any) => {
@@ -147,7 +149,7 @@ export class AssignBalanceComponent implements OnInit {
     if (this.selectedType == this.provider) {
       this.idProvider?.setValue(event.value.idPerson)
       this.idClient?.setValue(null)
-    } else {
+    } else if (this.selectedType === "RECAUDADORA DE SERVICIOS") {
       this.idClient?.setValue(event.value.idPerson)
       this.idProvider?.setValue(null)
     }
@@ -187,7 +189,7 @@ export class AssignBalanceComponent implements OnInit {
     if (this.assignForm.valid) {
       const userId = this.cookieService.get('userId');
       const fcmToken = localStorage.getItem('fcmToken');
-
+      this.spinner.spinnerOnOff();
       this.assignService.generateCode(userId, fcmToken || '').subscribe({
         next: (res) => {
           console.log('✅ Código enviado por notificación push');
@@ -195,7 +197,10 @@ export class AssignBalanceComponent implements OnInit {
         },
         error: (err) => {
           console.error('❌ Error al enviar código:', err);
-        }
+        },
+        complete: () => {
+          this.spinner.spinnerOnOff();
+        },
       });
     }
   }

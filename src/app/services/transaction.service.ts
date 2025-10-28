@@ -1,4 +1,17 @@
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+/**
+ * File: transaction.service.ts
+ * Description: Servicio Angular para la gestión de transacciones del sistema.
+ *              Funcionalidades:
+ *                - Obtener transacciones con filtros y paginación.
+ *                - Actualizar el estado de una transacción.
+ *                - Consultar balances y balances actuales.
+ *                - Exportar transacciones en formatos XLSX o CSV.
+ * 
+ * Maintenance:
+ *  - Last modified: 21-Oct-2025
+ */
+
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -14,157 +27,118 @@ export class TransactionService {
     private readonly httpClient: HttpClient,
   ) { }
 
-  getTransaction(filters: any, limit?: any, page?: any, count?: any, totalAmount?: any): Observable<any> {
-    let params = new HttpParams();
 
-    if (filters.numDoc !== undefined) {
-      params = params.set('concept', filters.numDoc);
-    }
-    if (filters.supply !== undefined) {
-      params = params.set('supply', filters.supply);
-    }
-
-    if (filters.idclient !== undefined) {
-      params = params.set('idclient', filters.idclient);
+  getTransaction(filters: TransactionFilters, limit?: number, page?: number | string, count?: number, totalAmount?: number): Observable<any> {
+    const extraParams = {
+      limit,
+      page,
+      count,
+      totalAmount
     }
 
-    if (filters.idprovider !== undefined) {
-      params = params.set('idprovider', filters.idprovider);
-    }
-
-    if (filters.status !== undefined) {
-      params = params.set('status', filters.status);
-    }
-
-    if (filters.dateStart !== undefined && filters.dateStart !== null) {
-      params = params.set('dateStart', filters.dateStart);
-    }
-
-    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
-      params = params.set('dateEnd', filters.dateEnd);
-    }
-
-    if (filters.idService !== undefined) {
-      params = params.set('idService', filters.idService);
-    }
-
-    if (filters.idundServ !== undefined) {
-      params = params.set('idundServ', filters.idundServ);
-    }
-
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (Number(count) >= 0) {
-      params = params.set('count', Number(count));
-    }
-    if (Number(totalAmount) >= 0) {
-      params = params.set('totalAmount', Number(totalAmount));
-    }
+    const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get(`${this.url}/transactions`, { params });
   }
 
   updateTransactionStatus(data: any): Observable<any> {
     return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
   }
-  
+
   getBalance(filters?: any, limit?: any, page?: any, count?: any): Observable<any> {
-    let params = new HttpParams();
-    if (filters.typeEntity !== undefined) {
-      params = params.set('typeEntity', filters.typeEntity);
+    const extraParams = {
+      limit,
+      page,
+      count: count !== undefined ? Number(count) : undefined,
     }
-    if (filters.entity !== undefined) {
-      params = params.set('entity', filters.entity);
-    }
-    if (filters.typeAssign !== undefined) {
-      params = params.set('typeAssign', filters.typeAssign);
-    }
-    if (filters.dateStart !== undefined && filters.dateStart !== null) {
-      params = params.set('dateStart', filters.dateStart);
-    }
-    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
-      params = params.set('dateEnd', filters.dateEnd);
-    }
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (count >= 0) {
-      params = params.set('count', Number(count));
-    }
+    const params = this.buildTransactionParams(filters, extraParams);
+
     return this.httpClient.get(`${this.url}/transactions/balances`, { params });
   }
 
-  getCurrentBalances(limit?: any, page?: any, typeEntity?: any, entity?: any, count?: any): Observable<any> {
-    let params = new HttpParams();
-    if (typeEntity !== undefined) {
-      params = params.set('typeEntity', typeEntity);
+  getCurrentBalances(filters: any, limit?: any, page?: any, count?: any): Observable<any> {
+    const extraParams = {
+      limit,
+      page,
+      count: count !== undefined ? Number(count) : undefined,
     }
-    if (entity !== undefined) {
-      params = params.set('entity', entity);
-    }
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (count >= 0) {
-      params = params.set('count', Number(count));
-    }
+    const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
   }
 
-  //-----Exportar de archivos
   exportTransactions(
     format: 'xlsx' | 'csv',
-    filters: any,
+    filters: TransactionFilters,
     bandeja: string,
-    token: any
-  ): Observable<any> {
-    let params = new HttpParams();
+    token: string
+  ): Observable<ExportResponse> {
 
-    if (filters.supply !== undefined) {
-      params = params.set('supply', filters.supply);
-    }
+    const extraParams: ExtraParams = {
+      format,
+      token,
+      inbx: bandeja
+    };
 
-    if (filters.idclient !== undefined) {
-      params = params.set('idclient', filters.idclient);
-    }
-
-    if (filters.idprovider !== undefined) {
-      params = params.set('idprovider', filters.idprovider);
-    }
-
-    if (filters.concept !== undefined) {
-      params = params.set('concept', filters.concept);
-    }
-
-    if (filters.status !== undefined) {
-      params = params.set('status', filters.status);
-    }
-
-    if (filters.dateStart !== undefined && filters.dateStart !== null) {
-      params = params.set('dateStart', filters.dateStart);
-    }
-    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
-      params = params.set('dateEnd', filters.dateEnd);
-    }
-
-    if (filters.idService !== undefined) {
-      params = params.set('idService', filters.idService);
-    }
-
-    params = params.set('format', format);
-    params = params.set('inbx', bandeja);
-    params = params.set('token', token);
-
-    return this.httpClient.get(`${this.url}/export`, { params });
+    const params = this.buildTransactionParams(filters, extraParams);
+    return this.httpClient.get<ExportResponse>(`${this.url}/export`, { params });
   }
+
+  private buildTransactionParams(
+    filters: TransactionFilters,
+    extraParams?: ExtraParams
+  ): HttpParams {
+    const baseEntries = Object.entries({
+      concept: filters.numDoc ?? filters.concept,
+      supply: filters.supply,
+      idclient: filters.idclient,
+      idprovider: filters.idprovider,
+      status: filters.status,
+      dateStart: filters.dateStart,
+      dateEnd: filters.dateEnd,
+      idService: filters.idService,
+      typeEntity: filters.typeEntity,
+      entity: filters.entity,
+      typeAssign: filters.typeAssign,
+      idundServ: filters.idundServ,
+    });
+
+    const combined = [
+      ...baseEntries,
+      ...(extraParams ? Object.entries(extraParams) : []),
+    ].filter(([, value]) => value !== undefined && value !== null && value !== '' && value !== -1);
+
+    return combined.reduce((p, [k, v]) => {
+      if (v !== undefined && v !== null) {
+        return p.set(k, String(v));
+      }
+      return p;
+    }, new HttpParams());
+
+  }
+
+
+}
+
+interface TransactionFilters {
+  concept?: string;
+  numDoc?: string;
+  supply?: string;
+  idclient?: string;
+  idprovider?: string;
+  status?: string;
+  dateStart?: string;
+  dateEnd?: string;
+  idService?: string[];
+  idundServ?: string;
+  typeEntity?: string;
+  entity?: string;
+  typeAssign?: string;
+}
+
+interface ExtraParams {
+  [key: string]: string | number | undefined;
+}
+
+interface ExportResponse {
+  statusCode: number;
+  message?: string;
 }
