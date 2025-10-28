@@ -8,8 +8,7 @@ import { environment } from 'src/environments/environment';
 })
 export class PersonService {
 
-  //private readonly url = `${environment.URL_API_GATEWAY}`;
-  private readonly url = `${environment.URL_API_LOCAL}`;
+  private readonly url = `${environment.URL_API_GATEWAY}`;
 
   constructor(
     private readonly httpClient: HttpClient,
