@@ -8,7 +8,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSortModule } from '@angular/material/sort';
@@ -38,7 +37,6 @@ import { SearchSelectComponent } from './search-select/search-select.component';
     MatFormFieldModule,
     MatSelectModule,
     MatCardModule,
-    MatOptionModule,
     FormsModule,
     ReactiveFormsModule,
     MatSortModule,
@@ -48,12 +46,12 @@ import { SearchSelectComponent } from './search-select/search-select.component';
     MatDividerModule,
     MatChipsModule,
     MatListModule,
-    DynamicTableComponent
+    DynamicTableComponent,
   ],
-  exports:[
+  exports: [
     SpinnerComponent,
     ImageCardComponent,
-    DynamicTableComponent
-  ]
+    DynamicTableComponent,
+  ],
 })
 export class LibraryModule { }

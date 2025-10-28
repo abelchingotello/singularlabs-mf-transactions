@@ -35,16 +35,17 @@ import { MatButtonModule } from '@angular/material/button';
     MatPaginatorModule,
     MatCardModule,
     MatButtonModule,
-    MatTooltipModule
-  ]
+    MatTooltipModule,
+  ],
 })
+
 export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
-  @Input() columns: any[] = [];
-  @Input() data: any[] = [];
+  @Input() columns: TableColumn[] = [];
+  @Input() data: TableRow[] = [];
   @Input() actionsOptions?: boolean;
   @Input() element_id?: string | string[];
-  @Input() pageKey: any;
-  @Input() lengthTable: any;
+  @Input() pageKey: string | any;
+  @Input() lengthTable: number = 0;
   @Input() refreshFunction!: () => void;
   @Input()
   alwaysShowHeaderOptions: boolean = false;
@@ -54,9 +55,9 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   //------------
 
   @Output() pageChange = new EventEmitter<PageEvent>();
-  @Output() selectedIdsChange = new EventEmitter<any[]>();
-  @Output() selectedChange = new EventEmitter<any[]>();
-  @Output() cellClick: EventEmitter<any> = new EventEmitter<any>();
+  @Output() selectedIdsChange = new EventEmitter<TableRow[]>();
+  @Output() selectedChange = new EventEmitter<TableRow[]>();
+  @Output() cellClick: EventEmitter<string> = new EventEmitter<string>();
 
   //------------------------
   @Output() exportRequest = new EventEmitter<'xlsx' | 'csv'>();
@@ -68,19 +69,19 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   public displayedColumns: string[] = [];
   public attributeNames: string[] = [];
-  public dataSource: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  public dataPrint: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  public selection = new SelectionModel<any>(true, []);
+  public dataSource: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
+  public dataPrint: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
+  public selection = new SelectionModel<TableRow>(true, []);
   public headerOptions: boolean = false;
-  public obs!: Observable<any>;
-  public selectedTab: string = "tab1";
+  public obs!: Observable<TableRow[]>;
+  public selectedTab: string = 'tab1';
   public styleString: string = '';
   public isLoadingResults = true; //Revisar
-  public selectedIds: any[] = [];
+  public selectedIds: any = [];
   public currentEventPage: PageEvent = new PageEvent;
-  public isCheckedClass: any; //NgModel Class Div Seleccionado
+  public isCheckedClass: string | undefined;
   public pageSize = 5;
-  public paginatorLength: any;
+  public paginatorLength: number = 0;
   public dataCurrent: boolean = false;
   public previousDataLength = 0;
 
@@ -140,13 +141,14 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.attributeNames = this.columns.map(column => column.attribute);
     this.dataSource.data = this.data;
     this.initTable();
-    console.log('updatesort ejecutado');
     callback?.();
-    console.log(this.data);
   }
 
   get displayedColumnsWithSelect(): string[] {
-    return this.actionsOptions ? ['select', ...this.displayedColumns] : this.displayedColumns;
+    if (this.actionsOptions) {
+      return ['select', ...this.displayedColumns];
+    }
+    return this.displayedColumns;
   }
 
   isAllSelected() {
@@ -159,10 +161,8 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     if (this.isAllSelected()) {
       this.selection.clear();
       this.getSelectedIds();
-      console.log('limpio');
     } else {
       this.selection.select(...this.dataSource.data);
-      console.log('nuevos');
       this.getSelectedIds();
     }
   }
@@ -174,17 +174,27 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.headerOptions = false;
   }
 
-  checkboxLabel(row?: any): string {
+  checkboxLabel(row?: TableRow): string {
     if (!row) {
-      return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+      if (this.isAllSelected()) {
+        return 'deselect all';
+      } else {
+        return 'select all';
+      }
     }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
+
+    const pos = row['position'] as number | undefined;
+    if (this.selection.isSelected(row)) {
+      return `deselect row ${pos !== undefined ? pos + 1 : ''}`;
+    } else {
+      return `select row ${pos !== undefined ? pos + 1 : ''}`;
+    }
   }
+
 
   getSelectedIds() {
     // Verificar que `element_id` está definido
     if (!this.element_id) {
-      console.warn("element_id no está definido");
       return;
     }
 
@@ -197,9 +207,9 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
     // Si `element_id` es un array de strings, extraer múltiples campos
     else if (Array.isArray(this.element_id)) {
-      const element: any[] = this.element_id
+      const element: string[] = this.element_id
       this.selectedIds = this.selection.selected.map(row => {
-        const result: { [key: string]: any } = {};
+        const result: { [key: string]: string | number | boolean | Date | undefined } = {};
         element.forEach(field => {
           if (row[field]) {
             result[field] = row[field];  // Extraer el valor de cada campo
@@ -208,7 +218,6 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         return result;
       });
     } else {
-      console.warn("Formato de element_id no reconocido");
       return;
     }
 
@@ -225,22 +234,17 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   onPageChange(event: PageEvent) {
-    console.log('onPageChange::::::::', event);
     const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
     const to = from + event.pageSize;              // 5 + 5 = 10
-
-    console.log(`FROM: ${from} TO: ${to} LENGTH: ${event.length}`);
-
     if (from < event.length) {
       this.pageChange.emit(event);
     } else {
-      console.log('No hay datos para esta página');
     }
 
     this.pageSize = event.pageSize;
   }
 
-  onCellClick(value: any) {
+  onCellClick(value: string) {
     this.cellClick.emit(value);  // Emitir el valor clicado al componente padre
   }
 
@@ -290,7 +294,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.http.get('../dynamic-table/dynamic-table.component.scss', { responseType: 'text' }).subscribe(
       styleSheet => {
         this.styleString = styleSheet;
-      }
+      },
     );
   }
 
@@ -303,7 +307,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     return styles;
   }
 
-  formatDate(date: string | number | Date, format: string, locale: string) {
+  formatDate(date: string | number | Date | any, format: string, locale: string) {
     if (!date) {
       return '';
     }
@@ -323,37 +327,25 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
       this.customExportFunction('csv');
     }
   }
-
-  filterAttributes() {
-    // Mapa de configuración de columnas para un acceso rápido
-    const columnConfigMap = new Map<string, any>(
-      this.columns.map(column => [column.attribute, column.config])
-    );
-
-    return this.data.map(item => {
-      const newObj: { [key: string]: any } = {};
-
-      // Recorre las claves que se desean filtrar
-      for (const attribute of this.attributeNames) {
-        // Obtiene la configuración de la columna de forma eficiente
-        const columnConfig = columnConfigMap.get(attribute);
-        let value = item[attribute];
-
-        if (!value) { //Evitar errores cuando el elemento no contiene el atributo
-          newObj[attribute] = '';
-          break;
-        }
-
-        // Formatear la fecha si se especifica en la configuración de la columna
-        if (columnConfig?.formatDate) {
-          value = formatDate(value, columnConfig.formatDate.format, columnConfig.formatDate.locale);
-        }
-
-        newObj[attribute] = value; // Asignar el valor (formateado o no) al nuevo objeto
-      }
-
-      return newObj;
-    });
-  }
-
+}
+export interface TableColumn {
+  name: string;
+  attribute: string;
+  config?: {
+    formatDate?: {
+      format?: string;
+      locale?: string;
+    };
+    style?: string;
+    styleClass?: string;
+    coloricon?: string;
+    renderIcon?: string;
+    clickable?: string;
+    icon?: string;
+  };
+  style?: string;
+  styleClass?: string;
+}
+export interface TableRow {
+  [key: string]: string | number | Date | boolean | undefined;
 }

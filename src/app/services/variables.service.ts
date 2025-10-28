@@ -23,16 +23,16 @@ export class VariablesService {
 
   async setConfigurations(): Promise<void> {
     const fullHostname = window.location.hostname;
-    const domainParts = fullHostname.split('.');   
+    const domainParts = fullHostname.split('.');
 
     // Detectar subdominio asumiendo que los dos últimos segmentos son el dominio principal
     if (domainParts.length > 2) {
-        this.subdomain = domainParts.slice(0, domainParts.length - 2).join('.'); 
+      this.subdomain = domainParts.slice(0, domainParts.length - 2).join('.');
     } else {
-        this.subdomain = ''; // Si no hay subdominio
+      this.subdomain = ''; // Si no hay subdominio
     }
     await this.getCompanyConfig(this.subdomain);
-    if(this.config){
+    if (this.config) {
       this.setConfigInCookies(this.config, 1); // Cargar solo lo necesario
     }
   }
@@ -40,7 +40,7 @@ export class VariablesService {
   //Obtener información de compañia y sus configuraciones
   async getCompanyConfig(subDomain: string): Promise<void> {
     if (!this.config) { // Solo cargar si no está en caché
-      const data = await firstValueFrom(this.getCompany('innovate',['recaptchav3']));
+      const data = await firstValueFrom(this.getCompany('innovate', ['recaptchav3']));
       this.config = data?.config;
       this.company = data?.company;
     }
@@ -52,11 +52,11 @@ export class VariablesService {
 
     // Agregar múltiples valores de filtro a los parámetros de la URL
     if (filterValues && filterValues.length > 0) {
-        params = params.set('config_type', filterValues.join(',')); // Convertir el array en una cadena separada por comas
+      params = params.set('config_type', filterValues.join(',')); // Convertir el array en una cadena separada por comas
     }
 
     return this.httpClient.get<any>(`${this.url}/company/filter`, { params: params });
-}
+  }
 
   // Función para guardar todas las configuraciones en cookies
   setConfigInCookies(config: any[], days: number): void {
@@ -78,10 +78,10 @@ export class VariablesService {
     return this.cookieService.get(key) || null;
   }
 
-  getCompanyName(){
+  getCompanyName() {
     return this.company.company_name;
   }
-  
+
 }
 
 export function appLoadFactory(config: VariablesService) {

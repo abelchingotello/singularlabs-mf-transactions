@@ -1,8 +1,8 @@
-import {waitForAsync, ComponentFixture, TestBed} from '@angular/core/testing';
-import {InputPhoneComponent, PhoneErrorMatcher, phoneValidator} from './input-phone.component';
-import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {NO_ERRORS_SCHEMA} from '@angular/core';
-import {ISO_3166_1_CODES} from './country-codes';
+import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
+import { InputPhoneComponent, PhoneErrorMatcher, phoneValidator } from './input-phone.component';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ISO_3166_1_CODES } from './country-codes';
 import test from 'node:test';
 
 describe('PhoneComponent', () => {
@@ -13,7 +13,7 @@ describe('PhoneComponent', () => {
         TestBed.configureTestingModule({
             declarations: [InputPhoneComponent],
             providers: [FormBuilder],
-            schemas: [NO_ERRORS_SCHEMA]
+            schemas: [NO_ERRORS_SCHEMA],
         }).compileComponents();
     }));
 
@@ -47,9 +47,9 @@ describe('PhoneComponent', () => {
 
 describe('phoneValidator', () => {
     test('null number control', () => {
-        const validator = phoneValidator(false); 
+        const validator = phoneValidator(false);
         const group = new FormGroup({
-            country: new FormControl('PE')
+            country: new FormControl('PE'),
         });
         expect(validator(group)).toBeNull();
     });
@@ -57,14 +57,14 @@ describe('phoneValidator', () => {
     test('null country control', () => {
         const validator = phoneValidator(false);
         const group = new FormGroup({
-            number: new FormControl()
+            number: new FormControl(),
         });
         expect(validator(group)).toBeNull();
     });
 
     describe('ValidationErrors', () => {
         const validator = phoneValidator(false);
-        const testData : any []= [
+        const testData: [string, string, boolean][] = [
             ['4155551212', 'US', true],
             ['415-555-1212', 'US', true],
             ['(415) 555-1212', 'US', true],
@@ -75,10 +75,19 @@ describe('phoneValidator', () => {
             ['914155551212', 'MX', false],
         ];
         for (const data of testData) {
-            test(`${data[0]} in ${data[1]} is ${(data[2]) ? '' : 'NOT'} valid`, () => {
+            const [number, country, isValid] = data;
+            const validityText = isValid ? '' : 'NOT'; // ⚠️ aún ternario, lo quitamos abajo
+
+            // sin ternario:
+            let validityLabel = '';
+            if (!isValid) {
+                validityLabel = 'NOT';
+            }
+
+            test(`${number} in ${country} is ${validityLabel} valid`, () => {
                 const group = new FormGroup({
                     number: new FormControl(data[0]),
-                    country: new FormControl(data[1])
+                    country: new FormControl(data[1]),
                 });
                 expect(validator(group) == null).toBe(data[2]);
             });
@@ -87,20 +96,17 @@ describe('phoneValidator', () => {
 });
 
 describe('PhoneErrorMatcher', () => {
-    const fb = new FormBuilder();
     const phoneErrorMatcher = new PhoneErrorMatcher();
     let phoneForm: FormGroup;
     let phoneNumber: FormControl;
-    let phoneCountry: FormControl;
     beforeEach(() => {
         phoneForm = new FormGroup({
             phone: new FormGroup({
                 country: new FormControl('US'),
-                number: new FormControl('')
-            }, { validators: phoneValidator })
+                number: new FormControl(''),
+            }, { validators: phoneValidator }),
         });
         phoneNumber = phoneForm.get('phone.number') as FormControl;
-        phoneCountry = phoneForm.get('phone.country') as FormControl;
     });
 
     test('isErrorState (untouched)', () => {

@@ -8,7 +8,7 @@ describe('UserFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UserFormComponent ]
+      declarations: [ UserFormComponent ],
     })
     .compileComponents();
 
