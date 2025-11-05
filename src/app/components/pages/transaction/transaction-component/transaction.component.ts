@@ -31,7 +31,7 @@ export class TransactionComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Titular', 'attribute': 'bill'},
     { 'name': 'Recaudador', 'attribute': 'client'},
-    { 'name': 'Num. recibo', 'attribute': 'concep'},
+    { 'name': 'N°. Recibo', 'attribute': 'concep'},
     { 'name': 'Monto', 'attribute': 'amountTransaction'},
     // { 'name': 'Moneda', 'attribute': 'currency'},
     { 'name': 'Proveedor', 'attribute': 'provider'},
@@ -39,8 +39,13 @@ export class TransactionComponent implements OnInit {
       'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
     }
   },
-  { 'name': 'Cod. respuesta', 'attribute': 'reference' },
-    { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+  { 'name': 'Cod. Respuesta', 'attribute': 'reference' },
+    //{ 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+    {
+      'name': 'Est. Transaccion',
+      'attribute': 'status',
+      'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
+    }
   ];
   public dataTransaction : any[] = [];
 
@@ -104,6 +109,7 @@ async ngOnInit(): Promise<void> {
       idService : [''],
       numDoc : [''],
       status: [''],
+      provider: [''],
     });
   }
 
@@ -130,10 +136,12 @@ async ngOnInit(): Promise<void> {
     let numDoc = this.numDoc || undefined;
     let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+    let provider = this.provider || undefined;
 
     console.log("idService: ",idServ)
+    console.log("this.page: ",this.page)
     // return
-    this.transactionService.getTransaction(entity,undefined,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
+    this.transactionService.getTransaction(entity,provider,status,dateStart,dateEnd,idServ?.toString(),pageSize,this.page,numDoc,this.count,this.amountTransaction).subscribe({
       next: (value:any) => {
         if(value.statusCode === 201){
           this.amountTransaction = 0;
@@ -219,7 +227,8 @@ async ngOnInit(): Promise<void> {
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == ''){
+      this.formDate.get('entity')?.value == '' &&
+      this.formDate.get('provider')?.value == ''){
       this.mytoastr.showWarning("Seleccione un filtro","")
       return
     }
@@ -245,6 +254,7 @@ async ngOnInit(): Promise<void> {
         this.entityTypes = entity.data;
         this.categoryTypes = category;
         this.listProviders = providers.data;
+        console.log('providers',providers)
 
         this.spinner.spinnerOnOff();
         resolve(); //  Indica que terminó exitosamente
@@ -279,6 +289,7 @@ async ngOnInit(): Promise<void> {
     this.formDate.get('entity')?.setValue('')
     this.formDate.get('idService')?.setValue('')
     this.formDate.get('numDoc')?.setValue('')
+    this.formDate.get('provider')?.setValue('')
     //limpiar tabla de transacciones
     this.clearData();
     this.getDataTransaction(this.pageSize)
@@ -318,6 +329,9 @@ async ngOnInit(): Promise<void> {
   get category(){
     return this.formDate?.get('category')?.value;
   }
+  get provider(){
+    return this.formDate?.get('provider')?.value;
+  }
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
@@ -326,7 +340,7 @@ async ngOnInit(): Promise<void> {
     // Preparar los filtros para la exportación
     const exportFilters: Record<string, any> = {
       idclient: this.entity,
-      idprovider: undefined,
+      idprovider: this.provider,
       status: this.status,
       date: this.dateStart || this.dateEnd ?
         JSON.stringify({
@@ -343,28 +357,46 @@ async ngOnInit(): Promise<void> {
         delete exportFilters[key];
       }
     });
-
+    
+   //maneja con codificacion base64 y en blob
     this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
-        // Verificar si la respuesta tiene cuerpo
         if (!response.body) {
           this.mytoastr.showError('La respuesta no contiene datos', '');
           return;
-        }else{
-          console.log("Sí tiene datos el response")
         }
 
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody);
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
+        console.log("Sí tiene datos el response");
+
+        let blob: Blob;
+
+        // 🔹 Detectar si es Blob (modo local) o Base64 (modo remoto)
+        if (response.body instanceof Blob) {
+          console.log('📦 Modo local (Blob detectado)');
+          // ✅ Leemos el blob y agregamos el BOM si es CSV
+          if (fileType === 'csv') {
+              const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+              blob = new Blob([bom, response.body], { type: response.headers.get('Content-Type') || 'text/csv;charset=utf-8;'});         
+          }else{
+            // XLSX u otros binarios se descargan directo
+            blob = response.body; // ya viene como binario listo
+          }
+        } else {
+          console.log('📦 Modo remoto (Base64 detectado)');
+          const responseBody = response.body || '';
+          const byteCharacters = atob(responseBody);
+          const byteArray = new Uint8Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArray[i] = byteCharacters.charCodeAt(i);
+          }
+          blob = new Blob([byteArray], {
+            type: response.headers.get('Content-Type') || 'application/octet-stream'
+          });
         }
 
-        // Obtener nombre del archivo desde headers
+        // 🔹 Nombre del archivo
         let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
         const contentDisposition = response.headers.get('Content-Disposition');
         if (contentDisposition) {
@@ -376,12 +408,7 @@ async ngOnInit(): Promise<void> {
 
         console.log('Downloading file:', filename);
 
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
+        // 🔹 Descargar
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
         link.download = filename;

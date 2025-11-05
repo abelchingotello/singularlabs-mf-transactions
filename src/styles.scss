@@ -44,6 +44,7 @@
     --breakpoint-xl: 1200px;
     --font-family-sans-serif: Open Sans, sans-serif;
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --default3: #0072A9;
 }
 
 *,
@@ -20471,4 +20472,21 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     background-color: rgba(24, 183, 24, 0.411);
 }
 
+//-------mat checkbox y radio button con color personalizado
+.mat-checkbox-indeterminate.mat-accent .mat-checkbox-background,
+.mat-checkbox-checked.mat-accent .mat-checkbox-background {
+    background-color: var(--default3) !important;
+}
+
+.mat-accent .mat-ripple-element {
+    background-color: var(--default3) !important;
+}
+
+.mat-radio-outer-circle {
+    border-color: var(--default3) !important;
+}
+
+.mat-radio-inner-circle {
+    background-color: var(--default3) !important;
+}
 

@@ -13,10 +13,12 @@ table {
 }
 
 td.mat-cell {
-    min-width: 100px;
+    min-width: 80px;
     padding-right: 8px;
     overflow-wrap: break-word;
     word-break: break-word;
+    align-items: center !important;
+    text-align: center !important;
 
     @media (max-width: 720px) {
         min-width: 150px;
@@ -179,6 +181,11 @@ th.mat-header-cell {
     /* Negrita para el texto */
     // overflow-wrap: break-word;
     // word-break: break-word;
+    width: 100%;
+    display: flex;
+    justify-content: center !important;
+    align-items: center;
+    text-align: center;
 }
 
 .custom-header-row-dynamic-table {
@@ -197,6 +204,12 @@ th.mat-header-cell {
     // z-index: 1;
 }
 
+.table-checkbox {
+  width: 50px;
+  min-width: 50px;   /* importante en mat-table */
+  max-width: 50px;
+  text-align: center;
+}
 .checkbox-container {
     position: absolute;
     margin-top: -15px;

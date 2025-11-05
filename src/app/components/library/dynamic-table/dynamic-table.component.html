@@ -48,13 +48,13 @@
       <div class="container-view">
           <table mat-table [dataSource]="dataSource" matSort class="table-custom">
               <ng-container *ngIf="actionsOptions == true" matColumnDef="select">
-                  <th mat-header-cell *matHeaderCellDef class="custom-headercell-dynamictable">
+                  <th mat-header-cell *matHeaderCellDef class="custom-headercell-dynamictable table-checkbox">
                       <mat-checkbox (change)="$event ? toggleAllRows() : null"
                           [checked]="selection.hasValue() && isAllSelected()"
                           [indeterminate]="selection.hasValue() && !isAllSelected()" [aria-label]="checkboxLabel()">
                       </mat-checkbox>
                   </th>
-                  <td mat-cell *matCellDef="let row" [class.checked-class]="selection.isSelected(row)">
+                  <td mat-cell *matCellDef="let row"  class="table-checkbox" [class.checked-class]="selection.isSelected(row)">
                       <mat-checkbox (click)="$event.stopPropagation()"
                           (change)="$event ? selection.toggle(row) : null; getSelectedIds()"
                           [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)">
@@ -66,12 +66,34 @@
                       class="custom-headercell-dynamictable">
                       {{ column.name }}
                   </th>
-                  <td mat-cell *matCellDef="let element" [class.checked-class]="selection.isSelected(element)">
-                      <span (click)="column.config?.clickable ? onCellClick(element) : null" [ngClass]="[column.config?.styleClass ? (element[column.attribute] || '') : '',  column.config?.clickable? 'link':'']">
-                          {{ column.config?.formatDate ? formatDate(element[column.attribute],
-                          column.config.formatDate.format, column.config.formatDate.locale) :
-                          element[column.attribute] }}
-                      </span>
+                  <td mat-cell *matCellDef="let element" [class.checked-class]="selection.isSelected(element)"  style="  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
+                    
+                        <!--Si `column.config.renderIcon` es true-->
+                        <ng-container *ngIf="column.config?.renderIcon; else normalCell">
+                            <mat-icon class="text-{{ element[column.config?.coloricon || ''] }}"
+                                matTooltip="{{ element[column?.attribute || ''] }}" matTooltipPosition="after">{{
+                                element[column.config?.icon || ''] }}
+                            </mat-icon>
+                        </ng-container>
+                        <ng-template #normalCell>
+                            <span onKeyPress class="ellipsis-cell"
+                                (click)="column.config?.clickable ? onCellClick(element) : null"
+                                [ngClass]="[column.config?.styleClass ? (element[column?.attribute || ''] || '') : '', column.config?.clickable ? 'link' : '']"
+                                matTooltip="{{ column.config?.formatDate ? formatDate(
+                                    element[column?.attribute || ''],
+                                    column.config?.formatDate?.format || 'dd/MM/yyyy',
+                                    column.config?.formatDate?.locale || 'en-US'
+                                )
+                                : element[column?.attribute || ''] }}" matTooltipPosition="above">
+                                {{ column.config?.formatDate ? formatDate(element[column?.attribute || ''],
+                                column.config?.formatDate?.format || 'dd/MM/yyyy',
+                                column.config?.formatDate?.locale || 'en-US'
+                                ) :
+                                element[column?.attribute || ''] }}
+                            </span>
+
+                        </ng-template>  
+                   
                   </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="displayedColumnsWithSelect"
@@ -108,9 +130,9 @@
                                       <div>
                                       <span class="text-default fw-bold">{{ column.name }}</span>
                                           <span [ngClass]="column.styleClass && element[column.attribute] ? column.styleClass : ''">
-                                              {{ column.config?.formatDate ? formatDate(element[column.attribute],
-                                                  column.config.formatDate.format, column.config.formatDate.locale) :
-                                                  element[column.attribute] }}
+                                              {{ column.config?.formatDate ? formatDate(element[column?.attribute ||''],
+                                                  column.config?.formatDate?.format ||'', column.config?.formatDate?.locale ||'') :
+                                                  element[column?.attribute ||''] }}
                                           </span>
                                       </div>
                                   </ng-container>
@@ -145,9 +167,9 @@
               </th>
               <td mat-cell *matCellDef="let element">
                   <span [ngClass]="column.styleClass ? element[column.attribute] : ''">
-                      {{ column.config?.formatDate ? formatDate(element[column.attribute],
-                          column.config.formatDate.format, column.config.formatDate.locale) :
-                          element[column.attribute] }}
+                      {{ column.config?.formatDate ? formatDate(element[column?.attribute ||''],
+                          column.config?.formatDate?.format || 'dd/MM/yyyy', column.config?.formatDate?.locale || 'en-US') :
+                          element[column?.attribute ||''] }}
                   </span>
               </td>
           </ng-container>

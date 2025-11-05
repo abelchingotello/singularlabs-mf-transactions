@@ -10,12 +10,13 @@ import { environment } from 'src/environments/environment';
 export class TransactionService {
 
   private url = `${environment.URL_API_GATEWAY}`;
+  //private url = `${environment.URL_API_LOCAL}`;
 
   constructor(
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?:string,idprovider?:string,status?:string,dateStart?:any, dateEnd?:any,idService?:string,limit?:any ,page?:any,numDoc?:string, count?: any,totalAmount?:any):Observable<any>{
+  getTransaction(idclient?:string,idprovider?:string,status?:string,dateStart?:any, dateEnd?:any,idService?:string, limit?:any ,page?:any,numDoc?:string, count?: any,totalAmount?:any):Observable<any>{
     let params = new  HttpParams();
 
     console.log("idservicio: ",idService)
@@ -129,6 +130,7 @@ export class TransactionService {
     params = params.set('numberOperation', numberOperation);
     return this.httpClient.get(`${this.url}/transactions/voucher`,{params});
   }
+  /*
   //-----Exportar de archivos
   exportTransactions(
     format: 'xlsx' | 'csv',
@@ -140,11 +142,35 @@ export class TransactionService {
         format: format
       }
     });
-
     return this.httpClient.get(`${this.url}/transactions/export`, {
       params,
       observe: 'response',
       responseType: 'text' // para manejar base64
     });
   }
+  */
+exportTransactions(
+  format: 'xlsx' | 'csv',
+  filters: any
+): Observable<HttpResponse<string | Blob>> {
+  const params = new HttpParams({ fromObject: { ...filters, format } });
+  const isLocal = this.url.includes('localhost');
+
+  if (isLocal) {
+    // ✅ En local: serverless transforma el base64 a blob directamente
+    return this.httpClient.get(`${this.url}/transactions/export`, {
+      params,
+      observe: 'response',
+      responseType: 'blob', // <--- tipo fijo
+    }) as Observable<HttpResponse<Blob>>;
+  } else {
+    // ✅ En remoto: el backend devuelve base64 (string)
+    return this.httpClient.get(`${this.url}/transactions/export`, {
+      params,
+      observe: 'response',
+      responseType: 'text', // <--- tipo fijo
+    }) as Observable<HttpResponse<string>>;
+  }
+}
+
 }

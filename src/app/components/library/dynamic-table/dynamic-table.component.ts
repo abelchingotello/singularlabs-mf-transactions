@@ -17,6 +17,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 @Component({
   selector: 'uni-dynamic-table',
   templateUrl: './dynamic-table.component.html',
@@ -35,12 +36,15 @@ import { MatButtonModule } from '@angular/material/button';
     MatSortModule,
     MatPaginatorModule,
     MatCardModule,
-    MatButtonModule
+    MatButtonModule,
+    MatTooltipModule
   ]
 })
 export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
-  @Input() columns: any[] = [];
-  @Input() data: any[] = [];
+  //@Input() columns: any[] = [];
+  //@Input() data: any[] = [];
+  @Input() columns: TableColumn[] = [];
+  @Input() data: TableRow[] = [];
   @Input() actionsOptions?: boolean;
   @Input() element_id?: string | string[] | 'ALL';
   @Input() pageKey: any;
@@ -54,8 +58,8 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   //------------
 
   @Output() pageChange = new EventEmitter<PageEvent>();
-  @Output() selectedIdsChange = new EventEmitter<any[]>();
-  @Output() selectedChange = new EventEmitter<any[]>();
+  @Output() selectedIdsChange = new EventEmitter<TableRow[]>();
+  @Output() selectedChange = new EventEmitter<TableRow[]>();
   @Output() cellClick: EventEmitter<any> = new EventEmitter<any>();
 
   //------------------------
@@ -68,11 +72,11 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   public displayedColumns: string[] = [];
   public attributeNames: string[] = [];
-  public dataSource: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  public dataPrint: MatTableDataSource<any> = new MatTableDataSource<any>([]);
-  public selection = new SelectionModel<any>(true, []);
+  public dataSource: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
+  public dataPrint: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
+  public selection = new SelectionModel<TableRow>(true, []);
   public headerOptions: boolean = false;
-  public obs!: Observable<any>;
+  public obs!: Observable<TableRow[]>;
   public selectedTab: string = "tab1";
   public styleString: string = '';
   public isLoadingResults = true; //Revisar
@@ -238,7 +242,15 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   onPageChange(event: PageEvent) {
     console.log('onPageChange event:', event);
-    if (event.pageSize * (event.pageIndex + 1) <= (event.length) ) {
+    /*
+    //Metodo incorrecto y antiguo de numero de pagina
+    //total 10 element:
+    //elemento 6 al 10 en pag 2 con pageIndex 1:  5*(1+1)<=10 ok
+    //elemento 11 al 15 en pag 3 con pageIndex 2:  5*(2+1)<=10 error
+    //total 9 element:
+    //elemento 6 al 10 en pag 2 con pageIndex 1:  5*(1+1)<=9 error, no debe
+    //elemento 11 al 15 en pag 3 con pageIndex 2:  5*(2+1)<=9 error
+    if (event.pageSize * (event.pageIndex +1) <= (event.length) ) {
 
       if (this.pageKey && ((event.previousPageIndex && (event.previousPageIndex < event.pageIndex)) || event.previousPageIndex == 0 )) {
         this.pageChange.emit(event);
@@ -246,7 +258,20 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
     //limitar al no existir data en la siguiente página
     //delete (this.paginator as any).hasNextPage;
-
+    */
+    //Metodo correcto de numero de pagina
+    //length: 10 
+    //elemento 6 al 10 con pageIndex=1: from= 1 * 5 = 5 5<10 (ok)
+    //elemento 11 al 15 con pageIndex=2: from= 2 * 5 = 10 10<10 (error)
+    //length: 9 
+    //elemento 6 al 10 con pageIndex=1: from= 1 * 5 = 5 5<9 (ok)
+    //elemento 11 al 15 con pageIndex=2: from= 2 * 5 = 10 10<9 (error)
+    const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
+    const to = from + event.pageSize;              // 5 + 5 = 10
+    if (this.pageKey && from < event.length) {
+      this.pageChange.emit(event);
+    } else {
+    }
 
     this.pageSize = event.pageSize;
   }
@@ -308,7 +333,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     return styles;
   }
 
-  formatDate(date: string | number | Date, format: string, locale: string) {
+  formatDate(date: string | number | Date | any, format: string, locale: string) {
     if(!date){
       return '';
     }
@@ -411,9 +436,10 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         }
 
         // Formatear la fecha si se especifica en la configuración de la columna
-        if (columnConfig?.formatDate) {
+        if (columnConfig.formatDate && (typeof value === 'string' || value instanceof Date)) {
           value = formatDate(value, columnConfig.formatDate.format, columnConfig.formatDate.locale);
         }
+
 
         newObj[attribute] = value; // Asignar el valor (formateado o no) al nuevo objeto
       }
@@ -422,4 +448,26 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     });
   }
 
+}
+export interface TableColumn {
+  name: string;
+  attribute: string;
+  config?: {
+    formatDate?: {
+      format?: string;
+      locale?: string;
+    };
+    style?: string;
+    styleClass?: string;
+    coloricon?: string;
+    renderIcon?: string;
+    clickable?: string;
+    icon?: string;
+  };
+  style?: string;
+  styleClass?: string;
+
+}
+export interface TableRow {
+  [key: string]: string | number | Date | boolean | undefined;
 }
