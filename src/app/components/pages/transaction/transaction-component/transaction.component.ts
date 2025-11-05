@@ -385,15 +385,26 @@ async ngOnInit(): Promise<void> {
           }
         } else {
           console.log('📦 Modo remoto (Base64 detectado)');
+          // Decodifica Base64 a bytes UTF-8 correctamente
           const responseBody = response.body || '';
-          const byteCharacters = atob(responseBody);
-          const byteArray = new Uint8Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteArray[i] = byteCharacters.charCodeAt(i);
+          const binaryString = atob(responseBody);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
           }
-          blob = new Blob([byteArray], {
-            type: response.headers.get('Content-Type') || 'application/octet-stream'
-          });
+
+          // Si es CSV, agrega el BOM (para Excel y UTF-8 correcto)
+          if (fileType === 'csv') {
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            blob = new Blob([bom, bytes], {
+              type: response.headers.get('Content-Type') || 'text/csv;charset=utf-8;'
+            });
+          } else {
+            blob = new Blob([bytes], {
+              type: response.headers.get('Content-Type') || 'application/octet-stream'
+            });
+          }
+
         }
 
         // 🔹 Nombre del archivo
