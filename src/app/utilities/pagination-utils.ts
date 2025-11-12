@@ -1,8 +1,20 @@
+/**
+ * File: pagination-utils.ts
+ * Description: Utilidad Angular para manejar la lógica de paginación y reinicio de datos.
+ *              Funcionalidades:
+ *                - Reiniciar datos cuando cambia la función actual.
+ *                - Manejar eventos de cambio de página.
+ *                - Actualizar tamaño de página dinámicamente.
+ *                - Ejecutar paginación condicional según clave o estado.
+ * 
+ * Maintenance:
+ *  - Last modified: 21-Oct-2025
+ */
+
 export class PaginationUtils {
     resetIfChanged<T>(currentFunction: any, functionDataCurrent: any, clearDataCallback: () => void): any {
         if (functionDataCurrent !== currentFunction) {
             clearDataCallback();  // Llama a la función de limpieza que se pasa desde el componente
-            console.log('Datos reseteados debido a un cambio en la función.');
         }
         return currentFunction;
     }
@@ -26,6 +38,12 @@ export class PaginationUtils {
     }
 
     updatePageSize(newPageSize: any, currentPageSize: any): any {
-        return newPageSize > parseInt(currentPageSize, 10) ? newPageSize : currentPageSize;
+        const parsedCurrent = Number.parseInt(currentPageSize.toString(), 10);
+
+        if (newPageSize > parsedCurrent) {
+            return newPageSize;
+        }
+
+        return currentPageSize;
     }
 }

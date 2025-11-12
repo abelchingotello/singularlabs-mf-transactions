@@ -1,11 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { assetUrl } from "src/single-spa/asset-url";
+import { assetUrl } from 'src/single-spa/asset-url';
 
 
 @Component({
   selector: 'uni-image-card',
   templateUrl: './image-card.component.html',
-  styleUrls: ['./image-card.component.scss']
+  styleUrls: ['./image-card.component.scss'],
 })
 export class ImageCardComponent implements OnInit {
   @Input()
@@ -18,7 +18,7 @@ export class ImageCardComponent implements OnInit {
   size!: string;
   @Input()
   posContent!: string;
-  backImage: any;
+  backImage: string = '';
   backSize!: string;
   positionContent!: string;
 
@@ -32,11 +32,11 @@ export class ImageCardComponent implements OnInit {
       this.backImage = assetUrl(this.image);
     } else if (this.externImage) {
       this.backImage = this.externImage;
-    }else{
+    } else {
       this.backImage = this.defaultImage;
     }
-    this.backSize = this.size? this.size : this.defaultSize;
-    this.positionContent = this.posContent? this.posContent : this.defaultPositionContent;
+    this.backSize = this.size ?? this.defaultSize;
+    this.positionContent = this.posContent ?? this.defaultPositionContent;
   }
 
 }

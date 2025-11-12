@@ -25,7 +25,7 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/singularlabs-mf-transactions'),
+      dir: require('node:path').join(__dirname, './coverage/singularlabs-mf-transactions'),
       subdir: '.',
       reporters: [
         { type: 'html' },

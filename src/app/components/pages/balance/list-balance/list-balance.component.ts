@@ -79,7 +79,9 @@ export class ListBalanceComponent implements OnInit {
       this.masterService.getItemsMasterTable('11')
     ]).subscribe({
       next: ([typeEntity]) => {
-        this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.typeEntitys = typeEntity
+          .filter((item: any) => item.master_name !== 'USER')
+          .sort((a: any, b: any) => a.master_order - b.master_order);
       },
       error: (err: any) => {
         console.error('Error:', err);
@@ -97,16 +99,17 @@ export class ListBalanceComponent implements OnInit {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
-    const typeEntity = this.typeEntity?.master_name || undefined;
-    const entity = this.entity || undefined;
 
-
+    const filters = {
+      typeEntity: this.typeEntity?.master_name || undefined,
+      entity: this.entity || undefined
+    }
     if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
       this.spinner.spinnerOnOff();
       return;
     }
 
-    this.transactionService.getCurrentBalances(pageSize, this.page, typeEntity, entity, this.count).subscribe({
+    this.transactionService.getCurrentBalances(filters, pageSize, this.page, this.count).subscribe({
       next: (value: any) => {
         if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
@@ -270,16 +273,5 @@ export class ListBalanceComponent implements OnInit {
 
   get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
-  }
-
-  formatCustomDate(dateString: string): string {
-    const date = new Date(dateString);
-    const yyyy = date.getFullYear();
-    const MM = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const HH = String(date.getHours()).padStart(2, '0');
-    const mm = String(date.getMinutes()).padStart(2, '0');
-    const ss = String(date.getSeconds()).padStart(2, '0');
-    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
   }
 }

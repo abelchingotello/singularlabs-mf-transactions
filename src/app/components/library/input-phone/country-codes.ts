@@ -253,5 +253,5 @@ export const ISO_3166_1_CODES: CountryCodes[] = [
     {code: 'EH', country: 'Western Sahara'},
     {code: 'YE', country: 'Yemen'},
     {code: 'ZM', country: 'Zambia'},
-    {code: 'ZW', country: 'Zimbabwe'}
+    {code: 'ZW', country: 'Zimbabwe'},
 ];

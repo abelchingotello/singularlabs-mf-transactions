@@ -97,7 +97,7 @@ export class ReportBalanceComponent implements OnInit {
 
     ]).subscribe({
       next: ([typeEntity]) => {
-        this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
+        this.typeEntitys = typeEntity.filter((item: any) => item.master_name !== "USER").sort((a: any, b: any) => a.master_order - b.master_order);
       },
       error: (err: any) => {
         console.error('Error:', err);
@@ -239,17 +239,6 @@ export class ReportBalanceComponent implements OnInit {
   selecType(event: any) {
     this.selectedType = event.value.master_name
     this.searchPerson(event.value.master_relativeName)
-  }
-
-  formatCustomDate(dateString: string): string {
-    const date = new Date(dateString);
-    const yyyy = date.getFullYear();
-    const MM = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const HH = String(date.getHours()).padStart(2, '0');
-    const mm = String(date.getMinutes()).padStart(2, '0');
-    const ss = String(date.getSeconds()).padStart(2, '0');
-    return `${yyyy}${MM}${dd}${HH}${mm}${ss}`;
   }
 
   /**
