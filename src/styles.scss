@@ -44,7 +44,10 @@
     --breakpoint-xl: 1200px;
     --font-family-sans-serif: Open Sans, sans-serif;
     --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    --default3: #0072A9;
+    --default: #007BFF;
+    --default4: #11bfef;
+    --default3: #1171ef;
+    --default2: #1196ef;
 }
 
 *,
@@ -204,8 +207,9 @@ a {
 
     -webkit-text-decoration-skip: objects;
 }
+
 .dropdown-toggle::after {
-    display:none;
+    display: none;
 }
 
 
@@ -391,8 +395,7 @@ progress {
     height: auto;
 }
 
-[type='search']
-{
+[type='search'] {
     outline-offset: -2px;
 
     -webkit-appearance: none;
@@ -7983,6 +7986,7 @@ button.bg-darker:focus {
 .justify-content-between {
     justify-content: space-between !important;
 }
+
 .justify-content-space-evenly {
     justify-content: space-evenly !important;
 }
@@ -17688,16 +17692,16 @@ textarea[resize='horizontal'] {
 }
 
 .navbar-vertical .navbar-nav .nav-link.active {
-    background-color: #03c9d7!important;
-    color: #fff!important;
+    background-color: #03c9d7 !important;
+    color: #fff !important;
 }
 
 .navbar-vertical .navbar-nav .nav-list-link.active {
-    background-color: #03c9d7!important;
-    color: #fff!important;
+    background-color: #03c9d7 !important;
+    color: #fff !important;
 }
 
-.nav-list-link.active > .mat-list-item-content > .d-flex > span > .mat-icon {
+.nav-list-link.active>.mat-list-item-content>.d-flex>span>.mat-icon {
     color: #fff !important;
 }
 
@@ -20315,11 +20319,11 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 }
 
 .custom-title-responsive-1 {
-    font-size: 1.6rem!important; // Tamaño base reducido para pantallas grandes
-    text-align: start!important;
-    font-family: Verdana, Geneva, Tahoma, sans-serif!important;
-    color: #32325d!important;
-    font-weight: 600!important;
+    font-size: 1.6rem !important; // Tamaño base reducido para pantallas grandes
+    text-align: start !important;
+    font-family: Verdana, Geneva, Tahoma, sans-serif !important;
+    color: #32325d !important;
+    font-weight: 600 !important;
 
     @media (max-width: 1199.98px) {
         // lg
@@ -20347,10 +20351,10 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 }
 
 .custom-title-responsive-2 {
-    font-size: 1.4rem!important; // Tamaño base reducido para pantallas grandes
-    font-family: Verdana, Geneva, Tahoma, sans-serif!important;
-    color: #32325d!important;
-    font-weight: 600!important;
+    font-size: 1.4rem !important; // Tamaño base reducido para pantallas grandes
+    font-family: Verdana, Geneva, Tahoma, sans-serif !important;
+    color: #32325d !important;
+    font-weight: 600 !important;
 
     @media (max-width: 1199.98px) {
         // lg
@@ -20408,7 +20412,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     }
 }
 
-.EXTORNADO{
+.EXTORNADO {
     padding-block: 2px;
     padding-inline: 15px;
     display: inline;
@@ -20421,7 +20425,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     background-color: rgba(255, 0, 0, 0.458);
 }
 
-.INHABILITADO{
+.INHABILITADO {
     padding-block: 2px;
     padding-inline: 15px;
     display: inline;
@@ -20432,9 +20436,9 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     color: rgb(150, 95, 12);
     border: 1px solid rgb(150, 95, 12);
     background-color: rgba(255, 255, 0, 0.671);
-  }
+}
 
-  .PROCESANDO{
+.PROCESANDO {
     padding-block: 2px;
     padding-inline: 15px;
     display: inline;
@@ -20445,8 +20449,8 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     color: rgb(150, 95, 12);
     border: 1px solid rgb(150, 95, 12);
     background-color: rgba(255, 255, 0, 0.671);
-  }
-  
+}
+
 .COMPLETADO {
     padding-block: 2px;
     padding-inline: 15px;
@@ -20459,6 +20463,7 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     border: 1px solid rgb(5, 86, 5);
     background-color: rgba(24, 183, 24, 0.411);
 }
+
 .HABILITADO {
     padding-block: 2px;
     padding-inline: 15px;
@@ -20470,6 +20475,60 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
     color: rgb(5, 86, 5);
     border: 1px solid rgb(5, 86, 5);
     background-color: rgba(24, 183, 24, 0.411);
+}
+
+//-------botones personalizados (color e iconos centrados)
+.btn-default2,
+.btn-default3 {
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 16px 10px 13px !important;
+}
+
+.btn-default2 {
+    background-color: var(--default2) !important;
+    border-color: var(--default2) !important;
+    color: #fff !important;
+
+}
+
+.btn-default3 {
+    background-color: var(--default3) !important;
+    border-color: var(--default3) !important;
+    color: #fff !important;
+
+}
+
+.btn-default4 {
+    background-color: var(--default4) !important;
+    border-color: var(--default4) !important;
+    color: #fff !important;
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px 8px 13px !important;
+}
+
+.btn-default2:hover,
+.btn-default3:hover {
+    color: #fff !important;
+}
+
+
+//-------botones con solo el color personalizado (boredes redondeados)
+.btn-color-default2 {
+    background-color: var(--default2) !important;
+    border-color: var(--default2) !important;
+    color: #fff !important;
+
+}
+
+.btn-color-default3 {
+    background-color: var(--default3) !important;
+    border-color: var(--default3) !important;
+    color: #fff !important;
+
 }
 
 //-------mat checkbox y radio button con color personalizado
@@ -20489,4 +20548,3 @@ html:not([dir='rtl']) .noUi-horizontal .noUi-handle {
 .mat-radio-inner-circle {
     background-color: var(--default3) !important;
 }
-

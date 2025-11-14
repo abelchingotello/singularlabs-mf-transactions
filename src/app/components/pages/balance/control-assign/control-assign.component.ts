@@ -26,9 +26,11 @@ export class ReportBalanceComponent implements OnInit {
     { 'name': 'Nombre', 'attribute': 'concep' },
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
     //{ 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Fecha', 'attribute': 'date', 'config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }},
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      }
+    },
     // { 'name': 'Estado', 'attribute': 'status','config':{
     //   'styleClass':true
     // }},
@@ -38,7 +40,7 @@ export class ReportBalanceComponent implements OnInit {
   public typeEntitys: any;
   public selectedType: any;
   public pageKey: any;
-  public page:any = 1;
+  public page: any = 1;
   public count: any = -1;
   public assignForm!: FormGroup;
   public functionDataCurrent!: (pageSize: any) => any;
@@ -49,12 +51,12 @@ export class ReportBalanceComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
+    private spinner: SpinnerService,
     private router: Router,
     private transactionService: TransactionService,
     private personService: PersonService,
     private fb: FormBuilder,
-    private dateService : DateService,
+    private dateService: DateService,
     private mytoastr: MytoastrService,
     private masterService: MasterService,
     private balanceService: BalanceService,
@@ -69,13 +71,13 @@ export class ReportBalanceComponent implements OnInit {
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance(){
+  addBalance() {
     this.router.navigate(['balance/assign'])
   }
 
-  formAssign(){
+  formAssign() {
     this.assignForm = this.fb.group({
-      status:[''],
+      status: [''],
       entity: [''],
       typeEntity: [''],
       typeAssign: [''],
@@ -84,30 +86,38 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
-  listData() {
-      forkJoin([
-        this.masterService.getItemsMasterTable('11')
-
-      ]).subscribe({
-        next: ([typeEntity]) => {
-          this.typeEntitys = typeEntity.sort((a: any, b: any) => a.master_order - b.master_order);
-          console.log("ENTIDAD: ", this.typeEntitys)
-        },
-        error: (err: any) => {
-          console.error('Error:', err);
-        },
-      })
+  showAlarmSelectTypeEntity() {
+    if (this.typeEntity === undefined || this.typeEntity === null || this.typeEntity === '') {
+      this.mytoastr.showError('Selecciona un tipo de entidad', '');
+    }
   }
 
-  getDataBalance(pageSize:any){
+  listData() {
+    forkJoin([
+      this.masterService.getItemsMasterTable('11')
+
+    ]).subscribe({
+      next: ([typeEntity]) => {
+        this.typeEntitys = typeEntity
+          .filter((item: any) => item.master_name !== "USUARIO")
+          .sort((a: any, b: any) => a.master_order - b.master_order);
+        console.log("ENTIDAD: ", this.typeEntitys)
+      },
+      error: (err: any) => {
+        console.error('Error:', err);
+      },
+    })
+  }
+
+  getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
 
     let typeEntity = this.typeEntity?.master_name || undefined;
     let entity = this.entity || undefined;
     let typeAssign = this.typeAssign || undefined;
-    let dateStart= this.dateService.formatStartDate(this.dateStart).replace(/\//g, '')  || undefined;
-    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '')  || undefined
+    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
 
     console.log("ENTIDAD: ", entity)
     console.log("TIPO DE ENTIDAD: ", typeEntity)
@@ -115,9 +125,9 @@ export class ReportBalanceComponent implements OnInit {
     console.log("FECHA INICIO: ", dateStart)
     console.log("FECHA FIN: ", dateEnd)
 
-    this.transactionService.getBalance(pageSize,this.page,typeEntity,entity,typeAssign,dateStart,dateEnd,this.count).subscribe({
-      next: (value:any) => {
-        if(value.statusCode == 201){
+    this.transactionService.getBalance(pageSize, this.page, typeEntity, entity, typeAssign, dateStart, dateEnd, this.count).subscribe({
+      next: (value: any) => {
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
           return;
         }
@@ -125,21 +135,21 @@ export class ReportBalanceComponent implements OnInit {
         let datanew = value.data.Items.map((item: any) => {
           return {
             ...item,
-            amountTransaction: item.amountTransaction+' '+item.currency,
+            amountTransaction: item.amountTransaction + ' ' + item.currency,
           };
         });
         console.log("DATA DE BALANCE: ", datanew)
-        this.dataBalance = [...this.dataBalance,...datanew];
+        this.dataBalance = [...this.dataBalance, ...datanew];
         this.pageKey = value.data.hasMore;
-        if(value.data.count != 0) this.count = value.data.count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
-        if(value.statusCode == 201){
+        if (value.data.count != 0) this.count = value.data.count;
+        console.log("DATA DE TRANSACTION: ", value.data)
+        if (value.statusCode == 201) {
           this.mytoastr.showWarning('No se encontraron resultados', '');
         }
 
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -258,7 +268,7 @@ export class ReportBalanceComponent implements OnInit {
     })
   }
 
-  searchData(){
+  searchData() {
     this.dataBalance = [];
     this.count = -1;
     this.page = 1;
@@ -266,29 +276,29 @@ export class ReportBalanceComponent implements OnInit {
   }
 
 
-  cleanSearch(){
+  cleanSearch() {
     this.assignForm.reset();
     this.clearData();
   }
 
 
 
-  get dateStart(){
+  get dateStart() {
     return this.assignForm?.get('dateStart')?.value;
   }
 
-  get entity(){
-      return this.assignForm?.get('entity')?.value;
-    }
+  get entity() {
+    return this.assignForm?.get('entity')?.value;
+  }
 
-  get dateEnd(){
+  get dateEnd() {
     return this.assignForm?.get('dateEnd')?.value;
   }
-  get typeAssign(){
+  get typeAssign() {
     return this.assignForm?.get('typeAssign')?.value;
   }
 
-  get typeEntity(){
+  get typeEntity() {
     return this.assignForm?.get('typeEntity')?.value;
   }
 

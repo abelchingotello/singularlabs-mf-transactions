@@ -3,38 +3,15 @@
         <uni-image-card title="Transacciones"
             externImage="https://static.vecteezy.com/system/resources/previews/004/341/304/non_2x/easy-to-use-banking-app-flat-illustration-credit-card-financial-transactions-cartoon-concept-e-payment-online-bill-pay-isolated-metaphor-on-white-background-ewallet-ebanking-application-vector.jpg"
             size="8%">
-
         </uni-image-card>
-
-        <!-- <mat-card class="custom-border-radius-1-25">
-            <h2 style="margin-top: 23px; margin-left: 20px;">Búsqueda de Operaciones</h2>
-            <div class="p-4">
-                <form [formGroup]="formOperation" class="d-flex flex-wrap align-items-center gap-3">
-                    <mat-form-field class="flex-grow-1" appearance="outline">
-                        <mat-label>Número de operación</mat-label>
-                        <input formControlName="numOperation" matInput placeholder="Número">
-                    </mat-form-field>
-
-                    <button type="button" class="btn-primary btn" (click)="searchOperation()">
-                        Buscar
-                    </button>
-                </form>
-            </div>
-        </mat-card> -->
-
-        <!-- <mat-card class="custom-border-radius-1-25">
-
-        </mat-card> -->
-
         <mat-card class="custom-border-radius-1-25">
-            <mat-card-content >
-                <div class="p-2">
-                    <h2 style="margin-top: 10px; margin-left: 15px;"> Datos de Búsqueda </h2>
-                    <!-- <mat-card-title style="margin-top: 23px; margin-left: 20px;" >Búsqueda transacciones</mat-card-title> -->
+            <mat-card-content>
+                <div>
+                    <h2 class="mt-4 ml-3 text-default"> Datos de Búsqueda </h2>
                     <form [formGroup]="formDate" class="d-flex flex-wrap">
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Fecha</mat-label>
+                            <mat-label>Seleccionar Fecha</mat-label>
                             <mat-date-range-input [rangePicker]="picker">
                                 <input matStartDate formControlName="dateStart" placeholder="Start date">
                                 <input matEndDate formControlName="dateEnd" placeholder="End date">
@@ -42,26 +19,6 @@
                             <mat-hint align="end">DD/MM/YYYY – DD/MM/YYYY</mat-hint>
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-date-range-picker #picker></mat-date-range-picker>
-                        </mat-form-field>
-
-
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Recaudador</mat-label>
-                            <mat-select formControlName="entity">
-                                <mat-option [value]="">NINGUNO</mat-option>
-                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
-                                    {{entity.servicePerson.nameAlias}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Proveedor</mat-label>
-                            <mat-select formControlName="provider">
-                                <mat-option [value]="">NINGUNO</mat-option>
-                                <mat-option *ngFor="let provider of listProviders" [value]="provider.servicePerson.idPerson">
-                                    {{provider.servicePerson.nameAlias}}
-                                </mat-option>
-                            </mat-select>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
@@ -76,11 +33,11 @@
 
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Servicio</mat-label>
+                            <mat-label>Seleccionar Servicio</mat-label>
                             <mat-select formControlName="idService" disableOptionCentering
                                 panelClass="custom-select-panel">
                                 <!-- Buscador dentro de un mat-option que NO se selecciona -->
-                                <mat-option disabled class="search-option">
+                                <mat-option *ngIf="selectedCategory" disabled class="search-option">
                                     <input matInput placeholder="Buscar servicio..." [(ngModel)]="serviceFilter"
                                         [ngModelOptions]="{standalone: true}" (ngModelChange)="filterServices()"
                                         (click)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()"
@@ -93,28 +50,46 @@
                                 </mat-option>
                             </mat-select>
                             <!-- Mensaje si no hay categoría seleccionada -->
-                            <mat-hint *ngIf="!selectedCategory" class="text-danger">
-                                Primero selecciona una categoría.
-                            </mat-hint>
+                            
+                         
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Estado</mat-label>
-                            <mat-select formControlName="status" multiple >
+                            <mat-label>Seleccionar Estado</mat-label>
+                            <mat-select formControlName="status" multiple>
                                 <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
                                     {{status.master_name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Recaudador</mat-label>
+                            <mat-select formControlName="entity">
+                                <mat-option [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
+                                    {{entity.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Proveedor</mat-label>
+                            <mat-select formControlName="provider">
+                                <mat-option [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let provider of listProviders"
+                                    [value]="provider.servicePerson.idPerson">
+                                    {{provider.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Recibo</mat-label>
+                            <mat-label>Seleccionar Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
 
                     </form>
                     <div class="row">
-                        
+
                         <div class="col lg-6">
                             <div class="info-container">
                                 <div class="info-item">
@@ -124,29 +99,30 @@
                             </div>
                         </div>
                         <div class="col lg-6 d-flex justify-content-end align-items-end mb-3 mr-3">
-                            <button type="button" mat-button class="btn-primary btn" (click)="clearSearch()" style="padding: 5px 13px 5px 10px!important;">
+                            <button type="button" class="btn-default2 btn" (click)="clearSearch()">
                                 <mat-icon>filter_alt_off</mat-icon>
                                 Limpiar
                             </button>
-                            <button  type="button" mat-button class="btn-primary btn" (click)="search()" style="padding: 5px 13px 5px 10px!important;">
+                            <button type="button" class="btn-default3 btn" (click)="search()">
                                 <mat-icon>search</mat-icon>
                                 Buscar
                             </button>
+
                         </div>
                     </div>
+
                 </div>
             </mat-card-content>
         </mat-card>
 
-                    
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
-                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
-                        [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
-                        (selectedIdsChange)="handleSelectedIds($event)"
-                        [customExportFunction]="exportDataViaAPI.bind(this)">
-                    </uni-dynamic-table>                
+                <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
+                    [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
+                    [pageKey]="pageKey" [actionsOptions]="false" (selectedChange)="selectedHandle($event)"
+                    (selectedIdsChange)="handleSelectedIds($event)"
+                    [customExportFunction]="exportDataViaAPI.bind(this)">
+                </uni-dynamic-table>
             </mat-card-content>
         </mat-card>
     </div>
