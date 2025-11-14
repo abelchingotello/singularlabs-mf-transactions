@@ -90,20 +90,20 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Recibo</mat-label>
-                            <input formControlName="numDoc" type="text" matInput>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Numero de Suministro</mat-label>
-                            <input formControlName="supply" type="text" matInput>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Estado de Conciliacion</mat-label>
                             <mat-select formControlName="statusConc" multiple>
                                 <mat-option *ngFor="let status of masterStatusConc" [value]="status">
                                     {{status}}
                                 </mat-option>
                             </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Numero de Suministro</mat-label>
+                            <input formControlName="supply" type="text" matInput>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Recibo</mat-label>
+                            <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
                     </form>
                     <div class="row">
