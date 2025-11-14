@@ -10,12 +10,12 @@
                     <h2 class="mt-4 ml-3 text-default"> Datos de Búsqueda </h2>
                     <form [formGroup]="formDate" class="d-flex flex-wrap">
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar fecha</mat-label>
+                            <mat-label>Seleccionar Fecha</mat-label>
                             <mat-date-range-input [rangePicker]="picker">
                                 <input matStartDate formControlName="dateStart" placeholder="Start date">
                                 <input matEndDate formControlName="dateEnd" placeholder="End date">
                             </mat-date-range-input>
-                            <mat-hint align="end">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+                            <mat-hint align="end">DD/MM/YYYY - DD/MM/YYYY</mat-hint>
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-date-range-picker #picker></mat-date-range-picker>
                         </mat-form-field>
@@ -29,7 +29,7 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3" (click)="showAlarmSelectCategory()">
-                            <mat-label>Seleccionar servicio</mat-label>
+                            <mat-label>Seleccionar Servicio</mat-label>
                             <mat-select formControlName="idService" multiple
                                 (selectionChange)="onServicesChange($event)">
 
