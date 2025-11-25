@@ -1,0 +1,6 @@
+projectKey=singularlabs-mf-transactions
+serverUrl=http://localhost:9110
+serverVersion=25.10.0.114319
+dashboardUrl=http://localhost:9110/dashboard?id=singularlabs-mf-transactions
+ceTaskId=33792893-1797-4f25-9188-0821f104a5e5
+ceTaskUrl=http://localhost:9110/api/ce/task?id=33792893-1797-4f25-9188-0821f104a5e5
