@@ -3,11 +3,12 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
-  { path: 'transaction',loadChildren: () => import('./transaction/transaction.module').then(x => x.TransactionModule)}, 
-  { path: 'cancelation',loadChildren: () => import('./cancelation-transaction/cancelation-transaction.module').then(x => x.CancelationTransactionModule)}, 
-  { path: 'extort',loadChildren: () => import('./extort/extort.module').then(x => x.ExtortModule)}, 
-  { path: 'balance',loadChildren: () => import('./balance/balance.module').then(x => x.BalanceModule)}, 
-  { path: 'myTransaction',loadChildren: () => import('./my-transaction/my-transaction.module').then(x => x.MyTransactionModule)}, 
+  { path: 'transaction', loadChildren: () => import('./transaction/transaction.module').then(x => x.TransactionModule) },
+  { path: 'cancelation', loadChildren: () => import('./cancelation-transaction/cancelation-transaction.module').then(x => x.CancelationTransactionModule) },
+  { path: 'extort', loadChildren: () => import('./extort/extort.module').then(x => x.ExtortModule) },
+  { path: 'balance', loadChildren: () => import('./balance/balance.module').then(x => x.BalanceModule) },
+  { path: 'myTransaction', loadChildren: () => import('./my-transaction/my-transaction.module').then(x => x.MyTransactionModule) },
+  { path: 'reports', loadChildren: () => import('./transaction-reports/transaction-reports.module').then(x => x.TransactionReportsModule) },
 ];
 
 @NgModule({

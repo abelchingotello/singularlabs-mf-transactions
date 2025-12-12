@@ -38,6 +38,17 @@ export class TransactionService {
     const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get(`${this.url}/transactions`, { params });
   }
+  getTransactionReports(filters: TransactionFilters, limit?: number, page?: number | string, count?: number, totalAmount?: number): Observable<any> {
+    const extraParams = {
+      limit,
+      page,
+      count,
+      totalAmount
+    }
+
+    const params = this.buildTransactionParams(filters, extraParams);
+    return this.httpClient.get(`${this.url}/transactions/reports`, { params });
+  }
 
   updateTransactionStatus(data: any): Observable<any> {
     return this.httpClient.post<any>(`${this.url}/transactions/status`, data);

@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "http-localhost-9110-",
+        "projectKey": "singularlabs-mf-transactions"
+    }
+}

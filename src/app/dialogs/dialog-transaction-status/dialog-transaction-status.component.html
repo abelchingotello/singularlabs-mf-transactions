@@ -1,29 +1,28 @@
-<div mat-dialog-content>
-    <form [formGroup]="formOperation">
-        <p>Actualizar estado</p>
-
-        <mat-form-field class="col-md-6" appearance="outline">
-            <mat-label>Seleccionar Estado</mat-label>
-            <mat-select formControlName="estadoTipo" (selectionChange)="onEstadoTipoChange($event.value)">
-                <mat-option value="trans">Estado de Transferencia</mat-option>
-                <mat-option value="cons">Estado de Conciliación</mat-option>
-            </mat-select>
-        </mat-form-field>
-
-        <mat-form-field class="col-md-6" appearance="outline">
-            <mat-label>Seleccionar Nuevo Estado</mat-label>
-            <mat-select formControlName="nuevoEstado" (selectionChange)="onEstadoChange($event.value)">
-                <mat-option *ngFor="let estado of estadosDisponibles" [value]="estado">
-                    {{ estado }}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-        <div class="d-flex justify-content-end">
-            <button mat-button class="btn btn-default3" cdkFocusInitial (click)="updateEstado()" [disabled]="isDisable" formButtonName="btnActualizar">
-                <mat-icon> update</mat-icon>
-                Actualizar
-            </button>
-        </div>
-    </form>
-
+<div class="bg-custom  mb-3 p-3">
+    <h3 class="m-0 text-white" mat-dialog-title>Actualizar estado</h3>
 </div>
+<form [formGroup]="formOperation">
+    <mat-form-field class="col-md-6" appearance="outline">
+        <mat-label>Seleccionar Estado</mat-label>
+        <mat-select formControlName="estadoTipo" (selectionChange)="onEstadoTipoChange($event.value)">
+            <mat-option value="trans">Estado de Transferencia</mat-option>
+            <mat-option value="cons">Estado de Conciliación</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="col-md-6" appearance="outline">
+        <mat-label>Seleccionar Nuevo Estado</mat-label>
+        <mat-select formControlName="nuevoEstado" (selectionChange)="onEstadoChange($event.value)">
+            <mat-option *ngFor="let estado of estadosDisponibles" [value]="estado">
+                {{ estado }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <div class="d-flex justify-content-end">
+        <button mat-button class="btn btn-default-custom text-white" cdkFocusInitial (click)="updateEstado()" [disabled]="isDisable"
+            formButtonName="btnActualizar">
+            <mat-icon> update</mat-icon>
+            Actualizar
+        </button>
+    </div>
+</form>
