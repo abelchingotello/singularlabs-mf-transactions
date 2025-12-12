@@ -54,8 +54,19 @@
                             </mat-select>
                         </mat-form-field>
 
-                  
-                        <mat-form-field appearance="outline" class="col-md-3" >
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Negocio</mat-label>
+                            <mat-select formControlName="und_service" multiple>
+                                <mat-option *ngFor="let undservice of listUndServicesElectrocentro"
+                                    [value]="undservice.id">
+                                    {{ undservice.name }}
+                                </mat-option>
+
+                            </mat-select>
+                        </mat-form-field>
+
+
+                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Proveedor</mat-label>
                             <mat-select formControlName="provider">
                                 <mat-option [value]="">NINGUNO</mat-option>

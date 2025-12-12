@@ -58,6 +58,7 @@ export class TransactionReportsComponent implements OnInit {
   public selectedCategory: boolean = false;
   public listServicesSelected: ServiceItem[] = [];
   public listServicesSelected1: ServiceItem[] = [];
+  public listUndServicesElectrocentro: any[] = [];
 
   public lastFilters: any = {};
 
@@ -136,7 +137,20 @@ export class TransactionReportsComponent implements OnInit {
       (item, index, self) => index === self.findIndex(t => t.id === item.id)
     );
 
+    console.log("this.listServicesSelected:", this.listServicesSelected);
+
+
     this.formDate.get('idService')?.setValue(this.listServicesSelected.map(s => s.id));
+    // ✅ Verificar si el servicio Electrocentro fue seleccionado
+    const isElectrocentro = this.listServicesSelected.some(s => s.id === 'SAC0000011');
+    const undServiceControl = this.formDate.get('und_service');
+
+    if (isElectrocentro) {
+      undServiceControl?.enable();  // 🔹 Activar campo
+    } else {
+      undServiceControl?.reset();   // 🔹 Limpiar selección
+      undServiceControl?.disable(); // 🔹 Desactivar campo
+    }
   }
 
   async cargarServicios(): Promise<void> {
@@ -175,6 +189,7 @@ export class TransactionReportsComponent implements OnInit {
       { name: 'Recaudador', attribute: 'client' },
       { name: 'Proveedor', attribute: 'provider' },
       { name: 'Servicio', attribute: 'service' },
+      { name: 'Negocio', attribute: 'und_serv' },
       { name: 'Monto', attribute: 'amountTransaction' },
       { name: 'Num Operaciones', attribute: 'numOperations' },
     ];
@@ -184,6 +199,7 @@ export class TransactionReportsComponent implements OnInit {
     let cols = [
       { name: 'Proveedor', attribute: 'provider' },
       { name: 'Servicio', attribute: 'service' },
+      { name: 'Negocio', attribute: 'und_serv' },
       { name: 'Monto', attribute: 'amountTransaction' },
       { name: 'Num Operaciones', attribute: 'numOperations' },
     ];
@@ -214,8 +230,11 @@ export class TransactionReportsComponent implements OnInit {
       idprovider: this.provider || undefined,
       dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
       dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined,
-
-    };
+      ...(this.listServicesSelected.length > 0 && {
+        idService: this.listServicesSelected.map(s => s.id)
+      }),
+      idundServ: this.id_und_service
+    }
 
     this.lastFilters = filters;
     this.applyCommissionColumn();
@@ -243,8 +262,11 @@ export class TransactionReportsComponent implements OnInit {
               .find((p: any) => p.servicePerson.idPerson === item.client);
             const provider = this.listProviders
               .find((p: any) => p.servicePerson.idPerson === item.provider);
+            const undServi = this.listUndServicesElectrocentro?.find((und: any) => String(und.id) === String(item.und_serv));
+
             return {
               ...item,
+              und_serv: undServi ? undServi.name : item.und_serv,
               client: person ? person.servicePerson.nameAlias : item.client,
               provider: provider ? provider.servicePerson.nameAlias : item.provider,
             };
@@ -368,6 +390,27 @@ export class TransactionReportsComponent implements OnInit {
           ];
 
           this.categoryTypes = category;
+
+          const dluz = this.listProviders.find(
+            (p: any) => p.servicePerson.idPerson === `${environment.ID_PERSON_DLUZ}`,
+          );
+
+          if (dluz && dluz.servicePerson.und_serv !== "N/A") {
+            try {
+              // Quitar los backslashes para que sea JSON válido
+              const cleaned = dluz.servicePerson.und_serv.replace(/\\/g, "");
+
+              // Ahora sí parsear
+              this.listUndServicesElectrocentro = JSON.parse(cleaned);
+
+            } catch (e) {
+              console.error("Error al parsear und_serv de DLUZ:", e);
+              this.listUndServicesElectrocentro = [];
+            }
+          } else {
+            this.listUndServicesElectrocentro = [];
+          }
+
           this.spinner.spinnerOnOff();
           resolve();
         },
@@ -418,7 +461,9 @@ export class TransactionReportsComponent implements OnInit {
     return this.formDate?.get('dateEnd')?.value;
   }
 
-
+  get id_und_service() {
+    return this.formDate?.get('und_service')?.value;
+  }
 
   get entity() {
     return this.formDate?.get('entity')?.value;
