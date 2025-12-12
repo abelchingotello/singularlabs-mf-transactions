@@ -80,7 +80,7 @@ export class TransactionReportsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Cuando cambia :type, limpiar todo y recargar [web:75][web:84]
+    // Cuando cambia :type, limpiar todo y recargar (Si no al compartir componente no actualiza hasta recargar)
     this.activeRouter.params.subscribe(params => {
       const rawType = params['type'];
       this.type = rawType === 'provider' ? 'Proveedores' : 'Recaudadores';
@@ -220,6 +220,11 @@ export class TransactionReportsComponent implements OnInit {
   }
 
   getDataTransaction(pageSize?: any) {
+    if (!this.dateStart || !this.dateEnd) {
+      this.mytoastr.showError("", "Selecciona un margen de Fechas")
+      return
+    }
+
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction);
 
@@ -324,7 +329,9 @@ export class TransactionReportsComponent implements OnInit {
   reload() {
     this.clearData();
     this.dynamic.clearSelection();
-    this.functionDataCurrent(this.pageSize);
+    if (this.dateStart || this.dateEnd) {
+      this.functionDataCurrent(this.pageSize);
+    }
   }
 
   lastPageEvent!: PageEvent;
@@ -441,7 +448,6 @@ export class TransactionReportsComponent implements OnInit {
     }
     this.clearData();
     this.clearFilter();
-    this.getDataTransaction(this.pageSize);
   }
 
   filterServices() {
@@ -488,6 +494,12 @@ export class TransactionReportsComponent implements OnInit {
 
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
+
+    if (!this.dateStart || !this.dateEnd) {
+      this.mytoastr.showError("", "Selecciona un margen de Fechas")
+      return
+    }
+
     this.spinner.spinnerOnOff();
 
     const exportFilters: Record<string, any> = {
