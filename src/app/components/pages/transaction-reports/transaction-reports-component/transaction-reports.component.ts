@@ -367,33 +367,7 @@ export class TransactionReportsComponent implements OnInit {
         next: (response) => {
           const [persons, category] = response;
           this.listProviders = persons.data.providerTransform;
-          this.entityTypes = [
-            {
-              servicePerson: {
-                idPerson: '74564000',
-                nameAlias: '74564000',
-                status: 'HABILITADO',
-                und_serv: 'N/A'
-              }
-            },
-            {
-              servicePerson: {
-                idPerson: '31656600',
-                nameAlias: 'COP. LOS ANDES',
-                status: 'HABILITADO',
-                und_serv: 'N/A'
-              }
-            },
-            {
-              servicePerson: {
-                idPerson: '76689000',
-                nameAlias: 'AGENTE CASH',
-                status: 'HABILITADO',
-                und_serv: 'N/A'
-              }
-            },
-            ...persons.data.recaudadorTransform
-          ];
+          this.entityTypes = persons.data.recaudadorTransform;
 
           this.categoryTypes = category;
 
