@@ -99,7 +99,6 @@ export class TransactionReportsComponent implements OnInit {
     try {
       await this.listData();
       this.functionDataCurrent = this.getDataTransaction.bind(this);
-      this.functionDataCurrent(this.pageSize);
     } catch (error) {
       console.error('Error al cargar datos iniciales:', error);
     }
