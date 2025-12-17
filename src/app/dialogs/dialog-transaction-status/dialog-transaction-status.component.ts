@@ -34,7 +34,7 @@ export class DialogTransactionStatusComponent implements OnInit {
     this.isDisable = true;
     this.estados = {
       trans: this.estadosTransaccion.map((e: any) => e.master_name), // extraes solo los nombres
-      cons: ['PENDIENTE', 'CONCILIADO', 'OBSERVADO']
+      cons: this.estadosConciliacion.map((e: any) => e.master_name), // extraes solo los nombres
     };
 
     this.formOperation = this.fb.group({
@@ -64,7 +64,7 @@ export class DialogTransactionStatusComponent implements OnInit {
    * @param nuevoEstado Nuevo estado seleccionado.
    */
   onEstadoChange(nuevoEstado: any) {
-    if (nuevoEstado == this.data.statusTrans) {
+    if (nuevoEstado == this.data.statusTrans || nuevoEstado == this.data.statusCons) {
       this.isDisable = true;
 
     } else {
@@ -123,6 +123,9 @@ export class DialogTransactionStatusComponent implements OnInit {
   get estadosTransaccion() {
     return this.data.masterStatus
   }
+  get estadosConciliacion() {
+    return this.data.masterStatusCons
+  }
   get estadoTipo() {
     return this.formOperation?.get('estadoTipo')?.value;
   }
@@ -136,6 +139,7 @@ export interface DialogData {
   id: string;
   statusTrans: any;
   masterStatus: any;
+  masterStatusCons: any;
   statusCons: any;
   sk: any;
 }

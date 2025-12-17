@@ -371,12 +371,6 @@ export class TransactionComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
   }
 
-  dataDialog: any;
-
-  selectedHandle(event: any) {
-    this.dataDialog = event[0]
-  }
-
   openDialog(data: any): void {
     const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
       width: '600px',
@@ -386,6 +380,7 @@ export class TransactionComponent implements OnInit {
         id: data.id_transaction,
         sk: data.sk,
         masterStatus: this.masterStatus,
+        masterStatusCons: this.masterStatusConc
       }
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -395,10 +390,6 @@ export class TransactionComponent implements OnInit {
       }
 
     });
-  }
-
-  handleSelectedIds(selectedIds: any[]) {
-    this.disabledEditOption = selectedIds.length !== 1;
   }
 
   /**
@@ -453,7 +444,7 @@ export class TransactionComponent implements OnInit {
           } else {
             this.listUndServicesElectrocentro = [];
           }
-          this.masterStatusConc = ["Completado", "Pendiente", "En Disputa"];
+          this.masterStatusConc = [{ master_name: "CONCILIADO" }, { master_name: "SIN CONCICLIAR" }, { master_name: "PENDIENTE" }];
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
           this.categoryTypes = category;
           this.spinner.spinnerOnOff();
