@@ -109,6 +109,7 @@ export class TransactionService {
       entity: filters.entity,
       typeAssign: filters.typeAssign,
       idundServ: filters.idundServ,
+      statusConc: filters.statusConc
     });
 
     const combined = [
@@ -142,6 +143,7 @@ interface TransactionFilters {
   typeEntity?: string;
   entity?: string;
   typeAssign?: string;
+  statusConc?: string
 }
 
 interface ExtraParams {

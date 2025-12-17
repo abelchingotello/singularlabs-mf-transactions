@@ -16,7 +16,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { IconTypeComponent } from 'src/app/components/library/icons_type/icons_type.component'
+import { IconTypeComponent } from './../icons_type/icons_type.component'
 
 @Component({
   selector: 'uni-dynamic-table',

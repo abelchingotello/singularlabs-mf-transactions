@@ -83,7 +83,7 @@ export class DialogTransactionStatusComponent implements OnInit {
       id: this.id_transaction,
       sk: this.sk,
       type: this.estadoTipo,
-      status: this.nuevoEstado
+      status: this.nuevoEstado === 'PENDIENTE' ? '' : this.nuevoEstado
     };
 
     this.TransactionService.updateTransactionStatus(data1).subscribe({

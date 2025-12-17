@@ -94,7 +94,7 @@
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Estado de Conciliacion</mat-label>
                             <mat-select formControlName="statusConc" multiple>
-                                  <mat-option *ngFor="let status of masterStatusConc" [value]="status.master_name">
+                                <mat-option *ngFor="let status of masterStatusConc" [value]="status.master_value">
                                     {{status.master_name}}
                                 </mat-option>
                             </mat-select>

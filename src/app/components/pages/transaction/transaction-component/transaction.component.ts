@@ -152,7 +152,7 @@ export class TransactionComponent implements OnInit {
       provider: [''],
       category: [''],
       idService: [''],
-      statusConc: [''],
+      statusConc: ['-'],
       numDoc: [''],
       supply: [''],
       status: [''],
@@ -264,6 +264,7 @@ export class TransactionComponent implements OnInit {
       dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
       dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined,
       idundServ: this.id_und_service || undefined,
+      statusConc: this.statusConc !== '-' ? this.statusConc : undefined,
       numDoc: this.numDoc || undefined,
       supply: this.supply || undefined,
       ...(this.listServicesSelected.length > 0 && {
@@ -399,7 +400,7 @@ export class TransactionComponent implements OnInit {
   *
   */
   private isEmptyForm(): boolean {
-    const fields = ['dateEnd', 'status', 'numDoc', 'supply', 'idService', 'entity', 'provider'];
+    const fields = ['dateEnd', 'status', 'numDoc', 'supply', 'idService', 'entity', 'provider', 'statusConc'];
     return fields.every(field => this.formDate.get(field)?.value === '');
   }
 
@@ -416,13 +417,12 @@ export class TransactionComponent implements OnInit {
     this.spinner.spinnerOnOff();
     return new Promise((resolve, reject) => {
       forkJoin([
-        this.masterService.getItemsMasterTable('17'),
         this.masterService.getItemsMasterTable('16'),
         this.personService.getPersonsPandR(),
         this.masterService.getItemsMasterTable('14'),
       ]).subscribe({
         next: (response) => {
-          const [masterStatusConc, masterStatus, persons, category] = response;
+          const [masterStatus, persons, category] = response;
           this.listProviders = persons.data.providerTransform;
           this.entityTypes = persons.data.recaudadorTransform;
           const dluz = this.listProviders.find(
@@ -444,7 +444,7 @@ export class TransactionComponent implements OnInit {
           } else {
             this.listUndServicesElectrocentro = [];
           }
-          this.masterStatusConc = [{ master_name: "CONCILIADO" }, { master_name: "SIN CONCICLIAR" }, { master_name: "PENDIENTE" }];
+          this.masterStatusConc = [{ master_value: 'CONCILIADO', master_name: "CONCILIADO" }, { master_value: "SIN CONCICLIAR", master_name: "SIN CONCICLIAR" }, { master_value: "", master_name: "PENDIENTE" }];
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
           this.categoryTypes = category;
           this.spinner.spinnerOnOff();
@@ -493,6 +493,7 @@ export class TransactionComponent implements OnInit {
     this.formDate.get('entity')?.setValue('');
     this.formDate.get('provider')?.setValue('');
     this.formDate.get('idService')?.setValue('');
+    this.formDate.get('statusConc')?.setValue('-');
     this.formDate.get('numDoc')?.setValue('');
     this.formDate.get('supply')?.setValue('');
     this.formDate.get('und_service')?.setValue('');
@@ -553,6 +554,10 @@ export class TransactionComponent implements OnInit {
     return this.formDate?.get('category')?.value;
   }
 
+  get statusConc() {
+    return this.formDate?.get('statusConc')?.value;
+  }
+
   showAlarmSelectCategory() {
     if (this.category == undefined || this.category == '') {
       this.mytoastr.showError('Selecciona una Categoria Primero', '');
@@ -572,6 +577,7 @@ export class TransactionComponent implements OnInit {
         ? `${this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '-')} 23:59:59`
         : undefined,
       status: this.status || undefined,
+      statusConc: this.statusConc !== '-' ? this.statusConc : undefined,
       idprovider: this.provider || undefined,
       idclient: this.entity || undefined,
       concept: this.numDoc || undefined,

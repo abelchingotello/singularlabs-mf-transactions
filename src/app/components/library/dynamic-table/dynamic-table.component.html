@@ -114,7 +114,7 @@
                 </tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumnsWithSelect"></tr>
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" [colSpan]="displayedColumns?.length">No hay datos para mostrar</td>
+                    <td class="mat-cell" [colSpan]="displayedColumns.length">No hay datos para mostrar</td>
                 </tr>
             </table>
         </div>
@@ -125,7 +125,7 @@
     <mat-tab *ngIf="selectedTab === 'tab2'">
         <div class="m-2">
             <div class="card-container">
-                <ng-container *ngIf="data?.length && data.length > 0; else message">
+                <ng-container *ngIf="data.length && data.length > 0; else message">
                     <ng-container *ngFor="let element of obs  | async; let i">
                         <mat-card [ngClass]="{'card-item':true, 'checked-class': selection.isSelected(element) }">
                             <mat-card-header class="card-item-header">
