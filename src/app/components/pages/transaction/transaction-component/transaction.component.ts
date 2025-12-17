@@ -59,7 +59,22 @@ export class TransactionComponent implements OnInit {
     {
       'name': 'Est. Transaccion',
       'attribute': 'status',
-      'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
+      'config': { 'renderIcon': true }
+    },
+    {
+      'name': 'Accion',
+      'attribute': '',
+      'config': {
+        'type': 'buttonicons',
+        'actions': [
+          {
+            bgClass: 'yellow',
+            toolTip: 'Editar',
+            icon: 'edit',
+            value: 'edit'
+          },
+        ]
+      }
     },
   ];
 
@@ -149,6 +164,14 @@ export class TransactionComponent implements OnInit {
     return this.listServicesSelected.map(s => s.name).join(', ');
   }
 
+
+  clickButton(event: any) {
+    console.log("event", event)
+    const { value, element } = event
+    if (value == "edit") {
+      this.openDialog(element)
+    }
+  }
   onServicesChange(event: any) {
     const selectedIds: string[] = event.value;
     const idsCategoriaActual = new Set(this.allItems1.map(s => s.id));
@@ -354,14 +377,14 @@ export class TransactionComponent implements OnInit {
     this.dataDialog = event[0]
   }
 
-  openDialog(): void {
+  openDialog(data: any): void {
     const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
       width: '600px',
       data: {
-        concep: this.dataDialog.concep,
-        statusTrans: this.dataDialog.status,
-        id: this.dataDialog.id_transaction,
-        sk: this.dataDialog.sk,
+        concep: data.concep,
+        statusTrans: data.status,
+        id: data.id_transaction,
+        sk: data.sk,
         masterStatus: this.masterStatus,
       }
     });

@@ -16,6 +16,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { IconTypeComponent } from 'src/app/components/library/icons_type/icons_type.component'
+
 @Component({
   selector: 'uni-dynamic-table',
   templateUrl: './dynamic-table.component.html',
@@ -36,6 +38,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatCardModule,
     MatButtonModule,
     MatTooltipModule,
+    IconTypeComponent
   ],
 })
 
@@ -58,6 +61,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Output() selectedIdsChange = new EventEmitter<TableRow[]>();
   @Output() selectedChange = new EventEmitter<TableRow[]>();
   @Output() cellClick: EventEmitter<string> = new EventEmitter<string>();
+  @Output() clickButtonEvent = new EventEmitter<any>();
 
   //------------------------
   @Output() exportRequest = new EventEmitter<'xlsx' | 'csv'>();
@@ -289,6 +293,13 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  onClickButton(value: any, element: any) {
+    const event = {
+      value,
+      element
+    }
+    this.clickButtonEvent.emit(event)
+  }
 
   getStyles() {
     this.http.get('../dynamic-table/dynamic-table.component.scss', { responseType: 'text' }).subscribe(
@@ -342,6 +353,13 @@ export interface TableColumn {
     renderIcon?: string;
     clickable?: string;
     icon?: string;
+    type?: string;
+    actions?: [{
+      bgClass?: string,
+      toolTip?: string,
+      icon?: string,
+      value?: string
+    }]
   };
   style?: string;
   styleClass?: string;

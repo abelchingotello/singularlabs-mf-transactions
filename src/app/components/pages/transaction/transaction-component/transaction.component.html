@@ -138,16 +138,12 @@
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [actionsOptions]="true"
-                        [lengthTable]="count" [refreshFunction]="reload.bind(this)" element_id="concep"
-                        (pageChange)="onPageChange($event)" [pageKey]="pageKey"
-                        (selectedIdsChange)="handleSelectedIds($event)"
-                        [customExportFunction]="exportDataViaAPI.bind(this)" (selectedChange)="selectedHandle($event)">
-                        <div class="action-buttons d-inline-block">
-                            <button [disabled]="disabledEditOption" mat-icon-button (click)="openDialog()">
-                                <mat-icon matTooltip="Actualizar Estado" matTooltipPosition="above">edit</mat-icon>
-                            </button>
-                        </div>
+                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
+                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
+                        [pageKey]="pageKey" (selectedIdsChange)="handleSelectedIds($event)"
+                        [customExportFunction]="exportDataViaAPI.bind(this)" (selectedChange)="selectedHandle($event)"
+                        (clickButtonEvent)="clickButton($event)">
+
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>
