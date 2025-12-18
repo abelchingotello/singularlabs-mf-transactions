@@ -94,8 +94,8 @@
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Estado de Conciliacion</mat-label>
                             <mat-select formControlName="statusConc" multiple>
-                                <mat-option *ngFor="let status of masterStatusConc" [value]="status">
-                                    {{status}}
+                                <mat-option *ngFor="let status of masterStatusConc" [value]="status.master_value">
+                                    {{status.master_name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
@@ -138,16 +138,11 @@
         <mat-card class="custom-border-radius-1-25">
             <mat-card-content>
                 <div>
-                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [actionsOptions]="true"
-                        [lengthTable]="count" [refreshFunction]="reload.bind(this)" element_id="concep"
-                        (pageChange)="onPageChange($event)" [pageKey]="pageKey"
-                        (selectedIdsChange)="handleSelectedIds($event)"
-                        [customExportFunction]="exportDataViaAPI.bind(this)" (selectedChange)="selectedHandle($event)">
-                        <div class="action-buttons d-inline-block">
-                            <button [disabled]="disabledEditOption" mat-icon-button (click)="openDialog()">
-                                <mat-icon matTooltip="Actualizar Estado" matTooltipPosition="above">edit</mat-icon>
-                            </button>
-                        </div>
+                    <uni-dynamic-table [columns]="columns" [data]="dataTransaction" [lengthTable]="count"
+                        [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
+                        [pageKey]="pageKey" [customExportFunction]="exportDataViaAPI.bind(this)"
+                        (clickButtonEvent)="clickButton($event)">
+
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>
