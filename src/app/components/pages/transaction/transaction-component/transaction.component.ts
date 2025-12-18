@@ -444,7 +444,7 @@ export class TransactionComponent implements OnInit {
           } else {
             this.listUndServicesElectrocentro = [];
           }
-          this.masterStatusConc = [{ master_value: 'CONCILIADO', master_name: "CONCILIADO" }, { master_value: "SIN CONCICLIAR", master_name: "SIN CONCICLIAR" }, { master_value: "", master_name: "PENDIENTE" }];
+          this.masterStatusConc = [{ master_value: 'CONCILIADO', master_name: "CONCILIADO" }, { master_value: "SIN CONCILIAR", master_name: "SIN CONCICLIAR" }, { master_value: "", master_name: "PENDIENTE" }];
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
           this.categoryTypes = category;
           this.spinner.spinnerOnOff();
