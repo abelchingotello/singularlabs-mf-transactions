@@ -59,7 +59,9 @@ export class TransactionComponent implements OnInit {
     {
       'name': 'Est. Transaccion',
       'attribute': 'status',
-      'config': { 'renderIcon': true }
+      'config': {
+        'renderIcon': true
+      }
     },
     {
       'name': 'Accion',
@@ -72,7 +74,7 @@ export class TransactionComponent implements OnInit {
             toolTip: 'Editar',
             icon: 'edit',
             value: 'edit'
-          },
+          }
         ]
       }
     },
@@ -477,7 +479,6 @@ export class TransactionComponent implements OnInit {
       startWith([])
     );
   }
-
 
   /**
    * Limpia los filtros de búsqueda y recarga las transacciones.

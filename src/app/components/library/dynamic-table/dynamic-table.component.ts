@@ -38,7 +38,7 @@ import { IconTypeComponent } from './../icons_type/icons_type.component'
     MatCardModule,
     MatButtonModule,
     MatTooltipModule,
-    IconTypeComponent
+    IconTypeComponent,
   ],
 })
 
