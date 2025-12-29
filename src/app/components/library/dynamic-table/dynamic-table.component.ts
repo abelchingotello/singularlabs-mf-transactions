@@ -96,12 +96,19 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.displayedColumns = this.columns.map(column => column.name);
-    this.attributeNames = this.columns.map(column => column.attribute);
+    this.displayedColumns = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.name);
+
+    this.attributeNames = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.attribute);
+
     this.dataSource = new MatTableDataSource(this.data);
     this.dataPrint = new MatTableDataSource(this.data);
     this.selectedTab = this.selectedTab.toLowerCase();
   }
+
 
   ngAfterViewInit(): void {
     this.initTable();
@@ -127,9 +134,13 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     if (changes['columns']) {
-      // Actualizamos las columnas visibles y los atributos de las columnas cuando cambien
-      this.displayedColumns = this.columns.map(column => column.name);
-      this.attributeNames = this.columns.map(column => column.attribute);
+      this.displayedColumns = this.columns
+        .filter(c => !c.hide)
+        .map(column => column.name);
+
+      this.attributeNames = this.columns
+        .filter(c => !c.hide)
+        .map(column => column.attribute);
     }
   }
 
@@ -141,8 +152,12 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   updateSort(callback?: () => void) {
     this.changeDetectorRef.detectChanges();
-    this.displayedColumns = this.columns.map(column => column.name);
-    this.attributeNames = this.columns.map(column => column.attribute);
+    this.displayedColumns = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.name);
+    this.attributeNames = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.attribute);
     this.dataSource.data = this.data;
     this.initTable();
     callback?.();
@@ -333,7 +348,6 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   exportCsv() {
-
     if (this.customExportFunction) {
       this.customExportFunction('csv');
     }
@@ -342,6 +356,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 export interface TableColumn {
   name: string;
   attribute: string;
+  hide: boolean;
   config?: {
     formatDate?: {
       format?: string;

@@ -71,14 +71,14 @@ export class AssignBalanceComponent implements OnInit {
           this.verificationForm.get('code')?.setValue(data.code);
           console.log(this.verificationForm)
         });
+        // Mostrar notificación visual si el navegador lo permite
+        if (Notification.permission === 'granted') {
+          new Notification('Código de verificación', {
+            body: `Tu código es: ${data.code}`,
+          });
+        }
       }
 
-      // Mostrar notificación visual si el navegador lo permite
-      if (Notification.permission === 'granted') {
-        new Notification('Código de verificación', {
-          body: `Tu código es: ${data.code}`,
-        });
-      }
     });
 
   }
@@ -149,7 +149,7 @@ export class AssignBalanceComponent implements OnInit {
     if (this.selectedType == this.provider) {
       this.idProvider?.setValue(event.value.idPerson)
       this.idClient?.setValue(null)
-    } else{
+    } else {
       this.idClient?.setValue(event.value.idPerson)
       this.idProvider?.setValue(null)
     }
@@ -198,7 +198,7 @@ export class AssignBalanceComponent implements OnInit {
         error: (err) => {
           console.error('❌ Error al enviar código:', err);
         },
-        complete: () =>{
+        complete: () => {
           this.spinner.spinnerOnOff();
         },
       });

@@ -15,6 +15,9 @@ export class BalanceService {
     private readonly httpClient: HttpClient,
   ) { }
 
+  adjustBalance(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/transactions/balances`, data);
+  }
 
   assignBalance(data: any): Observable<any> {
     return this.httpClient.post(`${this.url}/transactions/balances`, data);

@@ -15,6 +15,10 @@ export class PersonService {
     private readonly httpClient: HttpClient,
   ) { }
 
+  updateMinBalancePerson(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/person/entity`, data);
+  }
+
   getPerson(typeEntity?: string, nameAlias?: string, activeOnly?: boolean): Observable<any> {
     let params = new HttpParams();
     if (typeEntity) { params = params.set('typeEntity', typeEntity); };

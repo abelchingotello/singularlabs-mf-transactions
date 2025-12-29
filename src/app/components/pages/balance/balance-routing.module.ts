@@ -7,7 +7,8 @@ import { ListBalanceComponent } from './list-balance/list-balance.component';
 const routes: Routes = [
   {path:'control',component:ReportBalanceComponent},
   {path:'assign',component:AssignBalanceComponent},
-  {path:'list-balance',component:ListBalanceComponent}
+  {path:'list-balance',component:ListBalanceComponent},
+  {path:'list-balance/admin',component:ListBalanceComponent}
 ];
 
 @NgModule({

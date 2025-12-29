@@ -12,6 +12,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
+import { DialogData } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { DialogAdjustBalanceComponent } from 'src/app/dialogs/dialog-adjust-balance/dialog-adjust-balance.component';
+import { DialogMinBalanceComponent } from 'src/app/dialogs/dialog-min-balance/dialog-min-balance.component';
 
 @Component({
   selector: 'app-list-balance',
@@ -26,7 +30,28 @@ export class ListBalanceComponent implements OnInit {
     { 'name': 'Entidad', 'attribute': 'entity' },
     { 'name': 'Tipo Monto', 'attribute': 'typeAmount' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
-    //{ 'name': 'Moneda', 'attribute': 'currency' },
+    {
+      'name': 'Accion',
+      'attribute': '',
+      hide: this.router.url !== "/balance/list-balance/admin",
+      'config': {
+        'type': 'buttonicons',
+        'actions': [
+          {
+            bgClass: 'yellow',
+            toolTip: 'Editar',
+            icon: 'edit',
+            value: 'edit'
+          },
+          {
+            bgClass: 'green',
+            toolTip: 'Configurar Saldo Minimo',
+            icon: 'payments',
+            value: 'asign_min_balance'
+          },
+        ]
+      }
+    },    //{ 'name': 'Moneda', 'attribute': 'currency' },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
@@ -51,7 +76,7 @@ export class ListBalanceComponent implements OnInit {
     private readonly masterService: MasterService,
     private readonly mytoastr: MytoastrService,
     private readonly balanceService: BalanceService,
-  ) {
+    public dialog: MatDialog,) {
     this.pagUtils = new PaginationUtils();
   }
 
@@ -89,6 +114,25 @@ export class ListBalanceComponent implements OnInit {
     })
   }
 
+  openDialogAdjustBalance(data: any) {
+    const dialogRef = this.dialog.open(DialogAdjustBalanceComponent, {
+      width: '600px',
+      data: {
+        balance: data.amountTransaction.split(' ')[0],
+        entity: data.entity,
+        id: data.entity_id,
+        type_entity: this.typeEntity.master_name
+      }
+    });
+    dialogRef.afterClosed().subscribe(response => {
+      console.log('The dialog was closed', response);
+      if (response === 200) {
+        this.reload();
+        this.mytoastr.showSuccess('Asignación de saldo minimo exitoso', '');
+      }
+    });
+  }
+
   /**
    * Obtiene saldos actuales según filtros seleccionados.
    *
@@ -120,6 +164,7 @@ export class ListBalanceComponent implements OnInit {
           const person = this.nameType.find((p: any) => p.servicePerson.idPerson === item.entity);
           return {
             ...item,
+            entity_id: item.entity,
             amountTransaction: item.amountTransaction + ' ' + item.currency,
             entity: person ? person.servicePerson.nameAlias : item.entity, // Asignar el nombre
           };
@@ -184,6 +229,44 @@ export class ListBalanceComponent implements OnInit {
     }
   }
 
+  clickButton(event: any) {
+    console.log("event", event)
+    const { value, element } = event
+    if (value == "edit") {
+      console.log("element: ", element)
+      this.openDialogAdjustBalance(element)
+    }
+    if (value == "asign_min_balance") {
+
+      this.openDialogMinBalance(element)
+    }
+  }
+
+  openDialogMinBalance(element: any): void {
+    const min_balance = this.nameType.filter((item: any) => item.servicePerson.idPerson == element.entity_id)[0].servicePerson.min_balance
+    const dialogRef = this.dialog.open(DialogMinBalanceComponent, {
+      width: '600px',
+      data: {
+        person_id: element.entity_id,
+        person_name: element.entity,
+        min_balance: min_balance !== "N/A" ? min_balance : 1000
+      },
+    });
+    dialogRef.afterClosed().subscribe(
+      response => {
+        if (response) {
+          console.log('result en afterClosed of openDialogMinBalance', response)
+          if (response.statusCode == 200) {
+            this.reload();
+            this.mytoastr.showSuccess('Asignación de saldo minimo exitoso', '');
+          } else {
+            this.mytoastr.showWarning(`ERROR ${response.message}`, '');
+          }
+        }
+      });
+  }
+
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
@@ -246,11 +329,11 @@ export class ListBalanceComponent implements OnInit {
   }
 
   /**
- * Consulta las personas asociadas a un tipo de entidad específico.
- *
- * @param {*} nameType - Nombre relativo de la entidad.
- * @returns {void}
- */
+  * Consulta las personas asociadas a un tipo de entidad específico.
+  *
+  * @param {*} nameType - Nombre relativo de la entidad.
+  * @returns {void}
+  */
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();

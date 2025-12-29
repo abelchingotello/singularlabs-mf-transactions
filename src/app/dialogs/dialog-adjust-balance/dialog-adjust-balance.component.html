@@ -1,0 +1,22 @@
+<div class="bg-custom  mb-3 p-3">
+    <h3 class="m-0 text-white" mat-dialog-title>Actualizar estado</h3>
+</div>
+<form [formGroup]="formOperation">
+    <mat-form-field class="col-md-6" appearance="outline">
+        <mat-label>Entidad {{this.data.type_entity}}</mat-label>
+        <input formControlName="entity" type="text" matInput>
+    </mat-form-field>
+
+    <mat-form-field class="col-md-6" appearance="outline">
+        <mat-label>Nuevo Saldo</mat-label>
+        <input formControlName="balance" type="text" matInput>
+
+    </mat-form-field>
+    <div class="d-flex justify-content-end">
+        <button mat-button class="btn btn-default-custom text-white" cdkFocusInitial (click)="updateEstado()"
+            [disabled]="isDisable" formButtonName="btnActualizar">
+            <mat-icon> update</mat-icon>
+            Actualizar
+        </button>
+    </div>
+</form>

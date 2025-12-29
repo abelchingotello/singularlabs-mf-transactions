@@ -31,7 +31,7 @@
               </button>
               <button type="button" class="btn-default3 btn" (click)="searchData()">
                 <mat-icon>search</mat-icon>
-                      Buscar
+                Buscar
               </button>
             </div>
           </div>
@@ -44,7 +44,8 @@
         <div>
           <uni-dynamic-table [columns]="columns" [lengthTable]="count" [data]="dataBalance" [actionsOptions]="false"
             element_id="id" [pageKey]="pageKey" [refreshFunction]="reload.bind(this)"
-            (pageChange)="onPageChange($event)"[customExportFunction]="exportDataViaAPI.bind(this)">
+            (pageChange)="onPageChange($event)" [customExportFunction]="exportDataViaAPI.bind(this)"
+            (clickButtonEvent)="clickButton($event)">
           </uni-dynamic-table>
         </div>
       </mat-card-content>
