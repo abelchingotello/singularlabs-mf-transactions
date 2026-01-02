@@ -249,7 +249,7 @@ export class ReportBalanceComponent implements OnInit {
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType).subscribe({
+    this.personService.getPerson(nameType,undefined,true).subscribe({
       next: (value) => {
         this.nameType = value.data
       },
