@@ -120,6 +120,7 @@ export class TransactionService {
     params = params.set('numberOperation', numberOperation);
     return this.httpClient.get(`${this.url}/transactions/voucher`, { params });
   }
+  
   /*
   //-----Exportar de archivos
   exportTransactions(
