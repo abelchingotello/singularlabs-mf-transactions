@@ -1,4 +1,4 @@
-import { NgModule, ElementRef } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -8,7 +8,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSortModule } from '@angular/material/sort';
@@ -20,8 +19,6 @@ import { ImageCardComponent } from './image-card/image-card.component';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
-// import { InputPhoneComponent } from './input-phone/input-phone.component';
-// import { UserFormComponent } from './user-form/user-form.component';
 import { SearchSelectComponent } from './search-select/search-select.component';
 
 @NgModule({
@@ -40,7 +37,6 @@ import { SearchSelectComponent } from './search-select/search-select.component';
     MatFormFieldModule,
     MatSelectModule,
     MatCardModule,
-    MatOptionModule,
     FormsModule,
     ReactiveFormsModule,
     MatSortModule,
@@ -50,12 +46,12 @@ import { SearchSelectComponent } from './search-select/search-select.component';
     MatDividerModule,
     MatChipsModule,
     MatListModule,
-    DynamicTableComponent
+    DynamicTableComponent,
   ],
-  exports:[
+  exports: [
     SpinnerComponent,
     ImageCardComponent,
-    DynamicTableComponent
-  ]
+    DynamicTableComponent,
+  ],
 })
 export class LibraryModule { }

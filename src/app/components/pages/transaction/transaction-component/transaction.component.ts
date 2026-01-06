@@ -17,7 +17,8 @@ import { PersonService } from 'src/app/services/person.service';
 import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
-import { expand, filter, of, scan, startWith } from 'rxjs';
+import { distinctUntilKeyChanged, expand, filter, of, scan, startWith } from 'rxjs';
+import { config } from 'process';
 
 @Component({
   selector: 'app-transaction',
@@ -29,12 +30,14 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Recaudador', 'attribute': 'client' },
+    { 'name': 'Proveedor', 'attribute': 'provider' },
+    { 'name': 'Servicio', 'attribute': 'serviceName' },
+    { 'name': 'N°. Suministro', 'attribute': 'supply' },
     { 'name': 'N°. Recibo', 'attribute': 'concep' },
+    { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
     // { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Proveedor', 'attribute': 'provider' },
     {
       'name': 'Fecha', 'attribute': 'date', 'config': {
         'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
@@ -46,7 +49,22 @@ export class TransactionComponent implements OnInit {
       'name': 'Est. Transaccion',
       'attribute': 'status',
       'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
-    }
+    },
+    {
+      'name': 'Accion',
+      'attribute': '',
+      'config': {
+        'type': 'buttonicons',
+        'actions': [
+          {
+            bgClass: 'yellow',
+            toolTip: 'Editar',
+            icon: 'edit',
+            value: 'edit'
+          },
+        ]
+      }
+    },
   ];
   public dataTransaction: any[] = [];
 
@@ -63,13 +81,9 @@ export class TransactionComponent implements OnInit {
   public count: any = -1;
   public page: any = 1;
   public amountTransaction: any = -1;
-  public filteredServices: any[] = []; // Lista filtrada que se mostrará
-  public allItems: any[] = [];
-  public serviceFilter: string = '';
-  public categoryTypes: any[] = [];
   public listProviders: any[] = [];
-  public selectedCategory: boolean = false;
-
+  public services: any;
+  public masterStatusCons: any;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
@@ -81,7 +95,7 @@ export class TransactionComponent implements OnInit {
     private personService: PersonService,
     private dateService: DateService,
     private serviceServ: ServicesService,
-  ) {
+    public dialog: MatDialog,) {
     this.pagUtils = new PaginationUtils();
   }
 
@@ -96,8 +110,6 @@ export class TransactionComponent implements OnInit {
     }
   }
 
-
-
   initialForm() {
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
@@ -106,25 +118,10 @@ export class TransactionComponent implements OnInit {
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
-      category: [''],
       idService: [''],
       numDoc: [''],
       status: [''],
       provider: [''],
-    });
-  }
-
-  selectCategory() {
-    console.log("Categoria seleccionada: ", this.category);
-    if (this.category == undefined || this.category == '') {
-      this.selectedCategory = false;
-      this.filteredServices = [];
-      return;
-    }
-    this.selectedCategory = true;
-    this.loadAllServices().subscribe(allItems => {
-      // this.allItems = allItems.filter((service: any) => service.status === "HABILITADO");
-      this.filteredServices = allItems;
     });
   }
 
@@ -138,9 +135,6 @@ export class TransactionComponent implements OnInit {
     let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
     let provider = this.provider || undefined;
-
-    console.log("idService: ", idServ)
-    console.log("this.page: ", this.page)
     // return
     this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, this.count, this.amountTransaction).subscribe({
       next: (value: any) => {
@@ -185,7 +179,6 @@ export class TransactionComponent implements OnInit {
     )
   }
 
-
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
@@ -208,18 +201,33 @@ export class TransactionComponent implements OnInit {
     console.log('Página cambiada', event);
   }
 
-  selectedHandle(event: any[]) {
-    console.log("SELECTED HANDLE", event)
+  clickButton(event: any) {
+    console.log("event", event)
+    const { value, element } = event
+    if (value == "edit") {
+      this.openDialog(element)
+    }
   }
 
+  openDialog(data: any): void {
+    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
+      width: '600px',
+      data: {
+        concep: data.concep,
+        statusTrans: data.status,
+        id: data.id_transaction,
+        sk: data.sk,
+        masterStatus: this.masterStatus,
+        masterStatusCons: this.masterStatusCons
+      }
+    });
+    dialogRef.afterClosed().subscribe((result: any) => {
+      console.log('The dialog was closed', result);
+      if (result === true) {
+        this.reload();
+      }
 
-  handleSelectedIds(selectedIds: any[]) {
-    // console.log("Id's: ", selectedIds)
-    this.disabledEditOption = selectedIds.length !== 1;
-    // this.editOption = selectedIds.length == 1;
-    console.log("DESAHIBILITR: ", this.disabledEditOption)
-    // this.selectedIds = selectedIds;
-    console.log("Id--s: ", selectedIds)
+    });
   }
 
   search() {
@@ -235,7 +243,6 @@ export class TransactionComponent implements OnInit {
     }
 
     this.clearData();
-
     this.getDataTransaction(this.pageSize)
     // console.log("fecha buscar",this.formDate.get('date')?.value)
   }
@@ -246,14 +253,16 @@ export class TransactionComponent implements OnInit {
       forkJoin([
         this.masterService.getItemsMasterTable('16'),
         this.personService.getPersonsPandR(),
-        this.masterService.getItemsMasterTable('14'),
+        this.serviceServ.getServices(),
+        this.masterService.getItemsMasterTable('17')
       ]).subscribe({
         next: (response) => {
-          const [masterStatus, persons, category] = response;
+          const [masterStatus, persons, service, masterStatusCons] = response;
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
-          this.categoryTypes = category;
           this.listProviders = persons.data.providerTransform;
           this.entityTypes = persons.data.recaudadorTransform;
+          this.services = service.data.Items;
+          this.masterStatusCons = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
           this.spinner.spinnerOnOff();
           resolve(); //  Indica que terminó exitosamente
         },
@@ -264,20 +273,6 @@ export class TransactionComponent implements OnInit {
         }
       });
     });
-  }
-
-
-  loadAllServices() {  //revisar para que traiga los 2000
-    return this.serviceServ.getServicesPageKey(this.category, 'HABILITADO').pipe(
-      expand(response =>
-        response?.data?.nextPageKey
-          ? this.serviceServ.getServicesPageKey(this.category, 'HABILITADO', response.data.nextPageKey)
-          : of(null) // Detiene la recursión si no hay más páginas
-      ),
-      filter(response => response !== null),
-      scan((acc, response) => acc.concat(response.data.Items), []),
-      startWith([]), // Asegura que siempre haya una emisión inicial
-    );
   }
 
   clearSearch() {
@@ -291,13 +286,6 @@ export class TransactionComponent implements OnInit {
     //limpiar tabla de transacciones
     this.clearData();
     this.getDataTransaction(this.pageSize)
-  }
-
-  filterServices() {
-    const value = this.serviceFilter?.toLowerCase() || '';
-    this.filteredServices = this.allItems.filter(service =>
-      service.name.toLowerCase().includes(value)
-    );
   }
 
   get dateStart() {
@@ -327,6 +315,7 @@ export class TransactionComponent implements OnInit {
   get category() {
     return this.formDate?.get('category')?.value;
   }
+
   get provider() {
     return this.formDate?.get('provider')?.value;
   }
@@ -348,130 +337,30 @@ export class TransactionComponent implements OnInit {
       idclient: this.entity || undefined,
       concept: this.numDoc || undefined,
       idService: this.idService || undefined
-  };
-    // Eliminar propiedades undefined
-    Object.keys(exportFilters).forEach(key => {
-    if (exportFilters[key] === undefined) {
-  delete exportFilters[key];
-}
-    });
-const inbx = 'tr';
-const token = localStorage.getItem('fcmToken') ?? "";
-this.transactionService.exportTransactions(fileType, exportFilters, inbx, token).subscribe({
-  next: (response) => {
-    this.spinner.spinnerOnOff();
-    if (response.statusCode === 200) {
-      this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000);
-    } else {
-      this.mytoastr.showError('', 'Error al enviar la solicitud')
-    }
-  },
-  error: (error) => {
-    this.spinner.spinnerOnOff();
-    console.error('Error durante la exportación:', error);
-    this.mytoastr.showError('Error durante la exportación', '');
-  }
-});
-  }/*
-
-  exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
-    console.log('exportDataViaAPI called with', fileType);
-    this.spinner.spinnerOnOff();
-
-    // Preparar los filtros para la exportación
-    const exportFilters: Record<string, any> = {
-      idclient: this.entity,
-      idprovider: this.provider,
-      status: this.status,
-      date: this.dateStart || this.dateEnd ?
-        JSON.stringify({
-          from: this.dateStart ? this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') : undefined,
-          to: this.dateEnd ? this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') : undefined
-        }) : undefined,
-      idService: this.idService?.toString(),
-      CONCEPT: this.numDoc
     };
-
     // Eliminar propiedades undefined
     Object.keys(exportFilters).forEach(key => {
       if (exportFilters[key] === undefined) {
         delete exportFilters[key];
       }
     });
-    
-   //maneja con codificacion base64 y en blob
-    this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
+    const inbx = 'tr';
+    const token = localStorage.getItem('fcmToken') ?? "";
+    this.transactionService.exportTransactions(fileType, exportFilters, inbx, token).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
-
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
-        }
-
-        console.log("Sí tiene datos el response");
-
-        let blob: Blob;
-
-        // 🔹 Detectar si es Blob (modo local) o Base64 (modo remoto)
-        if (response.body instanceof Blob) {
-          console.log('📦 Modo local (Blob detectado)');
-          // ✅ Leemos el blob y agregamos el BOM si es CSV
-          if (fileType === 'csv') {
-              const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-              blob = new Blob([bom, response.body], { type: response.headers.get('Content-Type') || 'text/csv;charset=utf-8;'});         
-          }else{
-            // XLSX u otros binarios se descargan directo
-            blob = response.body; // ya viene como binario listo
-          }
+        if (response.statusCode === 200) {
+          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000);
         } else {
-          console.log('📦 Modo remoto (Base64 detectado)');
-          // Decodifica Base64 a bytes UTF-8 correctamente
-          const responseBody = response.body || '';
-          const binaryString = atob(responseBody);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-
-          // Si es CSV, agrega el BOM (para Excel y UTF-8 correcto)
-          if (fileType === 'csv') {
-            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-            blob = new Blob([bom, bytes], {
-              type: response.headers.get('Content-Type') || 'text/csv;charset=utf-8;'
-            });
-          } else {
-            blob = new Blob([bytes], {
-              type: response.headers.get('Content-Type') || 'application/octet-stream'
-            });
-          }
-
+          this.mytoastr.showError('', 'Error al enviar la solicitud')
         }
-
-        // 🔹 Nombre del archivo
-        let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
-          }
-        }
-
-        console.log('Downloading file:', filename);
-
-        // 🔹 Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
-        console.error('Error al exportar los datos:', error);
-        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
+        console.error('Error durante la exportación:', error);
+        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
-  }*/
+  }
+
 }

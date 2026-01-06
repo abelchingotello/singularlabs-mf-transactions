@@ -1,7 +1,29 @@
-.header-box {
-    background-color: #2196F3;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 20px;
+/* warning-dialog.component.scss */
+
+/* Botones del diálogo */
+button {
+    margin: 10px;
+}
+
+
+/* Estilos para texto */
+h2 {
+    font-size: 18px;
+    color: #333;
+}
+
+.bg-custom {
+    background-color: var(--default4);
+    color: #fff !important;
+}
+
+//estilos para botones superiores
+.btn-custom {
+    background-color: var(--default3); // #172b4d #001F3F;
+    border-color: var(--default4) !important; //var(--default3) #172b4d
+    color: #fff !important; //#fff  var(--default4)
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 16px 8px 13px !important;
 }

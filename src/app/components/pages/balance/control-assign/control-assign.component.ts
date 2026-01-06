@@ -193,54 +193,28 @@ export class ReportBalanceComponent implements OnInit {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
-    const exportFilters: Record<string, any> = {};
-
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    const exportFilters: Record<string, any> = {
+      entity: this.entity || undefined,
+      typeEntity: this.typeEntity?.master_name || undefined,
+      typeAssign: this.typeAssign || undefined,
+      dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
+      dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    };
+    const inbx = 'ca';
+    const token = localStorage.getItem('fcmToken');
+    this.balanceService.exportBalances(fileType, exportFilters, inbx, token).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
-
-        // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
+        if (response.statusCode === 200) {
+          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000)
+        } else {
+          this.mytoastr.showError('', 'Error al enviar la solicitud')
         }
-
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody); //-----
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `saldos_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
-          }
-        }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
-        console.error('Error al exportar los datos:', error);
-        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
+        console.error('Error durante la exportación:', error);
+        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
   }

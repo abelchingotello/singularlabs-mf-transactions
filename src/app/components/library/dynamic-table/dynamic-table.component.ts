@@ -1,29 +1,29 @@
 import { Component, Input, Output, OnInit, AfterViewInit, ViewChild, EventEmitter, ChangeDetectorRef, ElementRef, OnChanges, SimpleChanges, Inject } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule, PageEvent, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { MatPaginatorIntl } from '@angular/material/paginator';
 import { CommonModule, formatDate } from '@angular/common';
-import * as XLSX from 'xlsx';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { FormsModule, NgModel } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { IconTypeComponent } from './../icons_type/icons_type.component'
+
 @Component({
   selector: 'uni-dynamic-table',
   templateUrl: './dynamic-table.component.html',
   styleUrls: ['./dynamic-table.component.scss'],
   standalone: true,
-  imports:[
+  imports: [
     CommonModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -37,18 +37,18 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatPaginatorModule,
     MatCardModule,
     MatButtonModule,
-    MatTooltipModule
-  ]
+    MatTooltipModule,
+    IconTypeComponent
+  ],
 })
+
 export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
-  //@Input() columns: any[] = [];
-  //@Input() data: any[] = [];
   @Input() columns: TableColumn[] = [];
   @Input() data: TableRow[] = [];
   @Input() actionsOptions?: boolean;
-  @Input() element_id?: string | string[] | 'ALL';
-  @Input() pageKey: any;
-  @Input() lengthTable: any;
+  @Input() element_id?: string | string[];
+  @Input() pageKey: string | any;
+  @Input() lengthTable: number = 0;
   @Input() refreshFunction!: () => void;
   @Input()
   alwaysShowHeaderOptions: boolean = false;
@@ -60,7 +60,8 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   @Output() pageChange = new EventEmitter<PageEvent>();
   @Output() selectedIdsChange = new EventEmitter<TableRow[]>();
   @Output() selectedChange = new EventEmitter<TableRow[]>();
-  @Output() cellClick: EventEmitter<any> = new EventEmitter<any>();
+  @Output() cellClick: EventEmitter<string> = new EventEmitter<string>();
+  @Output() clickButtonEvent = new EventEmitter<any>();
 
   //------------------------
   @Output() exportRequest = new EventEmitter<'xlsx' | 'csv'>();
@@ -77,30 +78,37 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   public selection = new SelectionModel<TableRow>(true, []);
   public headerOptions: boolean = false;
   public obs!: Observable<TableRow[]>;
-  public selectedTab: string = "tab1";
+  public selectedTab: string = 'tab1';
   public styleString: string = '';
   public isLoadingResults = true; //Revisar
-  public selectedIds: any[] = [];
+  public selectedIds: any = [];
   public currentEventPage: PageEvent = new PageEvent;
-  public isCheckedClass: any; //NgModel Class Div Seleccionado
+  public isCheckedClass: string | undefined;
   public pageSize = 5;
-  public paginatorLength: any;
+  public paginatorLength: number = 0;
   public dataCurrent: boolean = false;
   public previousDataLength = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
-    private http: HttpClient,
-    @Inject(MatPaginatorIntl) private paginatorIntl: MatPaginatorIntl) {
+  constructor(private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly http: HttpClient,
+    @Inject(MatPaginatorIntl) private readonly paginatorIntl: MatPaginatorIntl) {
     this.paginatorIntl.itemsPerPageLabel = 'Elementos por página';
   }
 
   ngOnInit(): void {
-    this.displayedColumns = this.columns.map(column => column.name);
-    this.attributeNames = this.columns.map(column => column.attribute);
+    this.displayedColumns = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.name);
+
+    this.attributeNames = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.attribute);
+
     this.dataSource = new MatTableDataSource(this.data);
     this.dataPrint = new MatTableDataSource(this.data);
-    this.selectedTab.toLowerCase();
+    this.selectedTab = this.selectedTab.toLowerCase();
   }
+
 
   ngAfterViewInit(): void {
     this.initTable();
@@ -114,21 +122,10 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         this.dataPrint.data = this.data;
       }
 
-      // Verificar si se ha modificado pageKey o si ha cambiado el tamaño de los datos
-      if (this.pageKey) {
-        // Si hay un pageKey válido o los datos han aumentado de tamaño, activamos hasNextPage
-        //this.paginator.hasNextPage = () => true;
-      }else{
-        // this.paginator.hasNextPage = () => false;
-      }
-
-      // Actualizar el tamaño anterior de los datos para futuras comparaciones
-
       setTimeout(() => {
         if (this.paginator) {
           this.paginator.length = this.lengthTable;
           this.changeDetectorRef.detectChanges();
-          console.log('paginator', this.paginator.length);
         }
       });
       // Iniciar o reiniciar la tabla
@@ -137,32 +134,40 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     if (changes['columns']) {
-      // Actualizamos las columnas visibles y los atributos de las columnas cuando cambien
-      this.displayedColumns = this.columns.map(column => column.name);
-      this.attributeNames = this.columns.map(column => column.attribute);
+      this.displayedColumns = this.columns
+        .filter(c => !c.hide)
+        .map(column => column.name);
+
+      this.attributeNames = this.columns
+        .filter(c => !c.hide)
+        .map(column => column.attribute);
     }
   }
 
   initTable() {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
-    console.log('dataSource.paginator', this.dataSource.paginator);
     this.obs = this.dataSource.connect();
   }
 
   updateSort(callback?: () => void) {
     this.changeDetectorRef.detectChanges();
-    this.displayedColumns = this.columns.map(column => column.name);
-    this.attributeNames = this.columns.map(column => column.attribute);
+    this.displayedColumns = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.name);
+    this.attributeNames = this.columns
+      .filter(c => !c.hide)
+      .map(column => column.attribute);
     this.dataSource.data = this.data;
     this.initTable();
-    console.log('updatesort ejecutado');
     callback?.();
-    console.log(this.data);
   }
 
   get displayedColumnsWithSelect(): string[] {
-    return this.actionsOptions ? ['select', ...this.displayedColumns] : this.displayedColumns;
+    if (this.actionsOptions) {
+      return ['select', ...this.displayedColumns];
+    }
+    return this.displayedColumns;
   }
 
   isAllSelected() {
@@ -175,10 +180,8 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     if (this.isAllSelected()) {
       this.selection.clear();
       this.getSelectedIds();
-      console.log('limpio');
     } else {
       this.selection.select(...this.dataSource.data);
-      console.log('nuevos');
       this.getSelectedIds();
     }
   }
@@ -190,42 +193,51 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.headerOptions = false;
   }
 
-  checkboxLabel(row?: any): string {
+  checkboxLabel(row?: TableRow): string {
     if (!row) {
-      return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
+      if (this.isAllSelected()) {
+        return 'deselect all';
+      } else {
+        return 'select all';
+      }
     }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
+
+    const pos = row['position'] as number | undefined;
+    if (this.selection.isSelected(row)) {
+      return `deselect row ${pos !== undefined ? pos + 1 : ''}`;
+    } else {
+      return `select row ${pos !== undefined ? pos + 1 : ''}`;
+    }
   }
+
 
   getSelectedIds() {
     // Verificar que `element_id` está definido
     if (!this.element_id) {
-        console.warn("element_id no está definido");
-        return;
+      return;
     }
 
-    if(this.element_id === 'ALL'){
+    if (this.element_id === 'ALL') {
       this.selectedIds = this.selection.selected;
     }
     // Si `element_id` es un string, manejarlo como un solo campo
     else if (typeof this.element_id === 'string') {
-        this.selectedIds = this.selection.selected.map(row => row[this.element_id!.toString()]);
+      this.selectedIds = this.selection.selected.map(row => row[this.element_id!.toString()]);
     }
     // Si `element_id` es un array de strings, extraer múltiples campos
     else if (Array.isArray(this.element_id)) {
-      let element: any[] = this.element_id
-        this.selectedIds = this.selection.selected.map(row => {
-            let result: { [key: string]: any } = {};
-            element.forEach(field => {
-                if (row[field]) {
-                    result[field] = row[field];  // Extraer el valor de cada campo
-                }
-            });
-            return result;
+      const element: string[] = this.element_id
+      this.selectedIds = this.selection.selected.map(row => {
+        const result: { [key: string]: string | number | boolean | Date | undefined } = {};
+        element.forEach(field => {
+          if (row[field]) {
+            result[field] = row[field];  // Extraer el valor de cada campo
+          }
         });
+        return result;
+      });
     } else {
-        console.warn("Formato de element_id no reconocido");
-        return;
+      return;
     }
 
     // Activar o desactivar opciones del encabezado según el resultado
@@ -234,41 +246,16 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     // Emitir los IDs seleccionados
     this.selectedIdsChange.emit(this.selectedIds);
     this.selectedChange.emit(this.selection.selected);
-}
+  }
 
   onSelectionChange() {
     this.updateSort();
   }
 
   onPageChange(event: PageEvent) {
-    console.log('onPageChange event:', event);
-    /*
-    //Metodo incorrecto y antiguo de numero de pagina
-    //total 10 element:
-    //elemento 6 al 10 en pag 2 con pageIndex 1:  5*(1+1)<=10 ok
-    //elemento 11 al 15 en pag 3 con pageIndex 2:  5*(2+1)<=10 error
-    //total 9 element:
-    //elemento 6 al 10 en pag 2 con pageIndex 1:  5*(1+1)<=9 error, no debe
-    //elemento 11 al 15 en pag 3 con pageIndex 2:  5*(2+1)<=9 error
-    if (event.pageSize * (event.pageIndex +1) <= (event.length) ) {
-
-      if (this.pageKey && ((event.previousPageIndex && (event.previousPageIndex < event.pageIndex)) || event.previousPageIndex == 0 )) {
-        this.pageChange.emit(event);
-      }
-    }
-    //limitar al no existir data en la siguiente página
-    //delete (this.paginator as any).hasNextPage;
-    */
-    //Metodo correcto de numero de pagina
-    //length: 10 
-    //elemento 6 al 10 con pageIndex=1: from= 1 * 5 = 5 5<10 (ok)
-    //elemento 11 al 15 con pageIndex=2: from= 2 * 5 = 10 10<10 (error)
-    //length: 9 
-    //elemento 6 al 10 con pageIndex=1: from= 1 * 5 = 5 5<9 (ok)
-    //elemento 11 al 15 con pageIndex=2: from= 2 * 5 = 10 10<9 (error)
     const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
     const to = from + event.pageSize;              // 5 + 5 = 10
-    if (this.pageKey && from < event.length) {
+    if (from < event.length) {
       this.pageChange.emit(event);
     } else {
     }
@@ -276,51 +263,64 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.pageSize = event.pageSize;
   }
 
-  onCellClick(value: any) {
+  onCellClick(value: string) {
     this.cellClick.emit(value);  // Emitir el valor clicado al componente padre
   }
 
   print() {
-    if(this.element){
-    const tableElement = this.element.nativeElement.querySelector('table');
-    const clonedTable = tableElement.cloneNode(true);
-    const styles = this.componentStyles();
-    const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if(printWindow){
-    printWindow.document.write(`
-            <html>
-              <head>
-                <title>Imprimir tabla</title>
-                <style>${styles}</style>
-                <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              </head>
-              <body>
-              <div>
+    if (this.element) {
+      const tableElement = this.element.nativeElement.querySelector('table');
+      const clonedTable = tableElement.cloneNode(true) as HTMLElement;
+      const styles = this.componentStyles();
+      const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
+      const printWindow = window.open('', '', 'width=800,height=600');
+
+      if (printWindow) {
+        // Abrir el documento antes de escribir
+        printWindow.document.open();
+        printWindow.document.write(`
+        <html>
+          <head>
+            <title>Imprimir tabla</title>
+            <style>${styles}</style>
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body>
+            <div>
               Información actualizada al: ${date}
-              </div>
-                ${clonedTable.outerHTML}
-              </body>
-            </html>
-          `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    setTimeout(() => {
-      if (!printWindow.closed) {
-        printWindow.close();
+            </div>
+            ${clonedTable.outerHTML}
+          </body>
+        </html>
+      `);
+        printWindow.document.close(); // Importante cerrar después de escribir
+
+        printWindow.focus();
+        printWindow.print();
+
+        setTimeout(() => {
+          if (!printWindow.closed) {
+            printWindow.close();
+          }
+        }, 1000);
       }
-    }, 1000);
-   }
-   } // Ajusta el tiempo según sea necesario
+    }
+  }
+
+  onClickButton(value: any, element: any) {
+    const event = {
+      value,
+      element
+    }
+    this.clickButtonEvent.emit(event)
   }
 
   getStyles() {
     this.http.get('../dynamic-table/dynamic-table.component.scss', { responseType: 'text' }).subscribe(
       styleSheet => {
         this.styleString = styleSheet;
-      }
+      },
     );
   }
 
@@ -334,30 +334,10 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   formatDate(date: string | number | Date | any, format: string, locale: string) {
-    if(!date){
+    if (!date) {
       return '';
     }
     return formatDate(date, format, locale);
-  }
-
-  private createWorkbook(sheetName: string, isCsv: boolean = false): XLSX.WorkBook {
-    const headers = [this.displayedColumns];
-    const wb = XLSX.utils.book_new();
-    const ws: any = XLSX.utils.json_to_sheet([]);
-
-    // Agrega los encabezados
-    XLSX.utils.sheet_add_aoa(ws, headers);
-
-    // Agrega los datos filtrados
-    XLSX.utils.sheet_add_json(ws, this.filterAttributes(), {
-      origin: 'A2',
-      skipHeader: true
-    });
-
-    // Agrega la hoja al libro de trabajo
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-    return wb;
   }
 
   //------------
@@ -365,93 +345,18 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     if (this.customExportFunction) {
       this.customExportFunction('xlsx');
     }
-    // else {
-    //   this.exportRequest.emit('xlsx');
-    //   const wb = this.createWorkbook('Transactions');
-    //   const ws = wb.Sheets['Transactions'];
-
-    //   // Ajusta el ancho de las columnas según el contenido
-    //   const columnWidths = this.columns.map(col => {
-    //     const maxWidth = Math.max(
-    //       col.name.length, // Longitud del encabezado
-    //       ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
-    //     );
-    //     return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
-    //   });
-
-    //   // Establece los anchos de las columnas
-    //   ws['!cols'] = columnWidths;
-
-    //   XLSX.writeFile(wb, 'Excel tabla.xlsx');
-    // }
   }
 
   exportCsv() {
-
     if (this.customExportFunction) {
       this.customExportFunction('csv');
     }
-    // else {
-    //   this.exportRequest.emit('csv');
-    //   const wb = this.createWorkbook('Transactions', true);
-    //   const ws = wb.Sheets['Transactions'];
-
-    //   // Convierte la hoja a CSV con cada valor entre comillas
-    //   const csv = XLSX.utils.sheet_to_csv(ws, {
-    //     FS: ',',
-    //     RS: '\n',
-    //     // Envolver cada campo en comillas dobles
-    //     forceQuotes: true, // Utiliza quoteColumns para asegurar que todos los campos estén entre comillas
-    //   });
-
-    //   // Crea un archivo CSV y dispara la descarga
-    //   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    //   const link = document.createElement('a');
-    //   link.href = URL.createObjectURL(blob);
-    //   link.setAttribute('download', 'tabla.csv');
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   document.body.removeChild(link);
-    // }
   }
-
-  filterAttributes() {
-    // Mapa de configuración de columnas para un acceso rápido
-    const columnConfigMap = new Map<string, any>(
-      this.columns.map(column => [column.attribute, column.config])
-    );
-
-    return this.data.map(item => {
-      const newObj: { [key: string]: any } = {};
-
-      // Recorre las claves que se desean filtrar
-      for (const attribute of this.attributeNames) {
-        // Obtiene la configuración de la columna de forma eficiente
-        const columnConfig = columnConfigMap.get(attribute);
-        let value = item[attribute];
-
-        if(!value){ //Evitar errores cuando el elemento no contiene el atributo
-          newObj[attribute] = '';
-          break;
-        }
-
-        // Formatear la fecha si se especifica en la configuración de la columna
-        if (columnConfig.formatDate && (typeof value === 'string' || value instanceof Date)) {
-          value = formatDate(value, columnConfig.formatDate.format, columnConfig.formatDate.locale);
-        }
-
-
-        newObj[attribute] = value; // Asignar el valor (formateado o no) al nuevo objeto
-      }
-
-      return newObj;
-    });
-  }
-
 }
 export interface TableColumn {
   name: string;
   attribute: string;
+  hide: boolean;
   config?: {
     formatDate?: {
       format?: string;
@@ -463,10 +368,16 @@ export interface TableColumn {
     renderIcon?: string;
     clickable?: string;
     icon?: string;
+    type?: string;
+    actions?: [{
+      bgClass?: string,
+      toolTip?: string,
+      icon?: string,
+      value?: string
+    }]
   };
   style?: string;
   styleClass?: string;
-
 }
 export interface TableRow {
   [key: string]: string | number | Date | boolean | undefined;

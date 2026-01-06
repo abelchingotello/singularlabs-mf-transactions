@@ -17692,12 +17692,12 @@ textarea[resize='horizontal'] {
 }
 
 .navbar-vertical .navbar-nav .nav-link.active {
-    background-color: #03c9d7 !important;
+    background-color: var(--default2) !important;
     color: #fff !important;
 }
 
 .navbar-vertical .navbar-nav .nav-list-link.active {
-    background-color: #03c9d7 !important;
+    background-color: var(--default2) !important;
     color: #fff !important;
 }
 

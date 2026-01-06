@@ -36,19 +36,35 @@ export class BalanceService {
   }
   exportBalances(
     format: 'xlsx' | 'csv',
-    filters: any
-  ): Observable<HttpResponse<string>> {
-    const params = new HttpParams({
-      fromObject: {
-        ...filters,
-        format: format
-      }
-    });
+    filters: any,
+    bandeja: string,
+    token: any
+  ): Observable<any> {
+    let params = new HttpParams();
+    if (filters.entity !== undefined) {
+      params = params.set('entity', filters.entity);
+    }
 
-    return this.httpClient.get(`${this.url}/transactions/balances/export`, {
-      params,
-      observe: 'response',
-      responseType: 'text' // para manejar base64
-    });
+    if (filters.typeEntity !== undefined) {
+      params = params.set('typeEntity', filters.typeEntity);
+    }
+
+    if (filters.typeAssign !== undefined) {
+      params = params.set('typeAssign', filters.typeAssign);
+    }
+
+    if (filters.dateStart !== undefined && filters.dateStart !== null) {
+      params = params.set('dateStart', filters.dateStart);
+    }
+    if (filters.dateEnd !== undefined && filters.dateEnd !== null) {
+      params = params.set('dateEnd', filters.dateEnd);
+    }
+
+    params = params.set('format', format);
+    params = params.set('inbx', bandeja);
+    params = params.set('token', token);
+
+    console.log('Exporting balances with params:', params.toString());
+    return this.httpClient.get(`${this.url}/export`, { params });
   }
 }

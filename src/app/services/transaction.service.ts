@@ -93,23 +93,13 @@ export class TransactionService {
     return this.httpClient.get(`${this.url}/transactions/balances`, { params });
   }
 
-  getCurrentBalances(limit?: any, page?: any, typeEntity?: any, entity?: any, count?: any): Observable<any> {
-    let params = new HttpParams();
-    if (typeEntity !== undefined) {
-      params = params.set('typeEntity', typeEntity);
+  getCurrentBalances(filters: any, limit?: any, page?: any, count?: any): Observable<any> {
+    const extraParams = {
+      limit,
+      page,
+      count: count !== undefined ? Number(count) : undefined,
     }
-    if (entity !== undefined) {
-      params = params.set('entity', entity);
-    }
-    if (limit !== undefined) {
-      params = params.set('limit', limit);
-    }
-    if (page !== undefined) {
-      params = params.set('page', page);
-    }
-    if (count >= 0) {
-      params = params.set('count', Number(count));
-    }
+    const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
   }
 
@@ -189,7 +179,7 @@ exportTransactions(
     const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get<ExportResponse>(`${this.url}/export`, { params });
   }
-  
+
   private buildTransactionParams(
     filters: TransactionFilters,
     extraParams?: ExtraParams
@@ -223,7 +213,9 @@ exportTransactions(
 
   }
 
-
+  updateTransactionStatus(data: any): Observable<any> {
+    return this.httpClient.post<any>(`${this.url}/transactions/status`, data);
+  }
 }
 
 interface TransactionFilters {

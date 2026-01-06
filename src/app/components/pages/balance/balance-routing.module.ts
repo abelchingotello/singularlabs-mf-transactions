@@ -5,6 +5,7 @@ import { AssignBalanceComponent } from './assign-balance/assign-balance.componen
 import { ListBalanceComponent } from './list-balance/list-balance.component';
 
 const routes: Routes = [
+  {path:'',component:ReportBalanceComponent},
   {path:'control',component:ReportBalanceComponent},
   {path:'assign',component:AssignBalanceComponent},
   {path:'list-balance',component:ListBalanceComponent}
