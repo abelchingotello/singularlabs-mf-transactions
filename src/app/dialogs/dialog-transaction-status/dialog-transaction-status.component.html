@@ -19,11 +19,11 @@
         </mat-select>
     </mat-form-field>
     <div class="d-flex justify-content-end">
-        <button mat-button class="btn button-quaternary" cdkFocusInitial (click)="closedialog()">
+        <button mat-button class="btn button-quaternary" (click)="closedialog()">
             <mat-icon> close</mat-icon>
             Cerrar
         </button>
-        <button mat-button class="btn button-tertiary" cdkFocusInitial (click)="updateEstado()" [disabled]="isDisable"
+        <button mat-button class="btn button-tertiary" (click)="updateEstado()" [disabled]="isDisable"
             formButtonName="btnActualizar">
             <mat-icon> update</mat-icon>
             Actualizar
