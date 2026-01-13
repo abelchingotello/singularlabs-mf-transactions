@@ -1,5 +1,5 @@
-<div class="bg-custom mb-3 p-3">
-  <h3 class="m-0 text-white" mat-dialog-title>Actualizar Saldo Mínimo</h3>
+<div class="bg-dialog mb-3 p-3">
+  <h3 class="m-0 text-dialog" mat-dialog-title>Actualizar Saldo Mínimo</h3>
 </div>
 
 <form [formGroup]="formMinBalance" class="">
@@ -14,7 +14,11 @@
     <input matInput type="number" placeholder="Saldo mínimo..." formControlName="minBalance"> </mat-form-field>
 
   <div class="d-flex justify-content-end ">
-    <button mat-raised-button class="btn btn-default4" cdkFocusInitial (click)="updateMinBalance()">
+    <button mat-raised-button class="btn button-quaternary" (click)="onNoClick()">
+      <mat-icon> close</mat-icon>
+      Cerrar
+    </button>
+    <button mat-raised-button class="btn button-tertiary" (click)="updateMinBalance()">
       <mat-icon> update</mat-icon>
       Actualizar
     </button>

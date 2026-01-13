@@ -110,6 +110,10 @@ export class DialogTransactionStatusComponent implements OnInit {
     });
   }
 
+  closedialog(){
+    this.dialogRef.close()
+  }
+
 
   get nuevoEstado() {
     return this.formOperation?.get('nuevoEstado')?.value;

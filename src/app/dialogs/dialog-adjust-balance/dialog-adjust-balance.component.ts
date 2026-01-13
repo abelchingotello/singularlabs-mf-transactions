@@ -78,6 +78,9 @@ export class DialogAdjustBalanceComponent implements OnInit {
     });
   }
 
+  onNoClick(){
+    this.dialogRef.close();
+  }
 
   get entity() {
     return this.formOperation?.get('entity');
