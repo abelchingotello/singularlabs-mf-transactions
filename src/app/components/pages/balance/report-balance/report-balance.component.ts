@@ -23,14 +23,18 @@ export class ReportBalanceComponent implements OnInit {
   public columns: any[] = [
     { 'name': 'Nombre', 'attribute': 'concep' },
     { 'name': 'Monto transacción', 'attribute': 'amountTransaction' },
-    { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Saldo cliente', 'attribute': 'clientBalance'},
-    { 'name': 'Fecha', 'attribute': 'date', 'config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }},
-    { 'name': 'Estado', 'attribute': 'status','config':{
-      'styleClass':true
-    }},
+    { 'name': 'Moneda', 'attribute': 'currency' },
+    { 'name': 'Saldo cliente', 'attribute': 'clientBalance' },
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
+      }
+    },
+    {
+      'name': 'Estado', 'attribute': 'status', 'config': {
+        'styleClass': true
+      }
+    },
   ];
   public dataBalance: any[] = [];
   public pageSize: any = 5;
@@ -42,7 +46,7 @@ export class ReportBalanceComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
+    private spinner: SpinnerService,
     private router: Router,
     private transactionService: TransactionService,
     private dateService: DateService,
@@ -57,22 +61,22 @@ export class ReportBalanceComponent implements OnInit {
     this.functionDataCurrent(this.pageSize)
   }
 
-  addBalance(){
+  addBalance() {
     this.router.navigate(['balance/assign'])
   }
 
-  getDataBalance(pageSize:any){
+  getDataBalance(pageSize: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataBalance)
-    this.transactionService.getBalance(pageSize,this.pageKey).subscribe({
-      next: (value:any) => {
-        this.dataBalance = [...this.dataBalance,...value.data.Items];
+    this.transactionService.getBalance(pageSize, this.pageKey).subscribe({
+      next: (value: any) => {
+        this.dataBalance = [...this.dataBalance, ...value.data.Items];
         this.pageKey = value.data.nextPageKey ?? null
-        if(value.data.Count != 0) this.count = value.data.Count;
-        console.log("DATA DE TRANSACTION: " ,value.data)
+        if (value.data.Count != 0) this.count = value.data.Count;
+        console.log("DATA DE TRANSACTION: ", value.data)
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -113,7 +117,7 @@ export class ReportBalanceComponent implements OnInit {
 
     const exportFilters: Record<string, any> = {};
 
-    this.balanceService.exportBalances(fileType, exportFilters).subscribe({
+    this.balanceService.exportBalances(fileType, exportFilters, "", "").subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
 
