@@ -1,5 +1,5 @@
-<div class="bg-custom  mb-3 p-3">
-    <h3 class="m-0 text-white" mat-dialog-title>Actualizar estado</h3>
+<div class="bg-dialog  mb-3 p-3">
+    <h3 class="m-0 text-dialog" mat-dialog-title>Actualizar estado</h3>
 </div>
 <form [formGroup]="formOperation">
     <mat-form-field class="col-md-6" appearance="outline">
@@ -19,8 +19,8 @@
         </mat-select>
     </mat-form-field>
     <div class="d-flex justify-content-end">
-        <button mat-button class="btn btn-default2 text-white" cdkFocusInitial (click)="updateEstado()"
-            [disabled]="isDisable" formButtonName="btnActualizar">
+        <button mat-button class="btn button-tertiary" cdkFocusInitial (click)="updateEstado()" [disabled]="isDisable"
+            formButtonName="btnActualizar">
             <mat-icon> update</mat-icon>
             Actualizar
         </button>
