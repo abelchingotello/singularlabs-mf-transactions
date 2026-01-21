@@ -7,16 +7,15 @@
 table {
     width: 100%; // Cambié `min-width` a `width` para asegurar que la tabla ocupe el 100% del contenedor.
     border-collapse: separate; // Mantén las celdas de la tabla unidas para evitar bordes dobles.
-    // border-radius: 1.25rem; // Mantiene el borde redondeado.
-    // overflow: hidden; // Asegura que el contenido de la tabla respete los bordes redondeados.
-    // border: 1px solid black; 
 }
 
 td.mat-cell {
-    min-width: 100px;
+    min-width: 80px;
     padding-right: 8px;
     overflow-wrap: break-word;
     word-break: break-word;
+    align-items: center !important;
+    text-align: center !important;
 
     @media (max-width: 720px) {
         min-width: 150px;
@@ -53,41 +52,18 @@ th.mat-header-cell {
 }
 
 
-// .mat-paginator{
-//     width: auto;
-//     min-width: 100%;
-// }
-
-// .mat-header-cell,
-// .mat-cell {
-//     // padding: 8px;
-//     word-wrap: break-word;
-//     white-space: nowrap;
-//     text-overflow: ellipsis;
-// }
-
-// // .mat-header-cell {
-// //     font-weight: bold;
-// // }
-
-// // .mat-row,
-// // .mat-header-row {
-// //     display: table-row;
-// // }
-
-// @media screen and (max-width: 768px) {
-
-//     .mat-header-cell,
-//     .mat-cell {
-//         white-space: normal;
-//     }
-// }
+::ng-deep .mat-sort-header-container {
+    width: 100%;
+    display: flex;
+    justify-content: center !important;
+    align-items: center;
+    text-align: center;
+}
 
 .card-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     max-width: 100%;
-    // max-width: 100%;
     overflow: auto;
     height: auto;
 }
@@ -105,11 +81,11 @@ th.mat-header-cell {
     box-shadow: none !important;
 }
 
-.cart-item.bg-info{
+.cart-item.bg-info {
     border-radius: 8px;
 }
 
-.mat-card-media{
+.mat-card-media {
     position: relative;
     box-sizing: border-box;
     background-repeat: no-repeat;
@@ -117,7 +93,7 @@ th.mat-header-cell {
     background-size: cover;
 }
 
-.card-item.icon-card{
+.card-item.icon-card {
     margin-top: -45px;
     z-index: 1;
     position: relative;
@@ -164,7 +140,7 @@ th.mat-header-cell {
     width: auto !important;
 }
 
-::ng-deep .view-field .mat-form-field-flex>.mat-form-field-infix > .mat-select > .mat-select-trigger> .mat-select-value {
+::ng-deep .view-field .mat-form-field-flex>.mat-form-field-infix>.mat-select>.mat-select-trigger>.mat-select-value {
     width: 0px !important;
 }
 
@@ -172,21 +148,13 @@ th.mat-header-cell {
     visibility: hidden;
 }
 
-::ng-deep .custom-header-row-dynamic-table .mat-sort-header .mat-sort-header-container .mat-sort-header-content {
-    color: #333;
-    /* Color del texto */
-    font-weight: bold;
-    /* Negrita para el texto */
-    // overflow-wrap: break-word;
-    // word-break: break-word;
+::ng-deep .custom-header-row-dynamic-table .mat-sort-header .mat-sort-header-content {
+    color: #333; // Color del texto
+    font-weight: bold; // Negrita para el texto
 }
 
 .custom-header-row-dynamic-table {
-    /* Mantener la fila fija en la parte superior */
-    top: 0;
-    /* Pegado a la parte superior */
-    // z-index: 10;
-    /* Asegurarse de que esté por encima de otras filas */
+    top: 0; // Mantener la fila fija en la parte superior
 }
 
 .custom-headercell-dynamictable {
@@ -194,7 +162,6 @@ th.mat-header-cell {
     color: #333;
     font-weight: bold;
     top: 0;
-    // z-index: 1;
 }
 
 .checkbox-container {
@@ -225,7 +192,64 @@ th.mat-header-cell {
 .not-data-cell {
     text-align: center;
     font-size: large;
-    color: #000000; 
-    height: 60px; /* espacio vertical */
+    color: #000000;
+    height: 60px;
+    /* espacio vertical */
 }
 
+.status {
+    color: #000000 !important;
+}
+
+.table-checkbox {
+    width: 50px;
+    min-width: 50px;
+    /* importante en mat-table */
+    max-width: 50px;
+    text-align: center;
+}
+
+$button-colors: (
+    green: (#4CAF50, #E8F5E9),
+    // Verde "HABILITADO"
+    gray: (#B0BEC5, #ECEFF1),
+    // Gris suave como el de la UI
+    red: (#E53935, #FFEBEE),
+    // Rojo consistente con Material
+    yellow: (#FFC107, #FFF8E1),
+    // Mantengo amarillo (editar)
+    blue: (#005B99, #E3F2FD),
+    // Azul del top bar
+    lightblue: (#00C8FF, #E1F5FE),
+    // Celeste del menú / acento
+    purple: (#7EC8E3, #EEF7FB),
+    // Tono del logo (azul-lila suave)
+    pink: (#EC407A, #FCE4EC),
+    // Ajustado a Material para equilibrio
+    orange: (#FB8C00, #FFF3E0),
+    // Más consistente con la UI
+    teal: (#00838F, #E0F7FA),
+    // Azul verdoso acorde al esquema
+    black: (#263238, #FFFFFF),
+    // Negro grisáceo usado en textos
+    white: (#FFFFFF, #263238) // Blanco con texto contrastante
+);
+
+
+.bg-button {
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &.round {
+        border-radius: 20000px;
+    }
+
+    @each $name, $colors in $button-colors {
+        &.#{$name} {
+            background-color: nth($colors, 1);
+            color: nth($colors, 2);
+        }
+    }
+}

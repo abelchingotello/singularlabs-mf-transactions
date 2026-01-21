@@ -11,6 +11,7 @@ export class ServicesService {
   public servicePayment = new BehaviorSubject<any[]>([]);
 
   private url = `${environment.URL_API_GATEWAY}`;
+  //private url = `${environment.URL_API_LOCAL}`;
 
   constructor(
     private httpClient: HttpClient
@@ -26,6 +27,19 @@ export class ServicesService {
     if(name){
       params = params.set('name', name);
     }
+    return this.httpClient.get<any>(`${this.url}/services`,{params: params});
+  }
+
+  getServicesPageKey(category:string, status:string, pageKey?:any[]): Observable<any>{
+    let params = new HttpParams()
+    if (pageKey !== undefined) {
+      params = params.set('pageKey', JSON.stringify(pageKey));
+    }
+    params = params.set('status', status);
+    params = params.set('category', category);
+    
+    params = params.set('count', 0);
+    params = params.set('limit', 200);
     return this.httpClient.get<any>(`${this.url}/services`,{params: params});
   }
 

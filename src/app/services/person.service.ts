@@ -14,25 +14,32 @@ export class PersonService {
     private httpClient: HttpClient,
   ) { }
 
-  postPerson(data:any):Observable<any> {
+  postPerson(data: any): Observable<any> {
     return this.httpClient.post(`${this.url}/person`, data);
   }
 
-  postIdPerson(id:string):Observable<any> {
-    return this.httpClient.post(`${this.url}/person/${id}`,null);
+  postIdPerson(id: string): Observable<any> {
+    return this.httpClient.post(`${this.url}/person/${id}`, null);
   }
 
-  getPerson(typeEntity?:string,nameAlias?:string):Observable<any> {
+  getPerson(typeEntity?: string, nameAlias?: string): Observable<any> {
     let params = new HttpParams();
-    if(typeEntity) params = params.set('typeEntity', typeEntity);
-    
-    if(nameAlias) params = params.set('nameAlias', nameAlias);
+    if (typeEntity) params = params.set('typeEntity', typeEntity);
 
-    return this.httpClient.get(`${this.url}/person/entity`, {params:params});
+    if (nameAlias) params = params.set('nameAlias', nameAlias);
+
+    return this.httpClient.get(`${this.url}/person/entity`, { params: params });
   }
 
-  getIdPerson(id:string):Observable<any> {
+  getPersonsPandR(): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('type', 'recandprov');
+
+    return this.httpClient.get(`${this.url}/person/entity`, { params: params });
+  }
+
+  getIdPerson(id: string): Observable<any> {
     return this.httpClient.get(`${this.url}/person/${id}`);
   }
-  
+
 }

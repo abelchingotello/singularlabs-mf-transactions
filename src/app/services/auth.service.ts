@@ -133,7 +133,7 @@ export class AuthService {
       this.roles = data.user_roles || [];
     } catch (err) {
       // Manejo de errores en la consulta HTTP
-      console.error('Error al obtener datos del usuario:', err);
+      console.error('Error al obtener datos del usuario tranas:', err);
       return Promise.reject(err);
     }
   }

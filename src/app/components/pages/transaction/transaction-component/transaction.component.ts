@@ -17,6 +17,8 @@ import { PersonService } from 'src/app/services/person.service';
 import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
+import { distinctUntilKeyChanged, expand, filter, of, scan, startWith } from 'rxjs';
+import { config } from 'process';
 
 @Component({
   selector: 'app-transaction',
@@ -28,61 +30,87 @@ export class TransactionComponent implements OnInit {
   private pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
-    { 'name': 'Titular', 'attribute': 'bill'},
-    { 'name': 'Recaudador', 'attribute': 'client'},
-    { 'name': 'Num. recibo', 'attribute': 'concep'},
-    { 'name': 'Monto', 'attribute': 'amountTransaction'},
+    { 'name': 'Recaudador', 'attribute': 'client' },
+    { 'name': 'Proveedor', 'attribute': 'provider' },
+    { 'name': 'Servicio', 'attribute': 'serviceName' },
+    { 'name': 'N°. Suministro', 'attribute': 'supply' },
+    { 'name': 'N°. Recibo', 'attribute': 'concep' },
+    { 'name': 'Titular', 'attribute': 'bill' },
+    { 'name': 'Monto', 'attribute': 'amountTransaction' },
     // { 'name': 'Moneda', 'attribute': 'currency'},
-    { 'name': 'Proveedor', 'attribute': 'provider'},
-    { 'name': 'Fecha', 'attribute': 'date','config': {
-      'formatDate': { format: 'dd/MM/yyyy hh:mm a', locale: 'en-US' },
-    }
-  },
-  { 'name': 'Cod. respuesta', 'attribute': 'reference' },
-    { 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+    {
+      'name': 'Fecha', 'attribute': 'date', 'config': {
+        'formatDate': { format: 'dd/MM/yyyy hh:mm:ss a', locale: 'en-US' },
+      }
+    },
+    { 'name': 'Cod. Respuesta', 'attribute': 'reference' },
+    //{ 'name': 'Estado', 'attribute': 'status', 'config': { 'styleClass': true }},
+    {
+      'name': 'Est. Transaccion',
+      'attribute': 'status',
+      'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
+    },
+    {
+      'name': 'Accion',
+      'attribute': '',
+      'config': {
+        'type': 'buttonicons',
+        'actions': [
+          {
+            bgClass: 'yellow',
+            toolTip: 'Editar',
+            icon: 'edit',
+            value: 'edit'
+          },
+        ]
+      }
+    },
   ];
-  public dataTransaction : any[] = [];
+  public dataTransaction: any[] = [];
 
   public pageSize: any = 5;
-  public pageKey: any[] | undefined;
-  public disabledEditOption:any
+  public pageKey: any | undefined;
+  public disabledEditOption: any
   public functionDataCurrent!: ((pageSize: any) => any);
-  public formOperation! : FormGroup<any>;
-  public formDate! : FormGroup<any>;
-  public transaction :any;
-  public respSearch : any;
+  public formOperation!: FormGroup<any>;
+  public formDate!: FormGroup<any>;
+  public transaction: any;
+  public respSearch: any;
   public masterStatus: any;
-  public entityTypes: any;
-  public serviceName : any;
-  public count :any
-  public amountTransaction: any;
-
-
+  public entityTypes: any[] = [];
+  public count: any = -1;
+  public page: any = 1;
+  public amountTransaction: any = -1;
+  public listProviders: any[] = [];
+  public services: any;
+  public masterStatusCons: any;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner : SpinnerService,
-    private transactionService : TransactionService,
-    private dialog: MatDialog,
-    private fb : FormBuilder,
-    private mytoastr : MytoastrService,
-    private masterService : MasterService,
-    private personService : PersonService,
-    private dateService : DateService,
-    private serviceServ : ServicesService
-  ) {
+    private spinner: SpinnerService,
+    private transactionService: TransactionService,
+    private fb: FormBuilder,
+    private mytoastr: MytoastrService,
+    private masterService: MasterService,
+    private personService: PersonService,
+    private dateService: DateService,
+    private serviceServ: ServicesService,
+    public dialog: MatDialog,) {
     this.pagUtils = new PaginationUtils();
   }
 
-  ngOnInit(): void {
-    this.functionDataCurrent = this.getDataTransaction.bind(this);
-    this.functionDataCurrent(this.pageSize);
+  async ngOnInit(): Promise<void> {
     this.initialForm();
-    this.listData();
+    try {
+      await this.listData(); // Espera a que listData termine
+      this.functionDataCurrent = this.getDataTransaction.bind(this);
+      this.functionDataCurrent(this.pageSize); // Ahora sí puedes llamar esto después
+    } catch (error) {
+      console.error("Error al cargar datos iniciales:", error);
+    }
   }
 
-
-  initialForm(){
+  initialForm() {
     this.formOperation = this.fb.group({
       numOperation: ['', Validators.required],
     });
@@ -90,40 +118,50 @@ export class TransactionComponent implements OnInit {
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
-      idService : [''],
-      numDoc : [''],
+      idService: [''],
+      numDoc: [''],
       status: [''],
+      provider: [''],
     });
   }
 
-  getDataTransaction(pageSize?: any){
+  getDataTransaction(pageSize?: any) {
     this.spinner.spinnerOnOff();
     this.resetUser(this.getDataTransaction)
     let entity = this.entity || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
     let numDoc = this.numDoc || undefined;
-    const date = {
-      from : this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '')  || undefined,
-      to : this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '')  || undefined
-    }
-    console.log("fecha: ",date)
-    console.log("idService: ",idServ)
+    let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
+    let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
+    let provider = this.provider || undefined;
     // return
-    this.transactionService.getTransaction(entity,undefined,status,JSON.stringify(date),idServ?.toString(),pageSize,this.pageKey,numDoc).subscribe({
-      next: (value:any) => {
-        if(value.statusCode === 201){
-          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones','');
+    this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, this.count, this.amountTransaction).subscribe({
+      next: (value: any) => {
+        if (value.statusCode === 201) {
+          this.amountTransaction = 0;
+          this.mytoastr.showWarning(value.data.messages || 'No se encontraron transacciones', '');
           return
         }
-        this.dataTransaction = [...this.dataTransaction,...value.data.Items];
-        if(value.data.Count != 0) this.count = value.data.Count;
-        if(value.data.Total != 0) this.amountTransaction = (value.data.Total).toFixed(2);
-        this.pageKey = value.data.nextPageKey ?? null
-        console.log("DATA DE TRANSACTION: " ,value.data)
+        // Actualizar client con nameAlias
+        const updatedItems = value.data.Items.map((item: any) => {
+          const person = this.entityTypes.find((p: any) => p.servicePerson.idPerson === item.client);
+          const provider = this.listProviders.find((p: any) => p.servicePerson.idPerson === item.provider);
+          return {
+            ...item,
+            client: person ? person.servicePerson.nameAlias : item.client, // Asignar el nombre
+            provider: provider ? provider.servicePerson.nameAlias : item.provider, // Asignar el nombre
+          };
+        });
+
+        this.dataTransaction = [...this.dataTransaction, ...updatedItems];
+        this.pageKey = value.data.hasMore;
+        if (value.data.count != 0) this.count = value.data.count;
+        if (value.data.totalAmount != 0) this.amountTransaction = Number.parseFloat(value.data.totalAmount).toFixed(2);
+        console.log("DATA DE TRANSACTION: ", value.data)
       },
       error: (error: any) => {
-        console.error('ERROR',error);
+        console.error('ERROR', error);
         this.spinner.spinnerOnOff();
       },
       complete: () => {
@@ -141,11 +179,12 @@ export class TransactionComponent implements OnInit {
     )
   }
 
-
   clearData() {
     this.pageKey = undefined;
     this.dataTransaction = [];
-    // this.reload();
+    this.count = -1;
+    this.page = 1;
+    this.amountTransaction = -1;
   }
 
   reload() {
@@ -157,251 +196,171 @@ export class TransactionComponent implements OnInit {
   onPageChange(event: PageEvent) {
     console.log("keyyyyyy", this.pageKey)
     this.pageSize = this.pagUtils?.updatePageSize(event.pageSize, this.pageSize);
+    this.page++;
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
     console.log('Página cambiada', event);
   }
 
-  selectedHandle(event:any[]){
-    console.log("SELECTED HANDLE", event)
-  }
-
-
-  handleSelectedIds(selectedIds: any[]) {
-    // console.log("Id's: ", selectedIds)
-    this.disabledEditOption = selectedIds.length !== 1;
-    // this.editOption = selectedIds.length == 1;
-    console.log("DESAHIBILITR: ",this.disabledEditOption)
-    // this.selectedIds = selectedIds;
-    console.log("Id--s: ", selectedIds)
-  }
-
-  edit(){
-
-    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
-      width:'900px',
-      data: {
-      resp: '',
-      // id: stateId,
-      // state:this.stateMaster,
-      // idClient : this.idClient,
-      // idProvider : this.idProvider
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-
-  }
-
-  searchOperation(){
-    if(!this.numOperation?.valid){
-      this.mytoastr.showWarning('Ingrese un valor para búsqueda','')
-      return
+  clickButton(event: any) {
+    console.log("event", event)
+    const { value, element } = event
+    if (value == "edit") {
+      this.openDialog(element)
     }
-    this.spinner.spinnerOnOff();
-    console.log("searchOperation", this.formOperation)
-    // return
-    this.transactionService.balanceVoucher(this.numOperation?.value).subscribe({
-      next: (response: any) => {
-        this.respSearch = response
-        if (response.statusCode !== 200) {
-          this.spinner.spinnerOnOff();
-          let resp = response?.message || response?.messages
-          this.mytoastr.showError(resp, 'Error');
-          return
-        }
-        this.transaction = response.data
-      },
-      error: (error: any) => {
-        this.spinner.spinnerOnOff();
-        console.error('Error:', error);
-      },
-      complete: () => {
-        if(this.respSearch.statusCode == 200){
-          this.spinner.spinnerOnOff();
-          this.openDialog();
-          this.mytoastr.showSuccess('Operacion encontrada','')
-        }
-      }
-    })
   }
 
-  search(){
-    console.log("formulario busqueda: ",this.formDate)
-    if(this.formDate.get('dateEnd')?.value == '' &&
+  openDialog(data: any): void {
+    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
+      width: '600px',
+      data: {
+        concep: data.concep,
+        statusTrans: data.status,
+        id: data.id_transaction,
+        sk: data.sk,
+        masterStatus: this.masterStatus,
+        masterStatusCons: this.masterStatusCons
+      }
+    });
+    dialogRef.afterClosed().subscribe((result: any) => {
+      console.log('The dialog was closed', result);
+      if (result === true) {
+        this.reload();
+      }
+
+    });
+  }
+
+  search() {
+    console.log("formulario busqueda: ", this.formDate)
+    if (this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
-      this.formDate.get('entity')?.value == ''){
-      this.mytoastr.showWarning("Seleccione un filtro","")
+      this.formDate.get('entity')?.value == '' &&
+      this.formDate.get('provider')?.value == '') {
+      this.mytoastr.showWarning("Seleccione un filtro", "")
       return
     }
 
     this.clearData();
-
     this.getDataTransaction(this.pageSize)
     // console.log("fecha buscar",this.formDate.get('date')?.value)
   }
 
-  openDialog(){
-    const dialogRef = this.dialog.open(DialogSearchOperationComponent, {
-      width:'900px',
-      panelClass:'dialog-container',
-      data: {
-      resp: this.transaction
-    },
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      this.reload();
-      console.log('The dialog was closed',result);
-    });
-  }
-
-  listData() {
+  async listData(): Promise<void> {
     this.spinner.spinnerOnOff();
-    forkJoin([
-      this.masterService.getItemsMasterTable('16'), // Tipos de documentos de identidad
-      this.personService.getPerson('RECAUDADORA DE SERVICIOS'),// Tipo de entidades
-      this.serviceServ.getServices()
-    ]).subscribe({
-      next: (response) => {
-        const [masterStatus,entity,service] = response;
-        this.masterStatus = masterStatus.sort((a:any, b:any) => a.master_order - b.master_order);
-        this.entityTypes = entity.data
-        this.serviceName = service.data.Items
-        console.log("ESTADOS: ",this.masterStatus)
-        console.log("ENTITIDADES: ",this.entityTypes)
-        console.log("SERVICIOS: ",this.serviceName)
-
-        this.spinner.spinnerOnOff();
-      },
-      error: (error) => {
-        this.spinner.spinnerOnOff();
-        console.error("Error loading master table data:", error);
-      }
+    return new Promise((resolve, reject) => {
+      forkJoin([
+        this.masterService.getItemsMasterTable('16'),
+        this.personService.getPersonsPandR(),
+        this.serviceServ.getServices(),
+        this.masterService.getItemsMasterTable('17')
+      ]).subscribe({
+        next: (response) => {
+          const [masterStatus, persons, service, masterStatusCons] = response;
+          this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
+          this.listProviders = persons.data.providerTransform;
+          this.entityTypes = persons.data.recaudadorTransform;
+          this.services = service.data.Items;
+          this.masterStatusCons = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
+          this.spinner.spinnerOnOff();
+          resolve(); //  Indica que terminó exitosamente
+        },
+        error: (error) => {
+          this.spinner.spinnerOnOff();
+          console.error("Error loading master table data:", error);
+          reject(error); // Indica que falló
+        }
+      });
     });
   }
 
-  clearSearch(){
+  clearSearch() {
     this.formDate.get('dateEnd')?.setValue('')
     this.formDate.get('dateStart')?.setValue('')
     this.formDate.get('status')?.setValue('')
     this.formDate.get('entity')?.setValue('')
     this.formDate.get('idService')?.setValue('')
     this.formDate.get('numDoc')?.setValue('')
+    this.formDate.get('provider')?.setValue('')
     //limpiar tabla de transacciones
     this.clearData();
     this.getDataTransaction(this.pageSize)
   }
 
-  get numOperation(){
-    return this.formOperation.get('numOperation');
-  }
-
-  get dateStart(){
+  get dateStart() {
     return this.formDate?.get('dateStart')?.value;
   }
 
-  get numDoc(){
+  get numDoc() {
     return this.formDate?.get('numDoc')?.value;
   }
 
-  get dateEnd(){
+  get dateEnd() {
     return this.formDate?.get('dateEnd')?.value;
   }
 
-  get status(){
+  get status() {
     return this.formDate?.get('status')?.value;
   }
 
-  get entity(){
+  get entity() {
     return this.formDate?.get('entity')?.value;
   }
 
-  get idService(){
+  get idService() {
     return this.formDate?.get('idService')?.value;
   }
 
-  //----
+  get category() {
+    return this.formDate?.get('category')?.value;
+  }
+
+  get provider() {
+    return this.formDate?.get('provider')?.value;
+  }
+
   exportDataViaAPI(fileType: 'xlsx' | 'csv'): void {
     console.log('exportDataViaAPI called with', fileType);
     this.spinner.spinnerOnOff();
 
     // Preparar los filtros para la exportación
     const exportFilters: Record<string, any> = {
-      idclient: this.entity,
-      idprovider: undefined,
-      status: this.status,
-      date: this.dateStart || this.dateEnd ?
-        JSON.stringify({
-          from: this.dateStart ? this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '') : undefined,
-          to: this.dateEnd ? this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '') : undefined
-        }) : undefined,
-      idService: this.idService?.toString(),
-      CONCEPT: this.numDoc
+      dateStart: this.dateStart
+        ? `${this.dateService.formatTrayDate(this.dateStart).replace(/\//g, '-')} 00:00:00`
+        : undefined,
+      dateEnd: this.dateEnd
+        ? `${this.dateService.formatTrayDate(this.dateEnd).replace(/\//g, '-')} 23:59:59`
+        : undefined,
+      status: this.status || undefined,
+      idprovider: this.provider || undefined,
+      idclient: this.entity || undefined,
+      concept: this.numDoc || undefined,
+      idService: this.idService || undefined
     };
-
     // Eliminar propiedades undefined
     Object.keys(exportFilters).forEach(key => {
       if (exportFilters[key] === undefined) {
         delete exportFilters[key];
       }
     });
-
-    this.transactionService.exportTransactions(fileType, exportFilters).subscribe({
+    const inbx = 'tr';
+    const token = localStorage.getItem('fcmToken') ?? "";
+    this.transactionService.exportTransactions(fileType, exportFilters, inbx, token).subscribe({
       next: (response) => {
         this.spinner.spinnerOnOff();
-
-        // Verificar si la respuesta tiene cuerpo
-        if (!response.body) {
-          this.mytoastr.showError('La respuesta no contiene datos', '');
-          return;
-        }else{
-          console.log("Sí tiene datos el response")
+        if (response.statusCode === 200) {
+          this.mytoastr.showWarningTime('', 'Procesando Archivo...', 1000);
+        } else {
+          this.mytoastr.showError('', 'Error al enviar la solicitud')
         }
-
-        // Decodificar base64
-        const responseBody = response.body || '';
-        const byteCharacters = atob(responseBody);
-        const byteArray = new Uint8Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteArray[i] = byteCharacters.charCodeAt(i);
-        }
-
-        // Obtener nombre del archivo desde headers
-        let filename = `transacciones_${new Date().toISOString().split('T')[0]}.${fileType}`;
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const parts = contentDisposition.split('filename=');
-          if (parts.length > 1) {
-            filename = parts[1].replace(/"/g, '').trim();
-          }
-        }
-
-        console.log('Downloading file:', filename);
-
-        // Crear Blob con el tipo MIME del backend
-        const blob = new Blob([byteArray], {
-          type: response.headers.get('Content-Type') || 'application/octet-stream'
-        });
-
-        // Descargar
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        window.URL.revokeObjectURL(link.href);
       },
       error: (error) => {
-        console.error('Error al exportar los datos:', error);
-        this.mytoastr.showError('Error al exportar los datos', '');
         this.spinner.spinnerOnOff();
+        console.error('Error durante la exportación:', error);
+        this.mytoastr.showError('Error durante la exportación', '');
       }
     });
   }
-  //----
 
 }
