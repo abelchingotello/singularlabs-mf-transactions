@@ -259,8 +259,8 @@ export class TransactionComponent implements OnInit {
         next: (response) => {
           const [masterStatus, persons, service, masterStatusCons] = response;
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
-          this.listProviders = persons.data.providerTransform;
-          this.entityTypes = persons.data.recaudadorTransform;
+          this.listProviders = persons?.data?.providerTransform;
+          this.entityTypes = persons?.data?.recaudadorTransform;
           this.services = service.data.Items;
           this.masterStatusCons = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
           this.spinner.spinnerOnOff();
