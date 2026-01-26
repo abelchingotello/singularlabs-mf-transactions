@@ -422,9 +422,10 @@ export class TransactionComponent implements OnInit {
         this.masterService.getItemsMasterTable('16'),
         this.personService.getPersonsPandR(),
         this.masterService.getItemsMasterTable('14'),
+        this.masterService.getItemsMasterTable('17'),
       ]).subscribe({
         next: (response) => {
-          const [masterStatus, persons, category] = response;
+          const [masterStatus, persons, category, masterStatusCons] = response;
           this.listProviders = persons.data.providerTransform;
           this.entityTypes = persons.data.recaudadorTransform;
           const dluz = this.listProviders.find(
@@ -446,7 +447,7 @@ export class TransactionComponent implements OnInit {
           } else {
             this.listUndServicesElectrocentro = [];
           }
-          this.masterStatusConc = [{ master_value: 'CONCILIADO', master_name: "CONCILIADO" }, { master_value: "SIN CONCILIAR", master_name: "SIN CONCICLIAR" }, { master_value: "", master_name: "PENDIENTE" }];
+          this.masterStatusConc = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
           this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
           this.categoryTypes = category;
           this.spinner.spinnerOnOff();

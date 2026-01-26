@@ -367,7 +367,8 @@ export class TransactionReportsComponent implements OnInit {
         next: (response) => {
           const [persons, category] = response;
           this.listProviders = persons.data.providerTransform;
-          this.entityTypes = persons.data.recaudadorTransform;
+          this.entityTypes = persons.data.recaudadorTransform
+
 
           this.categoryTypes = category;
 

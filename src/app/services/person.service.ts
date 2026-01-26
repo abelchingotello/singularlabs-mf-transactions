@@ -9,16 +9,21 @@ import { environment } from 'src/environments/environment';
 export class PersonService {
 
   private readonly url = `${environment.URL_API_GATEWAY}`;
+  //private readonly url = `${environment.URL_API_LOCAL}`;
 
   constructor(
     private readonly httpClient: HttpClient,
   ) { }
 
+  updateMinBalancePerson(data: any): Observable<any> {
+    return this.httpClient.post(`${this.url}/person/entity`, data);
+  }
+
   getPerson(typeEntity?: string, nameAlias?: string, activeOnly?: boolean): Observable<any> {
     let params = new HttpParams();
     if (typeEntity) { params = params.set('typeEntity', typeEntity); };
     if (nameAlias) { params = params.set('nameAlias', nameAlias); };
-    if (activeOnly) { params = params.set('activeOnly', JSON.stringify(activeOnly)); };
+    if (activeOnly) params = params.set('activeOnly', JSON.stringify(activeOnly));
 
     return this.httpClient.get(`${this.url}/person/entity`, { params: params });
   }

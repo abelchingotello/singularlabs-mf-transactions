@@ -4,11 +4,15 @@
       externImage="https://img.freepik.com/vector-premium/manos-humanas-sosteniendo-tarjetas-credito-o-debito-facturas-dinero-operaciones-financieras-inversiones-transacciones-volumen-caja-pago-efectivo-no-efectivo_458444-275.jpg"
       size="15%">
 
-      <div class="align-content-center">
-        <button mat-flat-button class="btn custom-button btn-default4" (click)="addBalance()">
-          <mat-icon>add</mat-icon>
-          <span class="custom-span-icon-responsive">Asignar saldo</span>
-        </button>
+      <div class="row">
+        <div class="col  d-flex justify-content-end align-items-end ">
+
+          <button type="button" class="mb-2 mb-md-0 custom-button btn button-tertiary me-2 " (click)="addBalance()">
+            <mat-icon>add</mat-icon>
+            <span class="custom-span-icon-responsive">Asignar Saldo</span>
+          </button>
+
+        </div>
       </div>
     </uni-image-card>
 
@@ -33,7 +37,7 @@
                 <mat-option *ngFor="let type of typeEntitys" [value]="type">{{type.master_relativeName}}</mat-option>
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="col-md-3"(click)="showAlarmSelectTypeEntity()">
+            <mat-form-field appearance="outline" class="col-md-3" (click)="showAlarmSelectTypeEntity()">
               <mat-label>Entidad</mat-label>
               <mat-select formControlName="entity">
                 <mat-option *ngFor="let type of nameType"
@@ -50,11 +54,11 @@
           </form>
           <div class="row">
             <div class="col lg-6 d-flex justify-content-end align-items-end mb-3 mr-3">
-              <button type="button" class="btn-default2 btn" (click)="cleanSearch()">
+              <button type="button" class="button-secondary btn" (click)="cleanSearch()">
                 <mat-icon>filter_alt_off</mat-icon>Limpiar
               </button>
-              <button type="button" class="btn-default3 btn" (click)="searchData()">
-               <mat-icon>search</mat-icon> Buscar
+              <button type="button" class="button-primary btn" (click)="searchData()">
+                <mat-icon>search</mat-icon> Buscar
               </button>
             </div>
           </div>

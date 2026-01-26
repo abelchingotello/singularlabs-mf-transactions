@@ -3,17 +3,21 @@ import { CommonModule } from '@angular/common';
 import { DialogTransactionStatusComponent } from './dialog-transaction-status/dialog-transaction-status.component';
 import { MaterialModule } from '../modules/material/material.module';
 import { DialogSearchOperationComponent } from './dialog-search-operation/dialog-search-operation.component';
+import { DialogAdjustBalanceComponent } from './dialog-adjust-balance/dialog-adjust-balance.component';
+import { DialogMinBalanceComponent } from './dialog-min-balance/dialog-min-balance.component';
 
 
 
 @NgModule({
   declarations: [
     DialogTransactionStatusComponent,
-    DialogSearchOperationComponent
+    DialogSearchOperationComponent,
+    DialogAdjustBalanceComponent,
+    DialogMinBalanceComponent
   ],
   imports: [
     CommonModule,
-    MaterialModule
+    MaterialModule,
   ]
 })
 export class DialogTransactionModule { }
