@@ -3,7 +3,7 @@
     <uni-image-card title="Transacciones de {{ this.personName }}">
     </uni-image-card>
 
-    <mat-card>
+    <mat-card class="custom-border-radius-1-25">
       <h2 style="margin-top: 23px; margin-left: 20px">Datos de Búsqueda</h2>
 
       <form [formGroup]="formDate" class="d-flex flex-wrap">
@@ -142,7 +142,7 @@
       </div>
     </mat-card>
 
-    <mat-card>
+    <mat-card class="custom-border-radius-1-25">
       <uni-dynamic-table
         [columns]="columns"
         [data]="dataTransaction"
