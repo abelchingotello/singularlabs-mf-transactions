@@ -8,7 +8,7 @@
  *                - Exportación de datos en formatos XLSX o CSV.
  *                - Abrir dialog de estado de transacción.
  * Maintenance:
- *  - Last modified: 21-Oct-2025
+ *  - Last modified: 30-Ene-2026
  */
 
 import { TransactionService } from '../../../../services/transaction.service';
@@ -152,7 +152,7 @@ export class TransactionComponent implements OnInit {
       provider: [''],
       category: [''],
       idService: [''],
-      statusConc: ['-'],
+      statusConc: [''],
       numDoc: [''],
       supply: [''],
       status: [''],
