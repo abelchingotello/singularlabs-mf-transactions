@@ -17,6 +17,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { IconTypeComponent } from './../icons_type/icons_type.component'
+import { MytoastrService } from 'src/app/services/mytoastr';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'uni-dynamic-table',
@@ -210,6 +212,43 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  handleCellClick(element: any, column: any): void {
+    const value = element[column?.attribute || ''];
+    // Ejecutar click si es clickable
+    if (column.config?.clickable) {
+      this.onCellClick(element);
+    }
+  }
+  getDisplayValue(element: any, column: any): string {
+    const value = element[column?.attribute || ''];
+
+    if (column.config?.formatDate) {
+      return this.formatDate(
+        value,
+        column.config.formatDate.format || 'dd/MM/yyyy',
+        column.config.formatDate.locale || 'en-US'
+      );
+    }
+
+    return value;
+  }
+
+  getTooltipValue(element: any, column: any): string {
+    return this.getDisplayValue(element, column);
+  }
+  copyWithTooltip(value: any, tooltip: MatTooltip): void {
+    if (value === null || value === undefined) return;
+
+    navigator.clipboard.writeText(String(value)).then(() => {
+
+      tooltip.message = 'Copiado'; tooltip.show();
+
+      setTimeout(() => {
+        tooltip.hide();
+      }, 1500);
+
+    });
+  }
 
   getSelectedIds() {
     // Verificar que `element_id` está definido

@@ -47,6 +47,7 @@ export class TransactionComponent implements OnInit {
     { 'name': 'N° Recibo', 'attribute': 'concep' },
     { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
+    { 'name': 'ID OP. Multiple', 'attribute': 'id_operacion_detalle' },
     {
       'name': 'Fecha',
       'attribute': 'date',
@@ -156,6 +157,7 @@ export class TransactionComponent implements OnInit {
       numDoc: [''],
       supply: [''],
       status: [''],
+      id_operacion_detalle: [''],
       und_service: [{ value: '', disabled: true }],
     });
   }
@@ -172,6 +174,7 @@ export class TransactionComponent implements OnInit {
       this.openDialog(element)
     }
   }
+
   onServicesChange(event: any) {
     const selectedIds: string[] = event.value;
     const idsCategoriaActual = new Set(this.allItems1.map(s => s.id));
@@ -264,8 +267,9 @@ export class TransactionComponent implements OnInit {
       dateStart: this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined,
       dateEnd: this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined,
       idundServ: this.id_und_service || undefined,
-      statusConc: this.statusConc !== '-' ? this.statusConc : undefined,
+      statusConc: this.statusConc || undefined,
       numDoc: this.numDoc || undefined,
+      id_operacion_detalle: this.id_operacion_detalle || undefined,
       supply: this.supply || undefined,
       ...(this.listServicesSelected.length > 0 && {
         idService: this.listServicesSelected.map(s => s.id)
@@ -400,7 +404,7 @@ export class TransactionComponent implements OnInit {
   *
   */
   private isEmptyForm(): boolean {
-    const fields = ['dateEnd', 'status', 'numDoc', 'supply', 'idService', 'entity', 'provider', 'statusConc'];
+    const fields = ['dateEnd', 'status', 'numDoc', 'supply', 'idService', 'entity', 'provider', 'statusConc', 'id_operacion_detalle'];
     return fields.every(field => this.formDate.get(field)?.value === '');
   }
 
@@ -494,7 +498,8 @@ export class TransactionComponent implements OnInit {
     this.formDate.get('entity')?.setValue('');
     this.formDate.get('provider')?.setValue('');
     this.formDate.get('idService')?.setValue('');
-    this.formDate.get('statusConc')?.setValue('-');
+    this.formDate.get('statusConc')?.setValue('');
+    this.formDate.get('id_operacion_detalle')?.setValue('');
     this.formDate.get('numDoc')?.setValue('');
     this.formDate.get('supply')?.setValue('');
     this.formDate.get('und_service')?.setValue('');
@@ -516,6 +521,9 @@ export class TransactionComponent implements OnInit {
     this.spinner.spinnerOnOff
   }
 
+  get id_operacion_detalle() {
+    return this.formDate?.get('id_operacion_detalle')?.value;
+  }
   get dateStart() {
     return this.formDate?.get('dateStart')?.value;
   }
@@ -580,6 +588,7 @@ export class TransactionComponent implements OnInit {
       status: this.status || undefined,
       statusConc: this.statusConc !== '-' ? this.statusConc : undefined,
       idprovider: this.provider || undefined,
+      id_operacion_detalle: this.id_operacion_detalle || undefined,
       idclient: this.entity || undefined,
       concept: this.numDoc || undefined,
       supply: this.supply || undefined,
