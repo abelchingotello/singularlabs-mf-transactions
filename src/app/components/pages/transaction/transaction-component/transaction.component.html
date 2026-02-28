@@ -104,6 +104,11 @@
                             <input formControlName="supply" type="text" matInput>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Id Operacion Multiple</mat-label>
+                            <input formControlName="id_operacion_detalle" type="text" matInput>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
@@ -113,8 +118,8 @@
                         <div class="col lg-6">
                             <div class="info-container">
                                 <div class="info-item">
-                                    <mat-label>Monto total: </mat-label>
-                                    <span class="text-button-quaternary">{{" " + amountTransaction}}</span>
+                                    <mat-label>Monto total</mat-label>
+                                    <span class="text-button-quaternary">{{": " + amountTransaction}}</span>
                                 </div>
                             </div>
                         </div>

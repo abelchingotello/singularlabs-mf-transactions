@@ -101,8 +101,9 @@ export class TransactionService {
       supply: filters.supply,
       idclient: filters.idclient,
       idprovider: filters.idprovider,
-      status: filters.status,
       dateStart: filters.dateStart,
+      status: filters.status,
+      id_operacion_detalle: filters.id_operacion_detalle,
       dateEnd: filters.dateEnd,
       idService: filters.idService,
       typeEntity: filters.typeEntity,
@@ -140,6 +141,7 @@ interface TransactionFilters {
   dateEnd?: string;
   idService?: string[];
   idundServ?: string;
+  id_operacion_detalle?: string;
   typeEntity?: string;
   entity?: string;
   typeAssign?: string;
