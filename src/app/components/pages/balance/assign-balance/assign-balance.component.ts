@@ -163,7 +163,7 @@ export class AssignBalanceComponent implements OnInit {
   searchPerson(nameType: string) {
 
     this.spinner.spinnerOnOff();
-    this.personService.getPerson(nameType,undefined,true).subscribe({
+    this.personService.getPerson(nameType, undefined, true).subscribe({
       next: (value) => {
         this.nameType = value.data
         console.log('TYPE ENTITU POR ENTIDAD: ', this.nameType)

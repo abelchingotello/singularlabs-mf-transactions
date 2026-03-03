@@ -53,11 +53,6 @@
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar Suministro</mat-label>
-                            <input formControlName="numDoc" type="text" matInput>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
@@ -66,14 +61,6 @@
                             <mat-label>Seleccionar Estado</mat-label>
                             <mat-select formControlName="status" multiple>
                                 <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
-                                    {{status.master_name}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar Estado Conciliacion</mat-label>
-                            <mat-select formControlName="status" multiple>
-                                <mat-option *ngFor="let status of masterStatusCons" [value]="status.master_name">
                                     {{status.master_name}}
                                 </mat-option>
                             </mat-select>
