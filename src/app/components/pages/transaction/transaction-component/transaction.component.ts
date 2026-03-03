@@ -33,7 +33,6 @@ export class TransactionComponent implements OnInit {
     { 'name': 'Recaudador', 'attribute': 'client' },
     { 'name': 'Proveedor', 'attribute': 'provider' },
     { 'name': 'Servicio', 'attribute': 'serviceName' },
-    { 'name': 'N°. Suministro', 'attribute': 'supply' },
     { 'name': 'N°. Recibo', 'attribute': 'concep' },
     { 'name': 'Titular', 'attribute': 'bill' },
     { 'name': 'Monto', 'attribute': 'amountTransaction' },
