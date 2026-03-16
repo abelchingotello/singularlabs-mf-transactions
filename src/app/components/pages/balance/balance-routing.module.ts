@@ -8,17 +8,10 @@ const routes: Routes = [
   { path: 'control', component: ReportBalanceComponent },
   { path: 'assign', component: AssignBalanceComponent },
   { path: 'list-balance', component: ListBalanceComponent },
-  {
-    path: 'list-balance',
-    children: [
-      { path: '', component: ListBalanceComponent },
-      { path: 'admin', component: ListBalanceComponent },
-    ],
-  },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
-export class BalanceRoutingModule {}
+export class BalanceRoutingModule { }

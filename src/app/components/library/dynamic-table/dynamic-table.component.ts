@@ -1,119 +1,140 @@
 import { Component, Input, Output, OnInit, AfterViewInit, ViewChild, EventEmitter, ChangeDetectorRef, ElementRef, OnChanges, SimpleChanges, Inject } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule, PageEvent, MatPaginatorIntl } from '@angular/material/paginator';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule, formatDate } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { FormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { IconTypeComponent } from './../icons_type/icons_type.component'
-import { MytoastrService } from 'src/app/services/mytoastr';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { formatDate } from '@angular/common';
+import * as XLSX from 'xlsx';
+import { AuthService } from 'src/app/services/auth.service';
 import { MatTooltip } from '@angular/material/tooltip';
-
 @Component({
   selector: 'uni-dynamic-table',
   templateUrl: './dynamic-table.component.html',
-  styleUrls: ['./dynamic-table.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormsModule,
-    MatIconModule,
-    MatMenuModule,
-    MatTabsModule,
-    MatTableModule,
-    MatCheckboxModule,
-    MatSortModule,
-    MatPaginatorModule,
-    MatCardModule,
-    MatButtonModule,
-    MatTooltipModule,
-    IconTypeComponent
-  ],
+  styleUrls: ['./dynamic-table.component.scss']
 })
-
 export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
-  @Input() columns: TableColumn[] = [];
-  @Input() data: TableRow[] = [];
+  @Input() columns: any[] = [];
+  @Input() data: any[] = [];
   @Input() actionsOptions?: boolean;
-  @Input() element_id?: string | string[];
-  @Input() pageKey: string | any;
-  @Input() lengthTable: number = 0;
+  @Input() exportOptions?: boolean = true;
+  @Input() element_id?: string | string[] | 'ALL';
+  @Input() pageKey: any;
   @Input() refreshFunction!: () => void;
-  @Input()
-  alwaysShowHeaderOptions: boolean = false;
-
+  @Input() alwaysShowHeaderOptions: boolean = true;
   //------------
-  @Input() customExportFunction: ((fileType: 'xlsx' | 'csv') => void) | null = null;
+  @Input() customExportFunction: ((fileType: 'xlsx' | 'csv', bandeja: any) => void) | null = null;
   //------------
+  @Input() bandeja: any;
+  @Input() lengthTable: number = 0;
 
-  @Output() pageChange = new EventEmitter<PageEvent>();
-  @Output() selectedIdsChange = new EventEmitter<TableRow[]>();
-  @Output() selectedChange = new EventEmitter<TableRow[]>();
-  @Output() cellClick: EventEmitter<string> = new EventEmitter<string>();
+
   @Output() clickButtonEvent = new EventEmitter<any>();
-
+  @Output() pageChange = new EventEmitter<PageEvent>();
+  @Output() selectedIdsChange = new EventEmitter<any[]>();
+  @Output() selectedChange = new EventEmitter<any[]>();
+  @Output() cellClick: EventEmitter<any> = new EventEmitter<any>();
   //------------------------
   @Output() exportRequest = new EventEmitter<'xlsx' | 'csv'>();
   //------------------------
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort, { static: false }) sort!: MatSort;
-  @ViewChild('table') element: ElementRef | undefined;
+  @ViewChild('table') element!: ElementRef;
 
   public displayedColumns: string[] = [];
   public attributeNames: string[] = [];
-  public dataSource: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
-  public dataPrint: MatTableDataSource<TableRow> = new MatTableDataSource<TableRow>([]);
-  public selection = new SelectionModel<TableRow>(true, []);
+  public dataSource: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  public dataPrint: MatTableDataSource<any> = new MatTableDataSource<any>([]);
+  public selection = new SelectionModel<any>(true, []);
   public headerOptions: boolean = false;
-  public obs!: Observable<TableRow[]>;
-  public selectedTab: string = 'tab1';
+  public obs!: Observable<any>;
+  public selectedTab: string = "tab1";
   public styleString: string = '';
   public isLoadingResults = true; //Revisar
-  public selectedIds: any = [];
-  public currentEventPage: PageEvent = new PageEvent;
-  public isCheckedClass: string | undefined;
+  public selectedIds: any[] = [];
+  public currentEventPage!: PageEvent;
+  public isCheckedClass: any; //NgModel Class Div Seleccionado
   public pageSize = 5;
-  public paginatorLength: number = 0;
-  public dataCurrent: boolean = false;
+  public paginatorLength: any;
+  public dataCurrent: boolean = true;
   public previousDataLength = 0;
-
-  constructor(private readonly changeDetectorRef: ChangeDetectorRef,
-    private readonly http: HttpClient,
-    @Inject(MatPaginatorIntl) private readonly paginatorIntl: MatPaginatorIntl) {
+  public action_permision: any = {};
+  public actions_visible: boolean = false;
+  constructor(private changeDetectorRef: ChangeDetectorRef,
+    private http: HttpClient,
+    private authService: AuthService,
+    @Inject(MatPaginatorIntl) private paginatorIntl: MatPaginatorIntl) {
     this.paginatorIntl.itemsPerPageLabel = 'Elementos por página';
   }
 
-  ngOnInit(): void {
-    this.displayedColumns = this.columns
-      .filter(c => !c.hide)
-      .map(column => column.name);
-
-    this.attributeNames = this.columns
-      .filter(c => !c.hide)
-      .map(column => column.attribute);
-
+  async ngOnInit(): Promise<void> {
+    this.displayedColumns = this.visibleColumns.map(column => column.name); this.attributeNames = this.columns.map(column => column.attribute);
     this.dataSource = new MatTableDataSource(this.data);
     this.dataPrint = new MatTableDataSource(this.data);
-    this.selectedTab = this.selectedTab.toLowerCase();
+    //this.selectedTab.toLowerCase();
+    await this.getPermissions(this.columns)
+    this.displayedColumns = this.visibleColumns.map(c => c.name);
   }
-
 
   ngAfterViewInit(): void {
     this.initTable();
+  }
+
+  get visibleColumns() {
+    return this.columns.filter(
+      column => !column?.config?.restriccPermission || this.actions_visible
+    );
+  }
+
+  async getPermissions(columns: any) {
+    await this.authService.getPermissions()
+    const allPermissionFromRol: any = {}
+    const columnAction = columns.find((column: any) => column.config?.type == "buttonicons" && column.config?.actions?.length > 0)
+
+    columnAction?.config?.actions.map((column: any) => {
+      console.log("buscando para: ", column)
+      allPermissionFromRol[column.permission] = this.hasPermission(column.permission)
+      if (allPermissionFromRol[column.permission]) this.actions_visible = true
+    })
+
+    this.action_permision = { ...allPermissionFromRol }
+  }
+
+  hasPermission(tag: any) {
+    return this.authService.hasPermissionFromTag(tag)
+  }
+
+  getDisplayValue(element: any, column: any): string {
+    const value = element[column?.attribute || ''];
+
+    if (column.config?.formatDate) {
+      return this.formatDate(
+        value,
+        column.config.formatDate.format || 'dd/MM/yyyy',
+        column.config.formatDate.locale || 'en-US'
+      );
+    }
+
+    return value;
+  }
+  getTooltipValue(element: any, column: any): string {
+    return this.getDisplayValue(element, column);
+  }
+  copyWithTooltip(value: any, tooltip: MatTooltip): void {
+    if (value === null || value === undefined) return;
+
+    navigator.clipboard.writeText(String(value)).then(() => {
+
+      tooltip.message = 'Copiado'; tooltip.show();
+
+      setTimeout(() => {
+        tooltip.hide();
+      }, 1500);
+
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -124,25 +145,29 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         this.dataPrint.data = this.data;
       }
 
+      // Verificar si se ha modificado pageKey o si ha cambiado el tamaño de los datos
+      if (this.pageKey) {
+        // Si hay un pageKey válido o los datos han aumentado de tamaño, activamos hasNextPage
+        this.paginator.hasNextPage = () => true;
+      } else {
+        // this.paginator.hasNextPage = () => false;
+      }
+
+      // Actualizar el tamaño anterior de los datos para futuras comparaciones
+
       setTimeout(() => {
-        if (this.paginator) {
+        if (this.paginator && this.lengthTable != 0) {
           this.paginator.length = this.lengthTable;
           this.changeDetectorRef.detectChanges();
         }
       });
       // Iniciar o reiniciar la tabla
       this.initTable();
-
     }
 
     if (changes['columns']) {
-      this.displayedColumns = this.columns
-        .filter(c => !c.hide)
-        .map(column => column.name);
-
-      this.attributeNames = this.columns
-        .filter(c => !c.hide)
-        .map(column => column.attribute);
+      this.displayedColumns = this.visibleColumns.map(column => column.name);
+      this.attributeNames = this.visibleColumns.map(column => column.attribute);
     }
   }
 
@@ -154,22 +179,15 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
 
   updateSort(callback?: () => void) {
     this.changeDetectorRef.detectChanges();
-    this.displayedColumns = this.columns
-      .filter(c => !c.hide)
-      .map(column => column.name);
-    this.attributeNames = this.columns
-      .filter(c => !c.hide)
-      .map(column => column.attribute);
+    this.displayedColumns = this.visibleColumns.map(column => column.name);
+    this.attributeNames = this.columns.map(column => column.attribute);
     this.dataSource.data = this.data;
     this.initTable();
     callback?.();
   }
 
   get displayedColumnsWithSelect(): string[] {
-    if (this.actionsOptions) {
-      return ['select', ...this.displayedColumns];
-    }
-    return this.displayedColumns;
+    return this.actionsOptions ? ['select', ...this.displayedColumns] : this.displayedColumns;
   }
 
   isAllSelected() {
@@ -195,59 +213,11 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.headerOptions = false;
   }
 
-  checkboxLabel(row?: TableRow): string {
+  checkboxLabel(row?: any): string {
     if (!row) {
-      if (this.isAllSelected()) {
-        return 'deselect all';
-      } else {
-        return 'select all';
-      }
+      return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
     }
-
-    const pos = row['position'] as number | undefined;
-    if (this.selection.isSelected(row)) {
-      return `deselect row ${pos !== undefined ? pos + 1 : ''}`;
-    } else {
-      return `select row ${pos !== undefined ? pos + 1 : ''}`;
-    }
-  }
-
-  handleCellClick(element: any, column: any): void {
-    const value = element[column?.attribute || ''];
-    // Ejecutar click si es clickable
-    if (column.config?.clickable) {
-      this.onCellClick(element);
-    }
-  }
-  getDisplayValue(element: any, column: any): string {
-    const value = element[column?.attribute || ''];
-
-    if (column.config?.formatDate) {
-      return this.formatDate(
-        value,
-        column.config.formatDate.format || 'dd/MM/yyyy',
-        column.config.formatDate.locale || 'en-US'
-      );
-    }
-
-    return value;
-  }
-
-  getTooltipValue(element: any, column: any): string {
-    return this.getDisplayValue(element, column);
-  }
-  copyWithTooltip(value: any, tooltip: MatTooltip): void {
-    if (value === null || value === undefined) return;
-
-    navigator.clipboard.writeText(String(value)).then(() => {
-
-      tooltip.message = 'Copiado'; tooltip.show();
-
-      setTimeout(() => {
-        tooltip.hide();
-      }, 1500);
-
-    });
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
   }
 
   getSelectedIds() {
@@ -261,13 +231,13 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     }
     // Si `element_id` es un string, manejarlo como un solo campo
     else if (typeof this.element_id === 'string') {
-      this.selectedIds = this.selection.selected.map(row => row[this.element_id!.toString()]);
+      this.selectedIds = this.selection.selected.map(row => row[this.element_id ? this.element_id.toString() : ""]);
     }
     // Si `element_id` es un array de strings, extraer múltiples campos
     else if (Array.isArray(this.element_id)) {
-      const element: string[] = this.element_id
+      let element: any[] = this.element_id
       this.selectedIds = this.selection.selected.map(row => {
-        const result: { [key: string]: string | number | boolean | Date | undefined } = {};
+        let result: { [key: string]: any } = {};
         element.forEach(field => {
           if (row[field]) {
             result[field] = row[field];  // Extraer el valor de cada campo
@@ -276,6 +246,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
         return result;
       });
     } else {
+      console.warn("Formato de element_id no reconocido");
       return;
     }
 
@@ -292,74 +263,52 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   onPageChange(event: PageEvent) {
-    const from = event.pageIndex * event.pageSize; // 1 * 5 = 5
-    const to = from + event.pageSize;              // 5 + 5 = 10
-    if (from < event.length) {
-      this.pageChange.emit(event);
-    } else {
-    }
-
+    // Emitir SIEMPRE el evento para que el padre pueda pedir la página al backend
+    this.pageChange.emit(event);
     this.pageSize = event.pageSize;
   }
 
-  onCellClick(value: string) {
+  onCellClick(value: any) {
     this.cellClick.emit(value);  // Emitir el valor clicado al componente padre
   }
 
   print() {
-    if (this.element) {
-      const tableElement = this.element.nativeElement.querySelector('table');
-      const clonedTable = tableElement.cloneNode(true) as HTMLElement;
-      const styles = this.componentStyles();
-      const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
-      const printWindow = window.open('', '', 'width=800,height=600');
-
-      if (printWindow) {
-        // Abrir el documento antes de escribir
-        printWindow.document.open();
-        printWindow.document.write(`
-        <html>
-          <head>
-            <title>Imprimir tabla</title>
-            <style>${styles}</style>
-            <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body>
-            <div>
+    const tableElement = this.element.nativeElement.querySelector('table');
+    const clonedTable = tableElement.cloneNode(true);
+    const styles = this.componentStyles();
+    const date = formatDate(new Date(), 'dd-MM-yyyy', 'en-US');
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow?.document.write(`
+            <html>
+              <head>
+                <title>Imprimir tabla</title>
+                <style>${styles}</style>
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              </head>
+              <body>
+              <div>
               Información actualizada al: ${date}
-            </div>
-            ${clonedTable.outerHTML}
-          </body>
-        </html>
-      `);
-        printWindow.document.close(); // Importante cerrar después de escribir
-
-        printWindow.focus();
-        printWindow.print();
-
-        setTimeout(() => {
-          if (!printWindow.closed) {
-            printWindow.close();
-          }
-        }, 1000);
+              </div>
+                ${clonedTable.outerHTML}
+              </body>
+            </html>
+          `);
+    printWindow?.document.close();
+    printWindow?.focus();
+    printWindow?.print();
+    setTimeout(() => {
+      if (!printWindow?.closed) {
+        printWindow?.close();
       }
-    }
-  }
-
-  onClickButton(value: any, element: any) {
-    const event = {
-      value,
-      element
-    }
-    this.clickButtonEvent.emit(event)
+    }, 1000); // Ajusta el tiempo según sea necesario
   }
 
   getStyles() {
     this.http.get('../dynamic-table/dynamic-table.component.scss', { responseType: 'text' }).subscribe(
       styleSheet => {
         this.styleString = styleSheet;
-      },
+      }
     );
   }
 
@@ -372,52 +321,161 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     return styles;
   }
 
-  formatDate(date: string | number | Date | any, format: string, locale: string) {
+  formatDate(date: any, format: any, locale: any) {
     if (!date) {
       return '';
     }
     return formatDate(date, format, locale);
   }
+  onClickButton(value: any, element: any) {
+    const event = {
+      value,
+      element
+    }
+    this.clickButtonEvent.emit(event)
+  }
+  private createWorkbook(sheetName: string, isCsv: boolean = false): XLSX.WorkBook {
+    const headers = [this.displayedColumns];
+    const wb = XLSX.utils.book_new();
+    const ws: any = XLSX.utils.json_to_sheet([]);
 
-  //------------
+    // Agrega los encabezados
+    XLSX.utils.sheet_add_aoa(ws, headers);
+
+    // Agrega los datos filtrados
+    XLSX.utils.sheet_add_json(ws, this.filterAttributes(), {
+      origin: 'A2',
+      skipHeader: true
+    });
+
+    // Agrega la hoja al libro de trabajo
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+    return wb;
+  }
+  //--------------------------------------------
   exportExcel() {
     if (this.customExportFunction) {
-      this.customExportFunction('xlsx');
+      this.customExportFunction('xlsx', this.bandeja);
+    } else {
+      this.exportRequest.emit('xlsx');
+      const wb = this.createWorkbook('Users');
+      const ws = wb.Sheets['Users'];
+
+      // Ajusta el ancho de las columnas según el contenido
+      const columnWidths = this.columns.map(col => {
+        const maxWidth = Math.max(
+          col.name.length, // Longitud del encabezado
+          ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
+        );
+        return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
+      });
+
+      // Establece los anchos de las columnas
+      ws['!cols'] = columnWidths;
+
+      XLSX.writeFile(wb, 'Excel tabla.xlsx');
     }
   }
 
   exportCsv() {
     if (this.customExportFunction) {
-      this.customExportFunction('csv');
+      this.customExportFunction('csv', this.bandeja);
+    } else {
+      this.exportRequest.emit('csv');
+      const wb = this.createWorkbook('Users', true);
+      const ws = wb.Sheets['Users'];
+
+      // Convierte la hoja a CSV con cada valor entre comillas
+      const csv = XLSX.utils.sheet_to_csv(ws, {
+        FS: ',',
+        RS: '\n',
+        // Envolver cada campo en comillas dobles
+        forceQuotes: true, // Utiliza quoteColumns para asegurar que todos los campos estén entre comillas
+      });
+
+      // Crea un archivo CSV y dispara la descarga
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'tabla.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   }
-}
-export interface TableColumn {
-  name: string;
-  attribute: string;
-  hide: boolean;
-  config?: {
-    formatDate?: {
-      format?: string;
-      locale?: string;
-    };
-    style?: string;
-    styleClass?: string;
-    coloricon?: string;
-    renderIcon?: string;
-    clickable?: string;
-    icon?: string;
-    type?: string;
-    actions?: [{
-      bgClass?: string,
-      toolTip?: string,
-      icon?: string,
-      value?: string
-    }]
-  };
-  style?: string;
-  styleClass?: string;
-}
-export interface TableRow {
-  [key: string]: string | number | Date | boolean | undefined;
+  //--------------------------------------------
+  // exportExcel() {
+  //   const wb = this.createWorkbook('Users');
+  //   const ws = wb.Sheets['Users'];
+
+  //   // Ajusta el ancho de las columnas según el contenido
+  //   const columnWidths = this.columns.map(col => {
+  //     const maxWidth = Math.max(
+  //       col.name.length, // Longitud del encabezado
+  //       ...this.filterAttributes().map(item => (item[col.attribute] ? item[col.attribute].toString().length : 0)) // Longitud de los valores
+  //     );
+  //     return { wpx: maxWidth * 10 }; // Multiplica por un factor para un mejor ajuste visual
+  //   });
+
+  //   // Establece los anchos de las columnas
+  //   ws['!cols'] = columnWidths;
+
+  //   XLSX.writeFile(wb, 'Excel tabla.xlsx');
+  // }
+
+  // exportCsv() {
+  //   const wb = this.createWorkbook('Users', true);
+  //   const ws = wb.Sheets['Users'];
+
+  //   // Convierte la hoja a CSV con cada valor entre comillas
+  //   const csv = XLSX.utils.sheet_to_csv(ws, {
+  //     FS: ',',
+  //     RS: '\n',
+  //     // Envolver cada campo en comillas dobles
+  //     forceQuotes: true, // Utiliza quoteColumns para asegurar que todos los campos estén entre comillas
+  //   });
+
+  //   // Crea un archivo CSV y dispara la descarga
+  //   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  //   const link = document.createElement('a');
+  //   link.href = URL.createObjectURL(blob);
+  //   link.setAttribute('download', 'tabla.csv');
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // }
+
+  filterAttributes() {
+    // Mapa de configuración de columnas para un acceso rápido
+    const columnConfigMap = new Map<string, any>(
+      this.columns.map(column => [column.attribute, column.config])
+    );
+
+    return this.data.map(item => {
+      const newObj: { [key: string]: any } = {};
+
+      // Recorre las claves que se desean filtrar
+      for (const attribute of this.attributeNames) {
+        // Obtiene la configuración de la columna de forma eficiente
+        const columnConfig = columnConfigMap.get(attribute);
+        let value = item[attribute];
+
+        if (!value) { //Evitar errores cuando el elemento no contiene el atributo
+          newObj[attribute] = '';
+          break;
+        }
+
+        // Formatear la fecha si se especifica en la configuración de la columna
+        if (columnConfig?.formatDate) {
+          value = formatDate(value, columnConfig.formatDate.format, columnConfig.formatDate.locale);
+        }
+
+        newObj[attribute] = value; // Asignar el valor (formateado o no) al nuevo objeto
+      }
+
+      return newObj;
+    });
+  }
+
 }

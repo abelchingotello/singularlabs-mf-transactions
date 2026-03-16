@@ -36,18 +36,21 @@ export class ListBalanceComponent implements OnInit {
       hide: this.router.url !== "/balance/list-balance/admin",
       'config': {
         'type': 'buttonicons',
+        restriccPermission: true,
         'actions': [
           {
             bgClass: 'yellow',
             toolTip: 'Editar',
             icon: 'edit',
-            value: 'edit'
+            value: 'edit',
+            permission: 'balance-edit'
           },
           {
             bgClass: 'green',
             toolTip: 'Configurar Saldo Minimo',
             icon: 'payments',
-            value: 'asign_min_balance'
+            value: 'asign_min_balance',
+            permission: 'person-config-edit'
           },
         ]
       }
@@ -105,7 +108,7 @@ export class ListBalanceComponent implements OnInit {
     ]).subscribe({
       next: ([typeEntity]) => {
         this.typeEntitys = typeEntity
-          .filter((item: any) => item.master_name !== 'USER')
+          .filter((item: any) => item.master_visible === 'true')
           .sort((a: any, b: any) => a.master_order - b.master_order);
       },
       error: (err: any) => {
