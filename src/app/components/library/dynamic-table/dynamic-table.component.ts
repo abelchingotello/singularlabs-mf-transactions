@@ -95,7 +95,6 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     const columnAction = columns.find((column: any) => column.config?.type == "buttonicons" && column.config?.actions?.length > 0)
 
     columnAction?.config?.actions.map((column: any) => {
-      console.log("buscando para: ", column)
       allPermissionFromRol[column.permission] = this.hasPermission(column.permission)
       if (allPermissionFromRol[column.permission]) this.actions_visible = true
     })
