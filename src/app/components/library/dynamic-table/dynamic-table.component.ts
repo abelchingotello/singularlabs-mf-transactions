@@ -1,4 +1,7 @@
-import { Component, Input, Output, OnInit, AfterViewInit, ViewChild, EventEmitter, ChangeDetectorRef, ElementRef, OnChanges, SimpleChanges, Inject } from '@angular/core';
+import {
+  Component, Input, Output, OnInit, AfterViewInit, ViewChild, EventEmitter, ChangeDetectorRef, ElementRef, OnChanges, SimpleChanges, Inject,
+  OnDestroy,
+} from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -8,14 +11,16 @@ import { HttpClient } from '@angular/common/http';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { formatDate } from '@angular/common';
 import * as XLSX from 'xlsx';
-import { AuthService } from 'src/app/services/auth.service';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AuthService } from 'src/app/services/auth.service';
+import { Subscription } from 'rxjs';
+
 @Component({
   selector: 'uni-dynamic-table',
   templateUrl: './dynamic-table.component.html',
   styleUrls: ['./dynamic-table.component.scss']
 })
-export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
+export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @Input() columns: any[] = [];
   @Input() data: any[] = [];
   @Input() actionsOptions?: boolean;
@@ -63,6 +68,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
   public previousDataLength = 0;
   public action_permision: any = {};
   public actions_visible: boolean = false;
+  private permissionsSub!: Subscription;
   constructor(private changeDetectorRef: ChangeDetectorRef,
     private http: HttpClient,
     private authService: AuthService,
@@ -70,13 +76,47 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges {
     this.paginatorIntl.itemsPerPageLabel = 'Elementos por página';
   }
 
-  async ngOnInit(): Promise<void> {
-    this.displayedColumns = this.visibleColumns.map(column => column.name); this.attributeNames = this.columns.map(column => column.attribute);
+  ngOnInit(): void {
+    this.updateColumnsFromConfig();
     this.dataSource = new MatTableDataSource(this.data);
     this.dataPrint = new MatTableDataSource(this.data);
-    //this.selectedTab.toLowerCase();
-    await this.getPermissions(this.columns)
-    this.displayedColumns = this.visibleColumns.map(c => c.name);
+
+    this.permissionsSub = this.authService.permissions$.subscribe(permissions => {
+      if (!permissions || Object.keys(permissions).length === 0) return;
+
+      const allPermissionFromRol: any = {};
+      this.actions_visible = false;
+
+      const columnAction = this.columns.find(
+        (column: any) =>
+          column.config?.type === 'buttonicons' &&
+          column.config?.actions?.length > 0
+      );
+
+      columnAction?.config?.actions.forEach((action: any) => {
+        allPermissionFromRol[action.permission] = this.authService.hasPermissionFromTag(action.permission);
+        if (allPermissionFromRol[action.permission]) {
+          this.actions_visible = true;
+        }
+      });
+
+      this.action_permision = { ...allPermissionFromRol };
+      this.updateColumnsFromConfig();
+      this.changeDetectorRef.detectChanges();
+    });
+  }
+
+  private updateColumnsFromConfig(): void {
+    const visibleColumns = this.columns?.filter(
+      c => !c?.config?.restriccPermission || this.actions_visible  // ← agregar condición
+    ) || [];
+    this.displayedColumns = visibleColumns.map(column => column.name);
+    this.attributeNames = visibleColumns.map(column => column.attribute);
+  }
+
+  // Limpiar suscripción al destruir el componente
+  ngOnDestroy(): void {
+    this.permissionsSub?.unsubscribe();
   }
 
   ngAfterViewInit(): void {

@@ -10,7 +10,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import jwtDecode from 'jwt-decode';
@@ -25,13 +25,23 @@ export class AuthService {
   private userId: string = '';
   private user: any;
   private roles: any[] = [];
-  public permissions: any = [];
-  public allPermission: Map<string, any> = new Map();
-  private lastRolId!: string
+
+  private permissionsSubject = new BehaviorSubject<any>({});
+  permissions$ = this.permissionsSubject.asObservable();
+  public permissions: any = {}; public allPermission: Map<string, any> = new Map();
+  private lastRolId: string = "";
   constructor(
     private readonly httpClient: HttpClient,
     private readonly cookieService: CookieService,
-  ) { }
+  ) {
+    window.addEventListener('roleChanged', async (event: any) => {
+      const role = event.detail;
+
+      if (role?.role_id !== this.lastRolId) {
+        await this.getPermissions();
+      }
+    });
+  }
 
   //Verificar si el usuario esta logeado en api gateway
   async isAuth(): Promise<boolean> {
@@ -88,10 +98,11 @@ export class AuthService {
     });
   }
 
+
   async getPermissions() {
-    let { role_id } = this.getRole()
+    let { role_id } = this.getRole();
+    if (role_id === this.lastRolId) return;
     await this.getAllPermissions()
-    this.lastRolId = role_id
     role_id = role_id.split("#")[1]
     const { items } = await firstValueFrom(this.httpClient.get<any>(`${this.url}/roles/${role_id}`));
     let permissions: any = {}
@@ -102,6 +113,9 @@ export class AuthService {
       }
     });
 
-    this.permissions = { ...permissions }
+    this.permissions = { ...permissions };
+    this.permissionsSubject.next(this.permissions);
+    this.lastRolId = role_id
   }
+
 }
