@@ -12,6 +12,7 @@ import { BalanceService } from 'src/app/services/balance.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PersonService } from 'src/app/services/person.service';
 import { MasterService } from 'src/app/services/master.service';
+import { AuthService } from 'src/app/services/auth.service';
 //----
 @Component({
   selector: 'app-report-balance',
@@ -52,6 +53,7 @@ export class ReportBalanceComponent implements OnInit {
     private readonly transactionService: TransactionService,
     private readonly personService: PersonService,
     private readonly fb: FormBuilder,
+    public readonly authService: AuthService,
     private readonly dateService: DateService,
     private readonly mytoastr: MytoastrService,
     private readonly masterService: MasterService,
@@ -97,7 +99,7 @@ export class ReportBalanceComponent implements OnInit {
 
     ]).subscribe({
       next: ([typeEntity]) => {
-        this.typeEntitys = typeEntity.filter((item: any) => item.master_name !== "USER").sort((a: any, b: any) => a.master_order - b.master_order);
+        this.typeEntitys = typeEntity.filter((item: any) => item.master_visible == "true").sort((a: any, b: any) => a.master_order - b.master_order);
       },
       error: (err: any) => {
         console.error('Error:', err);

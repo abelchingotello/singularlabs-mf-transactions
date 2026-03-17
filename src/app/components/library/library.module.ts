@@ -20,12 +20,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { SearchSelectComponent } from './search-select/search-select.component';
+import { IconTypeComponent } from './icons_type/icons_type.component';
 
 @NgModule({
   declarations: [
     SpinnerComponent,
     ImageCardComponent,
     SearchSelectComponent,
+    DynamicTableComponent,
   ],
   imports: [
     CommonModule,
@@ -46,7 +48,7 @@ import { SearchSelectComponent } from './search-select/search-select.component';
     MatDividerModule,
     MatChipsModule,
     MatListModule,
-    DynamicTableComponent,
+    IconTypeComponent,
   ],
   exports: [
     SpinnerComponent,

@@ -111,7 +111,7 @@ export class AssignBalanceComponent implements OnInit {
     ]).subscribe({
       next: ([typeEntity]) => {
         this.typeEntity = typeEntity
-          .filter((item: any) => item.master_name !== "USER")
+          .filter((item: any) => item.master_visible == "true")
           .sort((a: any, b: any) => a.master_order - b.master_order);
         console.log("ENTIDAD: ", this.typeEntity)
       },

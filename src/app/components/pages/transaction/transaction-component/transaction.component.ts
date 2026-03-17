@@ -69,13 +69,15 @@ export class TransactionComponent implements OnInit {
       'attribute': '',
       'config': {
         'type': 'buttonicons',
+        restriccPermission: true,
         'actions': [
           {
             bgClass: 'yellow',
             toolTip: 'Editar',
             icon: 'edit',
-            value: 'edit'
-          }
+            value: 'edit',
+            permission: 'transaction-edit',
+          },
         ]
       }
     },
