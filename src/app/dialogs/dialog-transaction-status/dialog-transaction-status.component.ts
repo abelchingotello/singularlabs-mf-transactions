@@ -119,7 +119,7 @@ export class DialogTransactionStatusComponent implements OnInit {
     return this.formOperation?.get('nuevoEstado')?.value;
   }
   get id_transaction() {
-    return this.data.id
+    return this.data.pk
   }
   get sk() {
     return this.data.sk
@@ -140,7 +140,7 @@ export class DialogTransactionStatusComponent implements OnInit {
  */
 export interface DialogData {
   resp: any;
-  id: string;
+  pk: string;
   statusTrans: any;
   masterStatus: any;
   masterStatusCons: any;

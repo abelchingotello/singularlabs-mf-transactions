@@ -1,0 +1,92 @@
+<div class="bg-dialog p-3">
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <h3 class="m-0 text-dialog" mat-dialog-title>Logs de la Operacion</h3>
+        <button type="button" class="btn button-tertiary custom-button" (click)="reload()">
+            <mat-icon>refresh</mat-icon> Recargar
+        </button>
+    </div>
+</div>
+
+
+<ng-container *ngIf="hasLogs == 'process'; else complete">
+    <div class="state-container">
+        <div class="loader-wrapper">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring delay-1"></div>
+            <div class="pulse-ring delay-2"></div>
+            <span class="material-symbols-outlined loader-icon">manage_search</span>
+        </div>
+        <p class="state-title">Cargando logs...</p>
+        <p class="state-subtitle">Obteniendo registros de la operación</p>
+    </div>
+</ng-container>
+
+<ng-template #complete>
+    <ng-container *ngIf="hasLogs === 'complete'; else nohay">
+
+        <!-- Selector de Steep -->
+        <div class="steep-selector px-3 pt-3">
+            <button *ngFor="let s of steeps" class="btn btn-steep me-2" [class.active]="activeSteeep === s.key"
+                [disabled]="!logs?.[s.key]" (click)="onSteeepChange(s.key)">
+                {{ s.label }}
+            </button>
+        </div>
+
+        <!-- Tabs del steep activo -->
+        <mat-tab-group *ngIf="renderTabs" (selectedTabChange)="onTabChange($event)">
+            <mat-tab *ngFor="let tab of currentTabs">
+                <ng-template mat-tab-label>
+                    <span class="material-symbols-outlined">{{ tab.icon }}</span> {{ tab.label }}
+                </ng-template>
+            </mat-tab>
+        </mat-tab-group>
+
+        <div class="log-wrapper mt-3" *ngIf="showLog">
+            <div class="log-meta" *ngIf="showLog?.log_id || showLog?.log_date">
+                <div class="row w-100 align-items-center m-0">
+                    <div class="col row align-items-center">
+                        <span class="log-meta-item col-lg-6 col-xl-6" style="cursor:pointer" *ngIf="showLog?.log_id"
+                            (click)="copyActive(showLog?.log_id)">
+                            <span class="material-symbols-outlined">tag</span>{{ showLog.log_id }}
+                        </span>
+                        <span class="log-meta-item col-lg-6 col-xl-6" *ngIf="showLog?.log_date">
+                            <span class="material-symbols-outlined">schedule</span>
+                            {{ showLog.log_date | date:'dd/MM/yyyy HH:mm:ss' }}
+                        </span>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn button-tertiary" (click)="copyActive(showLog.log_data)">
+                            <mat-icon>content_copy</mat-icon> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="log-meta" *ngIf="showLog?.log_url">
+                <div class="align-items-center">
+                    <span class="log-meta-item">
+                        {{ showLog?.log_url }}
+                    </span>
+                </div>
+            </div>
+            <pre class="log-pre" [innerHTML]="highlightJson(showLog.log_data ?? showLog)"></pre>
+        </div>
+
+    </ng-container>
+    <ng-template #nohay>
+        <div class="state-container">
+            <div class="empty-icon-wrapper">
+                <span class="material-symbols-outlined empty-icon">folder_off</span>
+            </div>
+            <p class="state-title">Sin logs disponibles</p>
+            <p class="state-subtitle">No hay registros para esta operación.</p>
+        </div>
+    </ng-template>
+</ng-template>
+
+<div class="d-flex justify-content-end p-3">
+    <button (click)="closedialog()" class="btn button-quaternary">
+        <mat-icon>clear</mat-icon>Cancelar
+    </button>
+</div>
