@@ -233,3 +233,26 @@ h2 {
     cursor: not-allowed;
   }
 }
+
+::ng-deep .xml-tag {
+  color: #003d64;
+  font-weight: 600;
+}
+
+::ng-deep .xml-attr {
+  color: #b5520a;
+}
+
+::ng-deep .xml-string {
+  color: #2e7d32;
+}
+
+::ng-deep .xml-value {
+  color: #333;
+}
+
+::ng-deep .xml-inline {
+  display: block;
+  margin-top: 4px;
+  white-space: pre;
+}

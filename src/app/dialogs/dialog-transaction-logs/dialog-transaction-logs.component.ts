@@ -22,11 +22,12 @@ export class DialogTransactionLogsComponent implements OnInit {
   public logs: any;
   public hasLogs: 'process' | 'complete' | 'empty' = 'process';
   public showLog: any;
-  public activeSteeep: 'PAY' | 'CONSULT' | 'SIMULATION' = 'PAY';
-  public steeps: { key: 'PAY' | 'CONSULT' | 'SIMULATION', label: string }[] = [
+  public activeSteeep: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN' = 'PAY';
+  public steeps: { key: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN', label: string }[] = [
     { key: 'CONSULT', label: 'Consulta' },
     { key: 'SIMULATION', label: 'Simulación' },
     { key: 'PAY', label: 'Pago' },
+    { key: 'EXTORN', label: 'Extorno' },
   ];
   // Tabs por steep
   public tabsBySteeep: Record<string, { key: string, label: string, icon: string }[]> = {
@@ -48,6 +49,12 @@ export class DialogTransactionLogsComponent implements OnInit {
       { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
       { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
     ],
+    EXTORN: [
+      { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
+      { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
+      { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
+      { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
+    ],
   };
 
   get currentTabs() {
@@ -62,7 +69,7 @@ export class DialogTransactionLogsComponent implements OnInit {
     this.TransactionService.getLogsTransaction(this.data.pk).subscribe({
       next: ({ data: { Items }, ...value }) => {
         if (value.statusCode === 200) {
-          if (Items && Object.keys(Items ?? {}).length > 0 && Items.PAY) {
+          if (Items && Object.keys(Items ?? {}).length > 0 && (Items.PAY || Items.EXTORN)) {
             this.hasLogs = 'complete';
             this.logs = Items;
             this.setDefaultSteeep();
@@ -89,7 +96,7 @@ export class DialogTransactionLogsComponent implements OnInit {
     }
   }
 
-  onSteeepChange(key: 'PAY' | 'CONSULT' | 'SIMULATION'): void {
+  onSteeepChange(key: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN'): void {
     this.activeSteeep = key;
     this.setFirstLog();
   }
@@ -126,6 +133,67 @@ export class DialogTransactionLogsComponent implements OnInit {
         return `<span class="${cls}">${match}</span>`;
       }
     );
+  }
+
+  formatXml(xml: string): string {
+    let formatted = '';
+    let indent = 0;
+    const tab = '  ';
+    xml.replace(/>\s*</g, '>\n<').split('\n').forEach(node => {
+      const isClosing = node.match(/^<\/\w/);
+      const isSelfContained = node.match(/^<\w[^>]*>.*<\/\w[^>]*>/); // ej: <FechaPago>20260320</FechaPago>
+      const isSelfClosing = node.match(/<.*\/>/);
+      const isOpening = node.match(/^<\w[^>]*[^\/]>/) && !isSelfContained && !isSelfClosing;
+
+      if (isClosing) indent--;
+      formatted += tab.repeat(Math.max(indent, 0)) + node.trim() + '\n';
+      if (isOpening) indent++;
+    });
+    return formatted.trim();
+  }
+
+  renderLog(data: any): string {
+    if (!data) return '';
+
+    // Es string XML directo
+    if (typeof data === 'string') {
+      return this.isXml(data)
+        ? this.highlightXml(this.formatXml(data))
+        : this.highlightJson(data);
+    }
+
+    // Es objeto con data XML dentro
+    if (typeof data === 'object' && typeof data.data === 'string' && this.isXml(data.data)) {
+      const { data: xmlData, ...rest } = data;
+      const jsonStr = this.highlightJson(rest);
+      const xmlStr = this.highlightXml(this.formatXml(xmlData));
+      // Quita el último } y agrega el data XML
+      return jsonStr.replace(/\}$/, '') +
+        `  <span class="json-key">"data"</span>: \n${xmlStr}\n}`;
+    }
+
+    // Objeto normal
+    return this.highlightJson(data);
+  }
+
+  isXml(data: any): boolean {
+    return typeof data === 'string' && data.trim().startsWith('<');
+  }
+
+  highlightXml(xml: string): string {
+    return xml
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/(&lt;\/?[\w:\-]+)(.*?)(&gt;)/g, (_, open, attrs, close) => {
+        const coloredAttrs = attrs.replace(/([\w:\-]+)="([^"]*)"/g,
+          '<span class="xml-attr">$1</span>=<span class="xml-string">"$2"</span>');
+        return `<span class="xml-tag">${open}${coloredAttrs}${close}</span>`;
+      })
+      .replace(/(&gt;)([^&<]+)(&lt;)/g,
+        (_, open, content, close) =>
+          `${open}<span class="xml-value">${content}</span>${close}`
+      );
   }
 }
 

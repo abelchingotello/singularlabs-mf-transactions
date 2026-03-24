@@ -28,10 +28,12 @@
 
         <!-- Selector de Steep -->
         <div class="steep-selector px-3 pt-3">
-            <button *ngFor="let s of steeps" class="btn btn-steep me-2" [class.active]="activeSteeep === s.key"
-                [disabled]="!logs?.[s.key]" (click)="onSteeepChange(s.key)">
-                {{ s.label }}
-            </button>
+            <ng-container *ngFor="let s of steeps">
+                <button *ngIf="logs?.[s.key]" class="btn btn-steep me-2"
+                    [class.active]="activeSteeep === s.key" [disabled]="!logs?.[s.key]" (click)="onSteeepChange(s.key)">
+                    {{ s.label }}
+                </button>
+            </ng-container>
         </div>
 
         <!-- Tabs del steep activo -->
@@ -70,7 +72,7 @@
                     </span>
                 </div>
             </div>
-            <pre class="log-pre" [innerHTML]="highlightJson(showLog.log_data ?? showLog)"></pre>
+            <pre class="log-pre" [innerHTML]="renderLog(showLog.log_data ?? showLog)"></pre>
         </div>
 
     </ng-container>
