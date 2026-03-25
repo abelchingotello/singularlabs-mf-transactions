@@ -3,9 +3,11 @@
     <div class="d-flex justify-content-between align-items-center">
 
         <h3 class="m-0 text-dialog" mat-dialog-title>Logs de la Operacion</h3>
-        <button type="button" class="btn button-tertiary custom-button" (click)="reload()">
-            <mat-icon>refresh</mat-icon> Recargar
-        </button>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn button-tertiary custom-button" (click)="generateTxt()">
+                <mat-icon>save</mat-icon> TXT Proveedor
+            </button>
+        </div>
     </div>
 </div>
 
@@ -29,8 +31,8 @@
         <!-- Selector de Steep -->
         <div class="steep-selector px-3 pt-3">
             <ng-container *ngFor="let s of steeps">
-                <button *ngIf="logs?.[s.key]" class="btn btn-steep me-2"
-                    [class.active]="activeSteeep === s.key" [disabled]="!logs?.[s.key]" (click)="onSteeepChange(s.key)">
+                <button *ngIf="logs?.[s.key]" class="btn btn-steep me-2" [class.active]="activeSteeep === s.key"
+                    [disabled]="!logs?.[s.key]" (click)="onSteeepChange(s.key)">
                     {{ s.label }}
                 </button>
             </ng-container>
@@ -72,7 +74,7 @@
                     </span>
                 </div>
             </div>
-            <pre class="log-pre" [innerHTML]="renderLog(showLog.log_data ?? showLog)"></pre>
+            <pre *ngIf="showLog.log_data" class="log-pre" [innerHTML]="renderLog(showLog.log_data)"></pre>
         </div>
 
     </ng-container>

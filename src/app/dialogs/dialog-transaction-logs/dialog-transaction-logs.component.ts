@@ -1,69 +1,84 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TransactionService } from '../../services/transaction.service';
-import { SpinnerService } from 'src/app/services/spinner.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
+
+export interface DialogData { pk: string; }
+
+type StepKey = 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN';
+type HasLogs = 'process' | 'complete' | 'empty';
+type TabConfig = { key: string; label: string; icon: string };
+
+const DEFAULT_TABS: TabConfig[] = [
+  { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
+  { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
+  { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
+  { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
+];
+
+const STEPS: { key: StepKey; label: string }[] = [
+  { key: 'CONSULT', label: 'Consulta' },
+  { key: 'SIMULATION', label: 'Simulación' },
+  { key: 'PAY', label: 'Pago' },
+  { key: 'EXTORN', label: 'Extorno' },
+];
+
+const TABS_BY_STEP: Record<StepKey, TabConfig[]> = {
+  PAY: DEFAULT_TABS,
+  CONSULT: DEFAULT_TABS,
+  SIMULATION: DEFAULT_TABS,
+  EXTORN: DEFAULT_TABS,
+};
+
+const fmt = (data: any): string | null => {
+  if (!data) return null;
+  return typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+};
+
+const section = (condition: any, header: string, line: string): string[] =>
+  condition ? [header, '', line, ''] : [];
+
+const cwLine = (log: any, label: string, value: string): string => {
+  if (!log) return value;
+  const utc = new Date(log.log_date);
+  const local = new Date(utc.getTime() + (-5 * 60 * 60 * 1000));
+  const toIso = (d: Date, offset: string) => d.toISOString().replace('Z', offset);
+  return [
+    toIso(local, '-05:00'),
+    `${toIso(utc, 'Z')}\t${log.log_id}\tINFO\t${label}: ${value}`,
+  ].join('\n');
+};
 
 @Component({
   selector: 'app-dialog-transaction-logs',
   templateUrl: './dialog-transaction-logs.component.html',
-  styleUrls: ['./dialog-transaction-logs.component.scss']
+  styleUrls: ['./dialog-transaction-logs.component.scss'],
 })
 export class DialogTransactionLogsComponent implements OnInit {
 
   constructor(
     private readonly TransactionService: TransactionService,
     public dialogRef: MatDialogRef<DialogTransactionLogsComponent>,
-    @Inject(MAT_DIALOG_DATA)
-    public data: DialogData,
+    @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private readonly mytoastr: MytoastrService,
   ) { }
+
   public renderTabs = true;
   public logs: any;
-  public hasLogs: 'process' | 'complete' | 'empty' = 'process';
+  public hasLogs: HasLogs = 'process';
   public showLog: any;
-  public activeSteeep: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN' = 'PAY';
-  public steeps: { key: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN', label: string }[] = [
-    { key: 'CONSULT', label: 'Consulta' },
-    { key: 'SIMULATION', label: 'Simulación' },
-    { key: 'PAY', label: 'Pago' },
-    { key: 'EXTORN', label: 'Extorno' },
-  ];
-  // Tabs por steep
-  public tabsBySteeep: Record<string, { key: string, label: string, icon: string }[]> = {
-    PAY: [
-      { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
-      { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
-      { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
-      { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
-    ],
-    CONSULT: [
-      { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
-      { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
-      { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
-      { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
-    ],
-    SIMULATION: [
-      { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
-      { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
-      { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
-      { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
-    ],
-    EXTORN: [
-      { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
-      { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
-      { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
-      { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
-    ],
-  };
+  public activeSteeep: StepKey = 'PAY';
 
-  get currentTabs() {
-    return this.tabsBySteeep[this.activeSteeep].filter(t => this.logs?.[this.activeSteeep]?.[t.key]);
+  // Expone las constantes al template
+  public readonly steeps = STEPS;
+  public readonly tabsBySteeep = TABS_BY_STEP;
+
+  get currentTabs(): TabConfig[] {
+    return this.tabsBySteeep[this.activeSteeep]
+      .filter(t => this.logs?.[this.activeSteeep]?.[t.key]);
   }
 
-  ngOnInit(): void {
-    this.getLogs();
-  }
+  ngOnInit(): void { this.getLogs(); }
 
   getLogs(): void {
     this.TransactionService.getLogsTransaction(this.data.pk).subscribe({
@@ -82,21 +97,20 @@ export class DialogTransactionLogsComponent implements OnInit {
     });
   }
 
-  reload() {
-    this.hasLogs = "process"
-    this.getLogs()
+  reload(): void {
+    this.hasLogs = 'process';
+    this.getLogs();
   }
 
   setDefaultSteeep(): void {
-    // Activa el primer steep que tenga datos
     const found = this.steeps.find(s => this.logs?.[s.key] && Object.keys(this.logs[s.key]).length > 0);
     if (found) {
-      this.activeSteeep = found.key as any;
+      this.activeSteeep = found.key;
       this.setFirstLog();
     }
   }
 
-  onSteeepChange(key: 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN'): void {
+  onSteeepChange(key: StepKey): void {
     this.activeSteeep = key;
     this.setFirstLog();
   }
@@ -119,7 +133,7 @@ export class DialogTransactionLogsComponent implements OnInit {
     this.mytoastr.showInfo('Copiado al portapapeles', '  ');
   }
 
-  closedialog() { this.dialogRef.close(); }
+  closedialog(): void { this.dialogRef.close(); }
 
   highlightJson(data: any): string {
     const json = JSON.stringify(data, null, 2);
@@ -141,7 +155,7 @@ export class DialogTransactionLogsComponent implements OnInit {
     const tab = '  ';
     xml.replace(/>\s*</g, '>\n<').split('\n').forEach(node => {
       const isClosing = node.match(/^<\/\w/);
-      const isSelfContained = node.match(/^<\w[^>]*>.*<\/\w[^>]*>/); // ej: <FechaPago>20260320</FechaPago>
+      const isSelfContained = node.match(/^<\w[^>]*>.*<\/\w[^>]*>/);
       const isSelfClosing = node.match(/<.*\/>/);
       const isOpening = node.match(/^<\w[^>]*[^\/]>/) && !isSelfContained && !isSelfClosing;
 
@@ -155,24 +169,20 @@ export class DialogTransactionLogsComponent implements OnInit {
   renderLog(data: any): string {
     if (!data) return '';
 
-    // Es string XML directo
     if (typeof data === 'string') {
       return this.isXml(data)
         ? this.highlightXml(this.formatXml(data))
         : this.highlightJson(data);
     }
 
-    // Es objeto con data XML dentro
     if (typeof data === 'object' && typeof data.data === 'string' && this.isXml(data.data)) {
       const { data: xmlData, ...rest } = data;
       const jsonStr = this.highlightJson(rest);
       const xmlStr = this.highlightXml(this.formatXml(xmlData));
-      // Quita el último } y agrega el data XML
       return jsonStr.replace(/\}$/, '') +
         `  <span class="json-key">"data"</span>: \n${xmlStr}\n}`;
     }
 
-    // Objeto normal
     return this.highlightJson(data);
   }
 
@@ -195,11 +205,38 @@ export class DialogTransactionLogsComponent implements OnInit {
           `${open}<span class="xml-value">${content}</span>${close}`
       );
   }
-}
 
-/**
- * Datos que recibe el diálogo al inicializarse.
- */
-export interface DialogData {
-  pk: string;
+  generateTxt(): void {
+    const step = this.activeSteeep;
+    const logs = this.logs?.[step];
+    if (!logs) return;
+
+    const provReq = logs['proveedor_request'];
+    const provRes = logs['proveedor_response'];
+    if (!provReq) return;
+
+    const url = provReq?.log_url;
+    const req = Object.keys(provReq?.log_data ?? {}).length > 0 ? fmt(provReq?.log_data) : null;
+    const status = fmt(provRes?.log_data?.statusCode);
+    const { statusCode: _, ...logData } = provRes?.log_data ?? {};
+    const data = fmt(logData);
+
+    const rawDate = provReq?.log_date ?? provRes?.log_date;
+    const ts = new Date(rawDate).toISOString().replace(/[-:T]/g, '').slice(0, 12);
+    const typelog = provReq?.log_type.toLowerCase();
+
+    const content = [
+      ...section(url, `///////////////////// URL //////////////////////`, cwLine(provReq, 'Service URL', url!)),
+      ...section(req, `//////////////////// REQUEST ///////////////////`, cwLine(provReq, 'Request', req!)),
+      ...section(status, `//////////////////// STATUS ////////////////////`, cwLine(provRes, 'Response Status', status!)),
+      ...section(data, `///////////////////// DATA /////////////////////`, cwLine(provRes, 'Data', data!)),
+    ].join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `logs_${ts}_${typelog}_${step.toLowerCase()}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    this.mytoastr.showInfo('Archivo generado', ' ');
+  }
 }
