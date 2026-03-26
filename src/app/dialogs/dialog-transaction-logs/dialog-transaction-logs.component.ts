@@ -213,23 +213,25 @@ export class DialogTransactionLogsComponent implements OnInit {
 
     const provReq = logs['proveedor_request'];
     const provRes = logs['proveedor_response'];
-    if (!provReq) return;
+    if (!provReq) { this.mytoastr.showError('No se encontraron logs de Proveedores', ' '); return };
 
     const url = provReq?.log_url;
     const req = Object.keys(provReq?.log_data ?? {}).length > 0 ? fmt(provReq?.log_data) : null;
     const status = fmt(provRes?.log_data?.statusCode);
+    const xrequestid = fmt(provRes?.log_request_id_provider);
     const { statusCode: _, ...logData } = provRes?.log_data ?? {};
     const data = fmt(logData);
 
     const rawDate = provReq?.log_date ?? provRes?.log_date;
-    const ts = new Date(rawDate).toISOString().replace(/[-:T]/g, '').slice(0, 12);
+    const ts = Number(new Date(rawDate).toISOString().replace(/[-:T]/g, '').slice(0, 12)) - 500;
     const typelog = provReq?.log_type.toLowerCase();
 
     const content = [
       ...section(url, `///////////////////// URL //////////////////////`, cwLine(provReq, 'Service URL', url!)),
       ...section(req, `//////////////////// REQUEST ///////////////////`, cwLine(provReq, 'Request', req!)),
+      ...section(xrequestid, `///////////////// X-REQUEST-ID /////////////////`, cwLine(provRes, 'x-request-id', xrequestid!)),
       ...section(status, `//////////////////// STATUS ////////////////////`, cwLine(provRes, 'Response Status', status!)),
-      ...section(data, `///////////////////// DATA /////////////////////`, cwLine(provRes, 'Data', data!)),
+      ...section(data != "{}", `///////////////////// DATA /////////////////////`, cwLine(provRes, 'Data', data!)),
     ].join('\n');
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
