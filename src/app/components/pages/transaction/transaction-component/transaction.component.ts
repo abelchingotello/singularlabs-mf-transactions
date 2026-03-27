@@ -28,6 +28,9 @@ import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
 import { expand, filter, EMPTY, scan, startWith, lastValueFrom, finalize, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { DialogTransactionLogsComponent } from 'src/app/dialogs/dialog-transaction-logs/dialog-transaction-logs.component';
+import { DialogTransactionModule } from 'src/app/dialogs/dialog-transaction.module';
+import { ComponentType } from 'ngx-toastr';
 @Component({
   selector: 'app-transaction',
   templateUrl: './transaction.component.html',
@@ -77,6 +80,13 @@ export class TransactionComponent implements OnInit {
             icon: 'edit',
             value: 'edit',
             permission: 'transaction-edit',
+          },
+          {
+            bgClass: 'gray',
+            toolTip: 'Ver Logs',
+            icon: 'visibility',
+            value: 'view_logs',
+            permission: 'transactions-logs',
           },
         ]
       }
@@ -175,7 +185,9 @@ export class TransactionComponent implements OnInit {
     console.log("event", event)
     const { value, element } = event
     if (value == "edit") {
-      this.openDialog(element)
+      this.openDialog(element, DialogTransactionStatusComponent,"600px")
+    } else if (value == "view_logs") {
+      this.openDialog(element, DialogTransactionLogsComponent,"800px")
     }
   }
 
@@ -380,13 +392,13 @@ export class TransactionComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
   }
 
-  openDialog(data: any): void {
-    const dialogRef = this.dialog.open(DialogTransactionStatusComponent, {
-      width: '600px',
+  openDialog(data: any, dialog: ComponentType<unknown>, width: string): void {
+    const dialogRef = this.dialog.open(dialog, {
+      width,
       data: {
         concep: data.concep,
         statusTrans: data.status,
-        id: data.id_transaction,
+        pk: data.id_transaction,
         sk: data.sk,
         masterStatus: this.masterStatus,
         masterStatusCons: this.masterStatusConc
