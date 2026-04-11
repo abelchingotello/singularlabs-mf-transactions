@@ -149,6 +149,8 @@ export class TransactionComponent implements OnInit {
     this.initialForm();
     try {
       await this.listData(); // Espera a que listData termine
+
+      // implementacion para no cargar toda la data de mysql al iniciar (Especialmente en produccion)
       const start = new Date();
       start.setHours(16, 10, 0, 0);
       const end = new Date();
