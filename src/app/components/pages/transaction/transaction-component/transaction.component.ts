@@ -6,31 +6,37 @@
  *                - Aplicar filtros por fecha, categoría, proveedor, cliente, estados, servicios, num de recibo y num de suministro.
  *                - Paginación con Angular Material Paginator.
  *                - Exportación de datos en formatos XLSX o CSV.
- *                - Abrir dialog de estado de transacción.
+ *                - Abrir dialog de cambio estado de transacción.
+ *                - Abrir dialog de visualizacion de logs.
  * Maintenance:
- *  - Last modified: 30-Ene-2026
+ *  - Last modified: 20260410
  */
 
-import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
-import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { PageEvent } from '@angular/material/paginator';
-import { SpinnerService } from 'src/app/services/spinner.service';
-import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MytoastrService } from 'src/app/services/mytoastr';
+
+import { expand, filter, EMPTY, scan, startWith, lastValueFrom, finalize, map } from 'rxjs';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+
+import { environment } from 'src/environments/environment';
+
+import { MytoastrService } from 'src/app/services/mytoastr';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
-import { expand, filter, EMPTY, scan, startWith, lastValueFrom, finalize, map } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { DialogTransactionLogsComponent } from 'src/app/dialogs/dialog-transaction-logs/dialog-transaction-logs.component';
-import { DialogTransactionModule } from 'src/app/dialogs/dialog-transaction.module';
+import { TransactionService } from 'src/app/services/transaction.service';
+import { SpinnerService } from 'src/app/services/spinner.service';
+
+import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
+import { PaginationUtils } from 'src/app/utilities/pagination-utils';
+
 import { ComponentType } from 'ngx-toastr';
+import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
+import { DialogTransactionLogsComponent } from 'src/app/dialogs/dialog-transaction-logs/dialog-transaction-logs.component';
+
 @Component({
   selector: 'app-transaction',
   templateUrl: './transaction.component.html',
@@ -145,6 +151,16 @@ export class TransactionComponent implements OnInit {
     this.initialForm();
     try {
       await this.listData(); // Espera a que listData termine
+
+      // implementacion para no cargar toda la data de mysql al iniciar (Especialmente en produccion)
+      const start = new Date();
+      start.setHours(16, 10, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+
+      this.formDate.get('dateStart')?.setValue(start);
+      this.formDate.get('dateEnd')?.setValue(end);
+
       this.functionDataCurrent = this.getDataTransaction.bind(this);
       this.functionDataCurrent(this.pageSize);
     } catch (error) {
@@ -185,9 +201,9 @@ export class TransactionComponent implements OnInit {
     console.log("event", event)
     const { value, element } = event
     if (value == "edit") {
-      this.openDialog(element, DialogTransactionStatusComponent,"600px")
+      this.openDialog(element, DialogTransactionStatusComponent, "600px")
     } else if (value == "view_logs") {
-      this.openDialog(element, DialogTransactionLogsComponent,"800px")
+      this.openDialog(element, DialogTransactionLogsComponent, "800px")
     }
   }
 

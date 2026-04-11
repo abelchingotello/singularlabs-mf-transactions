@@ -13,6 +13,8 @@ const DEFAULT_TABS: TabConfig[] = [
   { key: 'recaudador_request', label: 'Evento Recibido', icon: 'person' },
   { key: 'proveedor_request', label: 'Request Enviado', icon: 'apps' },
   { key: 'proveedor_response', label: 'Response Proveedor', icon: 'sync_alt' },
+  { key: 'proveedor_request_rei', label: 'Request Enviado Reimpresion', icon: 'apps' },
+  { key: 'proveedor_response_rei', label: 'Response Proveedor Reimpresion', icon: 'sync_alt' },
   { key: 'recaudador_response', label: 'Respuesta Final', icon: 'check_circle' },
 ];
 
