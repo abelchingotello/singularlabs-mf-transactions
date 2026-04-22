@@ -28,47 +28,69 @@
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="col-md-3" (click)="showAlarmSelectCategory()">
+                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Servicio</mat-label>
                             <mat-select formControlName="idService" multiple
-                                (selectionChange)="onServicesChange($event)">
-
-                                <!-- Input de búsqueda -->
-                                <mat-option disabled class="search-option" *ngIf="selectedCategory">
+                                (selectionChange)="onServicesChange($event)" [disabled]="!selectedCategory">
+                                <mat-option disabled class="search-option">
                                     <input matInput placeholder="Buscar servicio..." [(ngModel)]="serviceFilter"
                                         [ngModelOptions]="{standalone: true}" (ngModelChange)="filterServices()"
-                                        (click)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()"
-                                        (keydown.enter)="$event.stopPropagation()" />
+                                        (keydown.space)="$event.stopPropagation()" />
                                 </mat-option>
-
-                                <!-- Input de Listado de Servicios Listados-->
-                                <mat-option disabled *ngIf="selectedCategory">
-                                    <input matInput placeholder="Servicios Listados..." [value]="servicesNames" />
+                                <mat-option disabled [disabled]="selectedCategory">
+                                    <input matInput placeholder="Servicios Listados..." [value]="servicesNames"
+                                        disabled />
                                 </mat-option>
-
-                                <!-- Mostrar los servicios filtrados -->
                                 <mat-option *ngFor="let service of filteredServices" [value]="service.id">
                                     {{ service.name }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
-
                         <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Negocio</mat-label>
-                            <mat-select formControlName="und_service" multiple>
+                            <mat-select formControlName="und_service" multiple [disabled]="!select_electrocentro">
                                 <mat-option *ngFor="let undservice of listUndServicesElectrocentro"
                                     [value]="undservice.id">
                                     {{ undservice.name }}
                                 </mat-option>
-
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Estado de Transferencia</mat-label>
-                            <mat-select formControlName="status" multiple>
-                                <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
-                                    {{status.master_name}}
+                            <mat-label>Seleccionar Recaudador</mat-label>
+                            <mat-select formControlName="entity">
+                                <mat-option [value]="">NINGUNO</mat-option>
+                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
+                                    {{entity.servicePerson.nameAlias}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Distribuidores</mat-label>
+                            <mat-select formControlName="idDealer" (selectionChange)="selectDealer($event)"
+                                [disabled]="!listRecWhitAgents.includes(entity)">
+                                <mat-option disabled class="search-option">
+                                    <input matInput placeholder="Buscar Distribuidor..." [(ngModel)]="dealerFilter"
+                                        [ngModelOptions]="{standalone: true}" (ngModelChange)="filterDealers()"
+                                        (keydown.space)="$event.stopPropagation()" />
+                                </mat-option>
+                                <mat-option>NINGUNO</mat-option>
+                                <mat-option *ngFor="let dealer of filteredDealers" [value]="dealer.dealerId">{{
+                                    dealer.nComercial }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Agentes</mat-label>
+                            <mat-select formControlName="idAgent"
+                                [disabled]="!selectedDealer || !listRecWhitAgents.includes(entity)">
+                                <mat-option disabled class="search-option">
+                                    <input matInput placeholder="Buscar Agente..." [(ngModel)]="agentFilter"
+                                        [ngModelOptions]="{standalone: true}" (ngModelChange)="filterAgents()"
+                                        (keydown.space)="$event.stopPropagation()" />
+                                </mat-option>
+                                <mat-option>NINGUNO</mat-option>
+                                <mat-option *ngFor="let dealer of filteredAgents" [value]="dealer.retailer_id">
+                                    {{ dealer.retailer_businessName }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
@@ -83,11 +105,10 @@
                             </mat-select>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Seleccionar Recaudador</mat-label>
-                            <mat-select formControlName="entity">
-                                <mat-option [value]="">NINGUNO</mat-option>
-                                <mat-option *ngFor="let entity of entityTypes" [value]="entity.servicePerson.idPerson">
-                                    {{entity.servicePerson.nameAlias}}
+                            <mat-label>Estado de Transferencia</mat-label>
+                            <mat-select formControlName="status" multiple>
+                                <mat-option *ngFor="let status of masterStatus" [value]="status.master_name">
+                                    {{status.master_name}}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
@@ -104,17 +125,15 @@
                             <input formControlName="supply" type="text" matInput>
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
-                            <mat-label>Id Operacion Multiple</mat-label>
-                            <input formControlName="id_operacion_detalle" type="text" matInput>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Recibo</mat-label>
                             <input formControlName="numDoc" type="text" matInput>
                         </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Id Operacion Multiple</mat-label>
+                            <input formControlName="id_operacion_detalle" type="text" matInput>
+                        </mat-form-field>
                     </form>
                     <div class="row">
-
                         <div class="col lg-6">
                             <div class="info-container">
                                 <div class="info-item">
@@ -132,10 +151,8 @@
                                 <mat-icon>search</mat-icon>
                                 Buscar
                             </button>
-
                         </div>
                     </div>
-
                 </div>
             </mat-card-content>
         </mat-card>
@@ -147,7 +164,6 @@
                         [refreshFunction]="reload.bind(this)" element_id="concep" (pageChange)="onPageChange($event)"
                         [pageKey]="pageKey" [customExportFunction]="exportDataViaAPI.bind(this)"
                         (clickButtonEvent)="clickButton($event)">
-
                     </uni-dynamic-table>
                 </div>
             </mat-card-content>

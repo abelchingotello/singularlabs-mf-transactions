@@ -103,6 +103,8 @@ export class TransactionService {
       concept: filters.numDoc ?? filters.concept,
       supply: filters.supply,
       idclient: filters.idclient,
+      dealer: filters.dealer,
+      agent: filters.agent,
       idprovider: filters.idprovider,
       dateStart: filters.dateStart,
       status: filters.status,
@@ -139,6 +141,8 @@ interface TransactionFilters {
   supply?: string;
   idclient?: string;
   idprovider?: string;
+  dealer?: string;
+  agent?: string;
   status?: string;
   dateStart?: string;
   dateEnd?: string;
