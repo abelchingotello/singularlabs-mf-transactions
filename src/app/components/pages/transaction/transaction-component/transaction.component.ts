@@ -1,7 +1,5 @@
-// import { CountryCodes } from './../../../../../../../singularlabs-mf-users/src/app/components/library/input-phone/country-codes';
 import { TransactionService } from '../../../../services/transaction.service';
 import { Component, OnInit, ViewChild } from '@angular/core';
-// import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { DynamicTableComponent } from '../../../library/dynamic-table/dynamic-table.component';
 import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { PageEvent } from '@angular/material/paginator';
@@ -9,16 +7,12 @@ import { SpinnerService } from 'src/app/services/spinner.service';
 import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { MatDialog } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DialogSearchOperationComponent } from 'src/app/dialogs/dialog-search-operation/dialog-search-operation.component';
 import { MytoastrService } from 'src/app/services/mytoastr';
 import { forkJoin } from 'rxjs/internal/observable/forkJoin';
 import { MasterService } from 'src/app/services/master.service';
 import { PersonService } from 'src/app/services/person.service';
-import { DatePipe } from '@angular/common';
 import { DateService } from 'src/app/services/date.service';
 import { ServicesService } from 'src/app/services/services.service';
-import { distinctUntilKeyChanged, expand, filter, of, scan, startWith } from 'rxjs';
-import { config } from 'process';
 
 @Component({
   selector: 'app-transaction',
@@ -27,7 +21,7 @@ import { config } from 'process';
 })
 export class TransactionComponent implements OnInit {
 
-  private pagUtils: PaginationUtils | undefined;
+  private readonly pagUtils: PaginationUtils | undefined;
 
   public columns: any[] = [
     { 'name': 'Recaudador', 'attribute': 'client' },
@@ -54,12 +48,14 @@ export class TransactionComponent implements OnInit {
       'attribute': '',
       'config': {
         'type': 'buttonicons',
+        restriccPermission: true,
         'actions': [
           {
             bgClass: 'yellow',
             toolTip: 'Editar',
             icon: 'edit',
-            value: 'edit'
+            value: 'edit',
+            permission: 'transaction-edit'
           },
         ]
       }
@@ -68,7 +64,7 @@ export class TransactionComponent implements OnInit {
   public dataTransaction: any[] = [];
 
   public pageSize: any = 5;
-  public pageKey: any | undefined;
+  public pageKey: any;
   public disabledEditOption: any
   public functionDataCurrent!: ((pageSize: any) => any);
   public formOperation!: FormGroup<any>;
@@ -86,19 +82,23 @@ export class TransactionComponent implements OnInit {
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
   constructor(
-    private spinner: SpinnerService,
-    private transactionService: TransactionService,
-    private fb: FormBuilder,
-    private mytoastr: MytoastrService,
-    private masterService: MasterService,
-    private personService: PersonService,
-    private dateService: DateService,
-    private serviceServ: ServicesService,
+    private readonly spinner: SpinnerService,
+    private readonly transactionService: TransactionService,
+    private readonly fb: FormBuilder,
+    private readonly mytoastr: MytoastrService,
+    private readonly masterService: MasterService,
+    private readonly personService: PersonService,
+    private readonly dateService: DateService,
+    private readonly serviceServ: ServicesService,
     public dialog: MatDialog,) {
     this.pagUtils = new PaginationUtils();
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    this.initializeAsync();
+  }
+
+  private async initializeAsync(): Promise<void> {
     this.initialForm();
     try {
       await this.listData(); // Espera a que listData termine
