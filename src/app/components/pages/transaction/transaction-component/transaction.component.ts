@@ -387,10 +387,11 @@ export class TransactionComponent implements OnInit, OnDestroy {
     try {
       const [
         masterStatus,
-        { data: { providerTransform, recaudadorTransform } },
+        provAndEntity,
         category,
         masterStatusCons,
-        { data: { dealers: { data: dealers }, agents: { data: agents } } }
+        acashData
+        //{ data: { dealers: { data: dealers }, agents: { data: agents } } }
       ] = await lastValueFrom(
         forkJoin([
           this.masterService.getItemsMasterTable('16'),
@@ -401,17 +402,17 @@ export class TransactionComponent implements OnInit, OnDestroy {
         ])
       );
 
-      this.listProviders = providerTransform;
-      this.entityTypes = recaudadorTransform;
+      this.listProviders = provAndEntity.data.providerTransform;
+      this.entityTypes = provAndEntity.data.recaudadorTransform;
 
       const dluz = this.listProviders.find((p: any) => p.servicePerson.idPerson === `${environment.ID_PERSON_DLUZ}`);
       if (dluz && dluz.servicePerson.und_serv !== 'N/A') try { this.listUndServicesElectrocentro = JSON.parse(dluz.servicePerson.und_serv.replace(/\\/g, '')); } catch { this.listUndServicesElectrocentro = []; }
       else this.listUndServicesElectrocentro = [];
 
-      this.filteredDealers = dealers;
-      this.allDealers = dealers;
+      this.filteredDealers = acashData.data.dealers.data;
+      this.allDealers = acashData.data.dealers.data;
 
-      this.allAgents = agents
+      this.allAgents = acashData.data.agents.data;
 
       this.masterStatusConc = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
       this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
