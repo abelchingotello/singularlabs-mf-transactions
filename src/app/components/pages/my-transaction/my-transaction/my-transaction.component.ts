@@ -1,9 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { CookieService } from 'ngx-cookie-service';
-import { EMPTY, expand, filter, finalize, forkJoin, lastValueFrom, map, scan, startWith } from 'rxjs';
+import { ComponentType } from 'ngx-toastr';
+import { EMPTY, expand, filter, finalize, forkJoin, lastValueFrom, map, scan, startWith, takeUntil } from 'rxjs';
 import { DynamicTableComponent } from 'src/app/components/library/dynamic-table/dynamic-table.component';
+import { DialogTransactionLogsComponent } from 'src/app/dialogs/dialog-transaction-logs/dialog-transaction-logs.component';
 import { DateService } from 'src/app/services/date.service';
 import { MasterService } from 'src/app/services/master.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
@@ -44,6 +47,15 @@ export class MyTransactionComponent implements OnInit {
       'name': 'Est. Transaccion',
       'attribute': 'status',
       'config': { 'renderIcon': true, 'icon': 'iconStatus', 'coloricon': 'colorStatus' }
+    },
+    {
+      name: 'Accion',
+      attribute: '',
+      config: {
+        type: 'buttonicons',
+        restriccPermission: true,
+        actions: [{ bgClass: 'gray', toolTip: 'Ver Logs', icon: 'visibility', value: 'view_logs', permission: 'transactions-logs' },],
+      },
     },
   ];
 
@@ -91,7 +103,9 @@ export class MyTransactionComponent implements OnInit {
     private readonly masterService: MasterService,
     private readonly personService: PersonService,
     private readonly dateService: DateService,
-    private readonly serviceServ: ServicesService
+    private readonly serviceServ: ServicesService,
+    public dialog: MatDialog,
+
   ) {
     this.pagUtils = new PaginationUtils();
   }
@@ -268,6 +282,22 @@ export class MyTransactionComponent implements OnInit {
     this.pagUtils?.onPageChange(event, this.pageSize, this.functionDataCurrent.bind(this), this.pageKey);
   }
 
+  clickButton({ value, element }: { value: string; element: any }): void {
+    switch (value) {
+      case 'view_logs': this.openDialog(element, DialogTransactionLogsComponent, '800px'); break;
+    }
+  }
+
+  openDialog(data: any, dialog: ComponentType<unknown>, width: string): void {
+    const dialogRef = this.dialog.open(dialog, {
+      width,
+      data: {
+        pk: data.id_transaction,
+        isRec: true
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => { if (result === true) this.reload(); });
+  }
   clearSearch() {
     this.formDate.get('dateEnd')?.setValue('');
     this.formDate.get('dateStart')?.setValue('');

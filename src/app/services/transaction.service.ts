@@ -74,8 +74,8 @@ export class TransactionService {
     const params = this.buildTransactionParams(filters, extraParams);
     return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
   }
-  getLogsTransaction(pk: string): Observable<any> {
-    return this.httpClient.get(`${this.url}/transactions/logs?id=${pk}`);
+  getLogsTransaction(pk: string, isRec: boolean): Observable<any> {
+    return this.httpClient.get(`${this.url}/transactions/logs?id=${pk}&isRec=${isRec}`);
   }
 
   exportTransactions(

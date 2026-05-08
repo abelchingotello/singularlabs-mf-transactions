@@ -3,7 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TransactionService } from '../../services/transaction.service';
 import { MytoastrService } from 'src/app/services/mytoastr';
 
-export interface DialogData { pk: string; }
+export interface DialogData { pk: string; isRec: boolean }
 
 type StepKey = 'PAY' | 'CONSULT' | 'SIMULATION' | 'EXTORN';
 type HasLogs = 'process' | 'complete' | 'empty';
@@ -83,7 +83,7 @@ export class DialogTransactionLogsComponent implements OnInit {
   ngOnInit(): void { this.getLogs(); }
 
   getLogs(): void {
-    this.TransactionService.getLogsTransaction(this.data.pk).subscribe({
+    this.TransactionService.getLogsTransaction(this.data.pk, this.data.isRec).subscribe({
       next: ({ data: { Items }, ...value }) => {
         if (value.statusCode === 200) {
           if (Items && Object.keys(Items ?? {}).length > 0 && (Items.PAY || Items.EXTORN)) {
