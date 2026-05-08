@@ -120,6 +120,8 @@ export class TransactionComponent implements OnInit, OnDestroy {
   public selectedDealer: boolean = false;
 
   public select_electrocentro: boolean = false;
+  public start!: Date;
+  public end!: Date;
 
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
@@ -158,14 +160,14 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   initialForm(): void {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
+    this.start = new Date();
+    this.start.setHours(0, 0, 0, 0);
+    this.end = new Date();
+    this.end.setHours(23, 59, 59, 999);
 
     this.formDate = this.fb.group({
-      dateStart: [start],
-      dateEnd: [end],
+      dateStart: [this.start],
+      dateEnd: [this.end],
       entity: [''],
       provider: [''],
       category: [''],
@@ -434,9 +436,10 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   clearSearch(): void {
+    
     this.formDate.patchValue({
-      dateEnd: '',
-      dateStart: '',
+      dateEnd: this.end,
+      dateStart: this.start,
       status: '',
       category: '',
       entity: '',
