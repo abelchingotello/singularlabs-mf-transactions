@@ -90,6 +90,8 @@ export class MyTransactionComponent implements OnInit {
   public listServicesSelected: ServiceItem[] = [];
   public listServicesSelected1: ServiceItem[] = [];
 
+  public start!: Date;
+  public end!: Date;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
 
 
@@ -170,9 +172,13 @@ export class MyTransactionComponent implements OnInit {
     this.spinner.spinnerOnOff
   }
   initialForm() {
+    this.start = new Date();
+    this.start.setHours(0, 0, 0, 0);
+    this.end = new Date();
+    this.end.setHours(23, 59, 59, 999);
     this.formDate = this.fb.group({
-      dateStart: [''],
-      dateEnd: [''],
+      dateStart: [this.start],
+      dateEnd: [this.end],
       entity: [''],
       category: [''],
       idService: [''],
@@ -299,8 +305,8 @@ export class MyTransactionComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => { if (result === true) this.reload(); });
   }
   clearSearch() {
-    this.formDate.get('dateEnd')?.setValue('');
-    this.formDate.get('dateStart')?.setValue('');
+    this.formDate.get('dateEnd')?.setValue(this.end);
+    this.formDate.get('dateStart')?.setValue(this.start);
     this.formDate.get('status')?.setValue('');
     this.formDate.get('category')?.setValue('');
     this.formDate.get('idService')?.setValue('');
