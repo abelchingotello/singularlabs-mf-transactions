@@ -75,7 +75,7 @@ export class TransactionService {
     return this.httpClient.get(`${this.url}/transactions/current-balances`, { params });
   }
   getLogsTransaction(pk: string, isRec: boolean): Observable<any> {
-    return this.httpClient.get(`${this.url}/transactions/logs?id=${pk}&isRec=${isRec}`);
+    return this.httpClient.get(`${this.url}/transactions/logs?id=${pk}${isRec ? "&isRec=true" : ""}`);
   }
 
   exportTransactions(
