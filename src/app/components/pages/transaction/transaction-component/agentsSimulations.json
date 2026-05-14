@@ -1,0 +1,12 @@
+[
+    { "agentId": "1", "agentName": "Agente 1.1", "dealerId": "1" },
+    { "agentId": "2", "agentName": "Agente 1.2", "dealerId": "1" },
+    { "agentId": "3", "agentName": "Agente 2.1", "dealerId": "2" },
+    { "agentId": "4", "agentName": "Agente 2.2", "dealerId": "2" },
+    { "agentId": "5", "agentName": "Agente 3.1", "dealerId": "3" },
+    { "agentId": "6", "agentName": "Agente 3.2", "dealerId": "3" },
+    { "agentId": "7", "agentName": "Agente 4.1", "dealerId": "4" },
+    { "agentId": "8", "agentName": "Agente 4.2", "dealerId": "4" },
+    { "agentId": "9", "agentName": "Agente 5.1", "dealerId": "5" },
+    { "agentId": "10", "agentName": "Agente 5.2", "dealerId": "5" }
+]

@@ -36,4 +36,7 @@ export class PersonService {
     return this.httpClient.get(`${this.url}/person/${id}`);
   }
 
+  getDataAcash(): Observable<any> {
+    return this.httpClient.get(`${this.url}/users/acash`);
+  }
 }

@@ -28,7 +28,7 @@ export class DynamicTableComponent implements OnInit, AfterViewInit, OnChanges, 
   @Input() element_id?: string | string[] | 'ALL';
   @Input() pageKey: any;
   @Input() refreshFunction!: () => void;
-  @Input() alwaysShowHeaderOptions: boolean = true;
+  @Input() alwaysShowHeaderOptions: boolean = false;
   //------------
   @Input() customExportFunction: ((fileType: 'xlsx' | 'csv', bandeja: any) => void) | null = null;
   //------------

@@ -4,7 +4,7 @@
 
         <h3 class="m-0 text-dialog" mat-dialog-title>Logs de la Operacion</h3>
         <div class="d-flex justify-content-end">
-            <button type="button" class="btn button-tertiary custom-button" (click)="generateTxt()">
+            <button type="button" class="btn button-tertiary custom-button" (click)="generateTxt()" *ngIf="!data.isRec">
                 <mat-icon>save</mat-icon> TXT Proveedor
             </button>
         </div>
