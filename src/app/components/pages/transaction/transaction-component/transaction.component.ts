@@ -410,11 +410,16 @@ export class TransactionComponent implements OnInit, OnDestroy {
       const dluz = this.listProviders.find((p: any) => p.servicePerson.idPerson === `${environment.ID_PERSON_DLUZ}`);
       if (dluz && dluz.servicePerson.und_serv !== 'N/A') try { this.listUndServicesElectrocentro = JSON.parse(dluz.servicePerson.und_serv.replace(/\\/g, '')); } catch { this.listUndServicesElectrocentro = []; }
       else this.listUndServicesElectrocentro = [];
+     
+      try {
 
-      this.filteredDealers = acashData.data.dealers.data;
-      this.allDealers = acashData.data.dealers.data;
+        this.filteredDealers = acashData.data.dealers.data;
+        this.allDealers = acashData.data.dealers.data;
 
-      this.allAgents = acashData.data.agents.data;
+        this.allAgents = acashData.data.agents.data;
+      } catch (error) {
+        console.error('Error al cargar dealers y agents:', error);
+      }
 
       this.masterStatusConc = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
       this.masterStatus = masterStatus.sort((a: any, b: any) => a.master_order - b.master_order);
@@ -436,7 +441,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   clearSearch(): void {
-    
+
     this.formDate.patchValue({
       dateEnd: this.end,
       dateStart: this.start,
