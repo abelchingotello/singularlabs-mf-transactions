@@ -121,7 +121,7 @@ export class ListBalanceComponent implements OnInit {
     const dialogRef = this.dialog.open(DialogAdjustBalanceComponent, {
       width: '600px',
       data: {
-        balance: data.amountTransaction.split(' ')[0],
+        balance: Number(data.amountTransaction.split(' ')[0] ?? 0),
         entity: data.entity,
         id: data.entity_id,
         type_entity: this.typeEntity.master_name
