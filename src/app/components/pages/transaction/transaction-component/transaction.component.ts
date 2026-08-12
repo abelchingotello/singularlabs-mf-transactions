@@ -69,7 +69,7 @@ export class TransactionComponent implements OnInit {
   public pageKey: any;
   public disabledEditOption: any
   public functionDataCurrent!: ((pageSize: any) => any);
-  public formOperation!: FormGroup<any>;
+
   public formDate!: FormGroup<any>;
   public transaction: any;
   public respSearch: any;
@@ -82,6 +82,9 @@ export class TransactionComponent implements OnInit {
   public services: any;
   public masterStatusCons: any;
   @ViewChild(DynamicTableComponent) dynamic!: DynamicTableComponent;
+
+  public select_electrocentro: boolean = false;
+  public listUndServicesElectrocentro: any[] = [];
 
   constructor(
     private readonly spinner: SpinnerService,
@@ -112,14 +115,13 @@ export class TransactionComponent implements OnInit {
   }
 
   initialForm() {
-    this.formOperation = this.fb.group({
-      numOperation: ['', Validators.required],
-    });
     this.formDate = this.fb.group({
       dateStart: [''],
       dateEnd: [''],
       entity: [''],
       idService: [''],
+      und_service: [''],
+      supply: [''],
       numDoc: [''],
       status: [''],
       provider: [''],
@@ -132,12 +134,14 @@ export class TransactionComponent implements OnInit {
     let entity = this.entity || undefined;
     let status = this.status || undefined;
     let idServ = this.idService || undefined;
+    let und_service = this.und_service || undefined;
+    let supply = this.supply || undefined;
     let numDoc = this.numDoc || undefined;
     let dateStart = this.dateService.formatStartDate(this.dateStart).replace(/\//g, '') || undefined;
     let dateEnd = this.dateService.formatEndDate(this.dateEnd).replace(/\//g, '') || undefined
     let provider = this.provider || undefined;
     // return
-    this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, this.count, this.amountTransaction).subscribe({
+    this.transactionService.getTransaction(entity, provider, status, dateStart, dateEnd, idServ?.toString(), pageSize, this.page, numDoc, this.count, this.amountTransaction, supply, und_service).subscribe({
       next: (value: any) => {
         if (value.statusCode === 201) {
           this.amountTransaction = 0;
@@ -235,6 +239,8 @@ export class TransactionComponent implements OnInit {
     console.log("formulario busqueda: ", this.formDate)
     if (this.formDate.get('dateEnd')?.value == '' &&
       this.formDate.get('status')?.value == '' &&
+      this.formDate.get('und_service')?.value == '' &&
+      this.formDate.get('supply')?.value == '' &&
       this.formDate.get('numDoc')?.value == '' &&
       this.formDate.get('idService')?.value == '' &&
       this.formDate.get('entity')?.value == '' &&
@@ -264,6 +270,11 @@ export class TransactionComponent implements OnInit {
           this.entityTypes = persons?.data?.recaudadorTransform;
           this.services = service.data.Items;
           this.masterStatusCons = masterStatusCons.sort((a: any, b: any) => a.master_order - b.master_order);
+
+          const dluz = this.listProviders.find((p: any) => p.servicePerson.idPerson === `62190600`);
+          if (dluz && dluz.servicePerson.und_serv !== 'N/A') try { this.listUndServicesElectrocentro = JSON.parse(dluz.servicePerson.und_serv.replace(/\\/g, '')); } catch { this.listUndServicesElectrocentro = []; }
+          else this.listUndServicesElectrocentro = [];
+
           this.spinner.spinnerOnOff();
           resolve(); //  Indica que terminó exitosamente
         },
@@ -282,6 +293,8 @@ export class TransactionComponent implements OnInit {
     this.formDate.get('status')?.setValue('')
     this.formDate.get('entity')?.setValue('')
     this.formDate.get('idService')?.setValue('')
+    this.formDate.get('und_service')?.setValue('')
+    this.formDate.get('supply')?.setValue('')
     this.formDate.get('numDoc')?.setValue('')
     this.formDate.get('provider')?.setValue('')
     //limpiar tabla de transacciones
@@ -295,6 +308,13 @@ export class TransactionComponent implements OnInit {
 
   get numDoc() {
     return this.formDate?.get('numDoc')?.value;
+  }
+
+  get supply() {
+    return this.formDate?.get('supply')?.value;
+  }
+  get und_service() {
+    return this.formDate?.get('und_service')?.value;
   }
 
   get dateEnd() {

@@ -33,6 +33,15 @@
                             <!-- Mensaje si no hay categoría seleccionada -->
                         </mat-form-field>
                         <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Negocio</mat-label>
+                            <mat-select formControlName="und_service" multiple [disabled]="idService !== '16217'">
+                                <mat-option *ngFor="let undservice of listUndServicesElectrocentro"
+                                    [value]="undservice.id">
+                                    {{ undservice.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="col-md-3">
                             <mat-label>Seleccionar Recaudador</mat-label>
                             <mat-select formControlName="entity">
                                 <mat-option [value]="">NINGUNO</mat-option>
@@ -50,6 +59,11 @@
                                     {{provider.servicePerson.nameAlias}}
                                 </mat-option>
                             </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="col-md-3">
+                            <mat-label>Seleccionar Suministro</mat-label>
+                            <input formControlName="supply" type="text" matInput>
                         </mat-form-field>
 
                         <mat-form-field appearance="outline" class="col-md-3">

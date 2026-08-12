@@ -16,7 +16,7 @@ export class TransactionService {
     private httpClient: HttpClient,
   ) { }
 
-  getTransaction(idclient?: string, idprovider?: string, status?: string, dateStart?: any, dateEnd?: any, idService?: string, limit?: any, page?: any, numDoc?: string, count?: any, totalAmount?: any): Observable<any> {
+  getTransaction(idclient?: string, idprovider?: string, status?: string, dateStart?: any, dateEnd?: any, idService?: string, limit?: any, page?: any, numDoc?: string, count?: any, totalAmount?: any, supply?: any, und_service?: any): Observable<any> {
     let params = new HttpParams();
 
     console.log("idservicio: ", idService)
@@ -27,6 +27,14 @@ export class TransactionService {
 
     if (idclient !== undefined) {
       params = params.set('idclient', idclient);
+    }
+
+    if (supply !== undefined) {
+      params = params.set('supply', supply);
+    }
+
+    if (und_service !== undefined) {
+      params = params.set('und_service', und_service);
     }
 
     if (idprovider !== undefined) {
@@ -120,7 +128,7 @@ export class TransactionService {
     params = params.set('numberOperation', numberOperation);
     return this.httpClient.get(`${this.url}/transactions/voucher`, { params });
   }
-  
+
   /*
   //-----Exportar de archivos
   exportTransactions(
