@@ -101,5 +101,4 @@ export interface DialogData {
   entity: string;
   id: string;
   type_entity: any;
-
 }

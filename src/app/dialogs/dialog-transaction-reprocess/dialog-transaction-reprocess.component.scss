@@ -1,0 +1,258 @@
+/* warning-dialog.component.scss */
+
+.countdown {
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+}
+
+button {
+  margin: 10px;
+}
+
+h2 {
+  font-size: 18px;
+  color: #333;
+}
+
+.bg-custom {
+  background-color: #003d64;
+  color: #fff !important;
+}
+
+.btn-custom {
+  background-color: #003d64 !important;
+  border-color: var(--default4) !important;
+  color: #fff !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 16px 8px 13px !important;
+}
+
+/* ── Estado: Cargando & Sin logs ── */
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 6px;
+  text-align: center;
+}
+
+.state-title {
+  margin: 10px 0 2px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.state-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Loader */
+.loader-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #003d64;
+  opacity: 0;
+  animation: pulse-out 1.8s ease-out infinite;
+
+  &.delay-1 {
+    animation-delay: 0.6s;
+  }
+
+  &.delay-2 {
+    animation-delay: 1.2s;
+  }
+}
+
+@keyframes pulse-out {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.loader-icon {
+  font-size: 26px;
+  color: #003d64;
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+@keyframes bob {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Empty */
+.empty-icon-wrapper {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: rgba(0, 61, 100, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon {
+  font-size: 34px;
+  color: #003d64;
+  opacity: 0.5;
+}
+
+
+/* ── Pre (ocupa el espacio restante y scrollea solo) ── */
+.log-pre {
+  margin: 0;
+  padding: 16px;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 1rem;
+  line-height: 1.7;
+  background: #f4f7fb;
+  overflow: auto;
+  max-height: 50vh !important;
+  flex: 1; // ← crece dentro del wrapper flex
+
+  ::ng-deep .json-key {
+    color: #003d64;
+    font-weight: 600;
+  }
+
+  ::ng-deep .json-string {
+    color: #2e7d32;
+  }
+
+  ::ng-deep .json-number {
+    color: #b5520a;
+  }
+
+  ::ng-deep .json-boolean {
+    color: #6a1a9a;
+    font-weight: 600;
+  }
+
+  ::ng-deep .json-null {
+    color: #999;
+    font-style: italic;
+  }
+}
+
+.log-wrapper {
+  position: relative;
+  margin: 0 16px 0px;
+  border: 1px solid #d0dce8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tab-toolbar {
+  position: absolute;
+  right: 16px;
+  z-index: 2;
+}
+
+.log-meta {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: #eaf0f7;
+  border-bottom: 1px solid #d0dce8;
+
+  .row {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+.log-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 1rem;
+  color: #003d64;
+  font-family: 'Fira Code', 'Consolas', monospace;
+
+  .material-symbols-outlined {
+    font-size: 15px;
+    opacity: 0.7;
+  }
+}
+
+.steep-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.btn-steep {
+  border: 1px solid #003d64;
+  color: #003d64;
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 0.85rem;
+  background: transparent;
+  transition: all 0.2s;
+
+  &.active {
+    background: #003d64;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+::ng-deep .xml-tag {
+  color: #003d64;
+  font-weight: 600;
+}
+
+::ng-deep .xml-attr {
+  color: #b5520a;
+}
+
+::ng-deep .xml-string {
+  color: #2e7d32;
+}
+
+::ng-deep .xml-value {
+  color: #333;
+}
+
+::ng-deep .xml-inline {
+  display: block;
+  margin-top: 4px;
+  white-space: pre;
+}

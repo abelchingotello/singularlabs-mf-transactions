@@ -6,6 +6,7 @@ import { DialogSearchOperationComponent } from './dialog-search-operation/dialog
 import { DialogAdjustBalanceComponent } from './dialog-adjust-balance/dialog-adjust-balance.component';
 import { DialogMinBalanceComponent } from './dialog-min-balance/dialog-min-balance.component';
 import { DialogTransactionLogsComponent } from './dialog-transaction-logs/dialog-transaction-logs.component';
+import { DialogTransactionReprocessComponent } from './dialog-transaction-reprocess/dialog-transaction-reprocess.component';
 
 
 
@@ -15,7 +16,8 @@ import { DialogTransactionLogsComponent } from './dialog-transaction-logs/dialog
     DialogSearchOperationComponent,
     DialogAdjustBalanceComponent,
     DialogMinBalanceComponent,
-    DialogTransactionLogsComponent
+    DialogTransactionLogsComponent,
+    DialogTransactionReprocessComponent
   ],
   imports: [
     CommonModule,

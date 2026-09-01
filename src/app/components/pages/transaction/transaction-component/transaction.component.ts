@@ -34,6 +34,7 @@ import { PaginationUtils } from 'src/app/utilities/pagination-utils';
 import { ComponentType } from 'ngx-toastr';
 import { DialogTransactionStatusComponent } from 'src/app/dialogs/dialog-transaction-status/dialog-transaction-status.component';
 import { DialogTransactionLogsComponent } from 'src/app/dialogs/dialog-transaction-logs/dialog-transaction-logs.component';
+import { DialogTransactionReprocessComponent } from 'src/app/dialogs/dialog-transaction-reprocess/dialog-transaction-reprocess.component';
 @Component({
   selector: 'app-transaction',
   templateUrl: './transaction.component.html',
@@ -78,6 +79,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
         actions: [
           { bgClass: 'yellow', toolTip: 'Editar', icon: 'edit', value: 'edit', permission: 'transaction-edit' },
           { bgClass: 'gray', toolTip: 'Ver Logs', icon: 'visibility', value: 'view_logs', permission: 'transactions-logs' },
+          { bgClass: 'blue', toolTip: 'Reprocesar', icon: 'refresh', value: 'reprocess', permission: 'transactions-reprocess' },
         ],
       },
     },
@@ -187,6 +189,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
     switch (value) {
       case 'edit': this.openDialog(element, DialogTransactionStatusComponent, '600px'); break;
       case 'view_logs': this.openDialog(element, DialogTransactionLogsComponent, '800px'); break;
+      case 'reprocess': this.openDialog(element, DialogTransactionReprocessComponent, '800px'); break;
     }
   }
 
@@ -363,6 +366,9 @@ export class TransactionComponent implements OnInit, OnDestroy {
       width,
       data: {
         concep: data.concep,
+        reference: data.reference,
+        supply: data.supply,
+        amount: data.amountTransaction,
         statusTrans: data.status,
         pk: data.id_transaction,
         sk: data.sk,
@@ -410,7 +416,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
       const dluz = this.listProviders.find((p: any) => p.servicePerson.idPerson === `${environment.ID_PERSON_DLUZ}`);
       if (dluz && dluz.servicePerson.und_serv !== 'N/A') try { this.listUndServicesElectrocentro = JSON.parse(dluz.servicePerson.und_serv.replace(/\\/g, '')); } catch { this.listUndServicesElectrocentro = []; }
       else this.listUndServicesElectrocentro = [];
-     
+
       try {
 
         this.filteredDealers = acashData.data.dealers.data;
