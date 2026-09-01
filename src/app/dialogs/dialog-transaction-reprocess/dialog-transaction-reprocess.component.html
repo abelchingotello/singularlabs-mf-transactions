@@ -1,0 +1,30 @@
+<div class="bg-dialog mb-3 p-3">
+    <h3 class="m-0 text-dialog" mat-dialog-title>
+        Reprocesar conciliación
+    </h3>
+</div>
+
+<div class="p-3">
+    <p>
+        ¿Está seguro de que desea reprocesar la conciliación?
+    </p>
+
+    <div class="d-flex justify-content-end">
+        <button
+            mat-button
+            class="btn button-quaternary"
+            (click)="onNoClick()">
+            <mat-icon>close</mat-icon>
+            Cancelar
+        </button>
+
+        <button
+            mat-button
+            class="btn button-tertiary"
+            (click)="reprocessReconciliation()"
+            [disabled]="isDisable">
+            <mat-icon>refresh</mat-icon>
+            Reprocesar
+        </button>
+    </div>
+</div>

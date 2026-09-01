@@ -78,6 +78,10 @@ export class TransactionService {
     return this.httpClient.get(`${this.url}/transactions/logs?id=${pk}${isRec ? "&isRec=true" : ""}`);
   }
 
+  postReprocessTransaction(pk: string, data: any): Observable<any> {
+    return this.httpClient.post<any>(`${this.url}/reprocess/${pk}`, data);
+  }
+
   exportTransactions(
     format: 'xlsx' | 'csv',
     filters: TransactionFilters,
